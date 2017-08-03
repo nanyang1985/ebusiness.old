@@ -639,7 +639,7 @@ class Subcontractor(AbstractCompany):
 class SubcontractorBankInfo(BaseModel):
     subcontractor = models.ForeignKey(Subcontractor, on_delete=models.PROTECT, verbose_name=u"協力会社")
     bank_name = models.CharField(blank=False, null=False, max_length=20, verbose_name=u"銀行名称")
-    branch_no = models.CharField(blank=False, null=False, max_length=3, verbose_name=u"支店番号")
+    branch_no = models.CharField(blank=False, null=False, max_length=7, verbose_name=u"支店番号")
     branch_name = models.CharField(blank=False, null=False, max_length=20, verbose_name=u"支店名称")
     account_type = models.CharField(blank=False, null=False, max_length=1, choices=constants.CHOICE_ACCOUNT_TYPE,
                                     verbose_name=u"預金種類")
