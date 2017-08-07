@@ -586,9 +586,6 @@ class Subcontractor(AbstractCompany):
         :return: 
         """
         first_day = datetime.date(int(year), int(month), 1)
-        attendance_set = MemberAttendance.objects.public_filter(
-            year=year, month=month
-        )
         members = self.get_members_by_month(first_day)
         section_pk_list = [s.pk for s in section.get_children()]
         section_pk_list.append(section.pk)
@@ -671,7 +668,7 @@ class SubcontractorMember(BaseModel):
 
 
 class MailTemplate(BaseModel):
-    mail_title = models.CharField(max_length=50, verbose_name=u"送信メールのタイトル")
+    mail_title = models.CharField(max_length=50, unique=True, verbose_name=u"送信メールのタイトル")
     mail_body = models.TextField(blank=True, null=True, verbose_name=u"メール本文(Plain Text)")
     mail_html = models.TextField(blank=True, null=True, verbose_name=u"メール本文(HTML)")
     attachment1 = models.FileField(blank=True, null=True, upload_to="./attachment", verbose_name=u"添付ファイル１",
@@ -2583,7 +2580,8 @@ class SubcontractorRequestHeading(models.Model):
     company_name = models.CharField(blank=True, null=True, max_length=30, verbose_name=u"会社名")
     company_tel = models.CharField(blank=True, null=True, max_length=15, verbose_name=u"お客様電話番号")
     company_master = models.CharField(blank=True, null=True, max_length=30, verbose_name=u"代表取締役")
-    bank = models.ForeignKey(SubcontractorBankInfo, blank=True, null=True, on_delete=models.PROTECT, verbose_name=u"口座")
+    bank = models.ForeignKey(SubcontractorBankInfo, blank=True, null=True, on_delete=models.PROTECT,
+                             verbose_name=u"口座")
     bank_name = models.CharField(blank=True, null=True, max_length=20, verbose_name=u"銀行名称")
     branch_no = models.CharField(blank=True, null=True, max_length=3, verbose_name=u"支店番号")
     branch_name = models.CharField(blank=True, null=True, max_length=20, verbose_name=u"支店名称")
@@ -2801,7 +2799,8 @@ class MemberAttendance(BaseModel):
                 return contract.get_cost()
         return 0
 
-    def get_bonus(self):
+    @classmethod
+    def get_bonus(cls):
         """ボーナスを取得する。
 
         正社員の場合はボーナスある。
@@ -3387,15 +3386,7 @@ class BatchManage(BaseModel):
     title = models.CharField(max_length=50, verbose_name=u"バッチタイトル")
     cron_tab = models.CharField(blank=True, null=True, max_length=100, verbose_name=u"バッチの実行タイミング")
     is_active = models.BooleanField(default=True, verbose_name=u"有効フラグ")
-    mail_title = models.CharField(max_length=50, verbose_name=u"送信メールのタイトル")
-    mail_body = models.TextField(blank=True, null=True, verbose_name=u"メール本文(Plain Text)")
-    mail_html = models.TextField(blank=True, null=True, verbose_name=u"メール本文(HTML)")
-    attachment1 = models.FileField(blank=True, null=True, upload_to="./attachment", verbose_name=u"添付ファイル１",
-                                   help_text=u"メール送信時の添付ファイルその１。")
-    attachment2 = models.FileField(blank=True, null=True, upload_to="./attachment", verbose_name=u"添付ファイル２",
-                                   help_text=u"メール送信時の添付ファイルその２。")
-    attachment3 = models.FileField(blank=True, null=True, upload_to="./attachment", verbose_name=u"添付ファイル３",
-                                   help_text=u"メール送信時の添付ファイルその３。")
+    mail_template = models.ForeignKey(MailTemplate, blank=True, null=True, verbose_name=u"メールテンプレート")
     is_send_to_boss = models.BooleanField(default=True, verbose_name=u"上司に送る")
     is_send_to_self = models.BooleanField(default=True, verbose_name=u"自分に送る")
     description = models.TextField(blank=True, null=True, verbose_name=u"説明")
@@ -3433,18 +3424,21 @@ class BatchManage(BaseModel):
         :param context:
         :return:
         """
-        today = datetime.datetime.now()
-        # FROM
-        from_email = Config.get(constants.CONFIG_ADMIN_EMAIL_ADDRESS)
-        title = self.mail_title + today.strftime(u"_%y%m%d")
-        # BODY
-        t = Template(self.mail_body)
-        ctx = Context(context)
-        body = t.render(ctx)
-        # HTML
-        t = Template(self.mail_html)
-        ctx = Context(context)
-        html = t.render(ctx)
+        if self.mail_template:
+            today = datetime.datetime.now()
+            # FROM
+            from_email = Config.get(constants.CONFIG_ADMIN_EMAIL_ADDRESS)
+            title = self.mail_template.mail_title + today.strftime(u"_%y%m%d")
+            # BODY
+            t = Template(self.mail_template.mail_body)
+            ctx = Context(context)
+            body = t.render(ctx)
+            # HTML
+            t = Template(self.mail_template.mail_html)
+            ctx = Context(context)
+            html = t.render(ctx)
+        else:
+            from_email = title = body = html = ""
 
         return from_email, title, body, html
 

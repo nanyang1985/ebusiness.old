@@ -424,7 +424,9 @@ def send_attendance_format(batch, date):
     :return:
     """
     logger = batch.get_logger()
-    if not batch.attachment1 or not os.path.exists(batch.attachment1.path):
+    if not batch.mail_template or \
+            not batch.mail_template.attachment1 or \
+            not os.path.exists(batch.mail_template.attachment1.path):
         logger.warning(u"出勤フォーマットの添付ファイルが設定していません。")
         return
 
@@ -446,7 +448,7 @@ def send_attendance_format(batch, date):
             continue
 
         project_members = biz.get_project_members_month_section(section, date)
-        output = file_gen.generate_attendance_format(batch.attachment1.path, project_members, date)
+        output = file_gen.generate_attendance_format(batch.mail_template.attachment1.path, project_members, date)
 
         context = {'statistician': statistician,
                    'section': section,
@@ -539,15 +541,15 @@ def batch_push_new_member(batch):
     :return:
     """
     logger = batch.get_logger()
-    if batch.mail_body and '%s' in batch.mail_body:
+    if batch.mail_template and batch.mail_template.mail_body and '%s' in batch.mail_template.mail_body:
         gcm_url = models.Config.get_gcm_url()
         # 新入社員通知
         members = models.Member.objects.public_filter(join_date=datetime.date.today())
         if members.count() > 0:
-            message = batch.mail_body % u"、".join([unicode(m) for m in members])
+            message = batch.mail_template.mail_body % u"、".join([unicode(m) for m in members])
             # ユーザー全員
             users = User.objects.filter(is_active=True)
-            push_notification(users, batch.mail_title, message, gcm_url)
+            push_notification(users, batch.mail_template.mail_title, message, gcm_url)
             logger.info(message)
         else:
             logger.info(u"新入社員がいません。")
@@ -564,7 +566,7 @@ def batch_push_birthday(batch):
     :return:
     """
     logger = batch.get_logger()
-    if batch.mail_body and '%s' in batch.mail_body:
+    if batch.mail_template and batch.mail_template.mail_body and '%s' in batch.mail_template.mail_body:
         gcm_url = models.Config.get_gcm_url()
         today = datetime.date.today()
         # 今日誕生日の社員
@@ -573,14 +575,14 @@ def batch_push_birthday(batch):
             day=ExtractDay('birthday')
         ).filter(day='%02d' % today.day, month='%02d' % today.month).exclude(member_type=4)
         if members.count() > 0:
-            message = batch.mail_body % u"、".join([unicode(m) for m in members])
+            message = batch.mail_template.mail_body % u"、".join([unicode(m) for m in members])
             # スーパーユーザーと営業員
             users = User.objects.filter(Q(is_superuser=True) |
                                         (Q(salesperson__isnull=False) &
                                          Q(salesperson__is_retired=False) &
                                          Q(salesperson__is_deleted=False)),
                                         is_active=True)
-            push_notification(users, batch.mail_title, message, gcm_url)
+            push_notification(users, batch.mail_template.mail_title, message, gcm_url)
             logger.info(message)
         else:
             logger.info(u"今日(%s)誕生日の社員がいません。" % today.strftime('%Y-%m-%d'))
@@ -590,7 +592,7 @@ def batch_push_birthday(batch):
 
 def batch_push_waiting_member(batch):
     logger = batch.get_logger()
-    if batch.mail_body and '%s' in batch.mail_body:
+    if batch.mail_template and batch.mail_template.mail_body and '%s' in batch.mail_template.mail_body:
         gcm_url = models.Config.get_gcm_url()
         today = datetime.date.today()
         # すべて待機の社員
@@ -609,8 +611,8 @@ def batch_push_waiting_member(batch):
                                                  membersalespersonperiod__start_date__lte=today,
                                                  membersalespersonperiod__salesperson=user.salesperson)
                     if members.count() > 0:
-                        message = batch.mail_body % u"、".join([unicode(m) for m in members])
-                        push_notification([user], batch.mail_title, message, gcm_url)
+                        message = batch.mail_template.mail_body % u"、".join([unicode(m) for m in members])
+                        push_notification([user], batch.mail_template.mail_title, message, gcm_url)
                         logger.info(u"%s: %s。" % (unicode(user.salesperson), message))
         else:
             logger.info(u"待機社員がいません。")
