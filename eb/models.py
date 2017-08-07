@@ -2837,8 +2837,10 @@ class MemberAttendance(BaseModel):
         """
         contract = self.get_contract()
         if contract:
-            if self.project_member.member.employee_id == 'BP01126':
+            if self.project_member.member.employee_id == 'BP01193':
                 pass
+            if contract.is_fixed_cost:
+                return 0
             total_hours = self.get_total_hours_cost()
             if contract.allowance_time_min <= total_hours <= contract.allowance_time_max:
                 return 0
