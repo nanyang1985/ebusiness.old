@@ -343,6 +343,7 @@ class BpContract(BaseModel):
         elif self.calculate_type in ('01', '02', '03'):
             allowance_time_min = self.get_allowance_time_min(year, month)
             allowance_absenteeism = int(int(self.allowance_base) / allowance_time_min)
+            allowance_absenteeism -= allowance_absenteeism % 10
         else:
             allowance_absenteeism = self.allowance_absenteeism
         return allowance_absenteeism
@@ -353,7 +354,7 @@ class BpContract(BaseModel):
         elif self.calculate_type in ('01', '02', '03'):
             allowance_time_min = self.get_allowance_time_min(year, month)
             allowance_absenteeism = self.get_allowance_absenteeism(year, month)
-            allowance_absenteeism_memo = u"不足単価：￥%s/%sh=￥%s/h" % (
+            allowance_absenteeism_memo = u"不足単価：¥%s/%sh=¥%s/h" % (
                 humanize.intcomma(self.allowance_base), allowance_time_min, humanize.intcomma(allowance_absenteeism)
             )
         else:
