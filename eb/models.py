@@ -556,25 +556,26 @@ class Subcontractor(AbstractCompany):
         :param month: 
         :return: 
         """
-        first_day = datetime.date(int(year), int(month), 1)
+        first_day = datetime.date(int(year), int(month), 10)
         members = self.get_members_by_month(first_day)
         organizations = []
         ret_list = []
         for member in members:
             section = member.get_section(first_day)
-            division = section.get_root_section()
-            if division not in organizations:
-                try:
-                    subcontractor_request = SubcontractorRequest.objects.get(
-                        subcontractor=self,
-                        section=division,
-                        year=year,
-                        month=month
-                    )
-                except (ObjectDoesNotExist, MultipleObjectsReturned):
-                    subcontractor_request = None
-                organizations.append(division)
-                ret_list.append((division, subcontractor_request))
+            if section:
+                division = section.get_root_section()
+                if division not in organizations:
+                    try:
+                        subcontractor_request = SubcontractorRequest.objects.get(
+                            subcontractor=self,
+                            section=division,
+                            year=year,
+                            month=month
+                        )
+                    except (ObjectDoesNotExist, MultipleObjectsReturned):
+                        subcontractor_request = None
+                    organizations.append(division)
+                    ret_list.append((division, subcontractor_request))
         return ret_list
 
     def get_members_by_month_and_section(self, year, month, section):
