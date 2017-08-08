@@ -2031,7 +2031,7 @@ class DownloadSectionAttendance(BaseView):
         lump_projects = biz.get_lump_projects_by_section(section, date)
         filename = constants.NAME_SECTION_ATTENDANCE % (section.name, int(year), int(month))
         output = file_gen.generate_attendance_format(
-            request.user, batch.attachment1.path, project_members, lump_projects, year, month
+            request.user, batch.mail_template.attachment1.path, project_members, lump_projects, year, month
         )
         response = HttpResponse(output, content_type="application/ms-excel")
         response['Content-Disposition'] = "filename=" + urllib.quote(filename.encode('utf-8')) + ".xlsx"
