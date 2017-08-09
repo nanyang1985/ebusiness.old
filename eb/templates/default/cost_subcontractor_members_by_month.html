@@ -16,7 +16,7 @@
             if (is_overwrite && !confirm("既に作成済みなので、上書きしてもよろしいですか？")) {
                 return false;
             }
-            musk();
+            //musk();
             ajax_post(url, {}, function(data) {callback_fn(obj, data)});
         }
 
@@ -39,7 +39,7 @@
                 $(obj).parent().append('|&nbsp;<a href="' + download_pay_notify_link + '" target="_blank" style="font-size: 11px;">Download</a>');
             }
             alert("作成完了しました！");
-            unmask();
+            //unmask();
         }
     </script>
 {% endblock %}
