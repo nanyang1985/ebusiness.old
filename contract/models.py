@@ -258,7 +258,7 @@ class ContractRecipient(BaseModel):
 
 class BpContract(BaseModel):
     member = models.ForeignKey(Member, verbose_name=u"社員")
-    company = models.ForeignKey(Subcontractor, verbose_name=u"雇用会社")
+    company = models.ForeignKey(Subcontractor, on_delete=models.PROTECT, verbose_name=u"雇用会社")
     member_type = models.IntegerField(default=4, editable=False, choices=constants.CHOICE_MEMBER_TYPE,
                                       verbose_name=u"雇用形態")
     start_date = models.DateField(verbose_name=u"雇用開始日")

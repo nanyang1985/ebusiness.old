@@ -327,7 +327,7 @@ function musk() {
 }
 
 function unmask() {
-
+    $("div.musk").remove();
 }
 
 function toNum(text) {

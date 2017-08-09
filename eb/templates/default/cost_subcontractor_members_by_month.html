@@ -12,19 +12,34 @@
             init_select("project_member__project__name__icontains");
         };
 
-        function generate_request(obj, url) {
+        function generate_request(obj, url, is_overwrite) {
+            if (is_overwrite && !confirm("既に作成済みなので、上書きしてもよろしいですか？")) {
+                return false;
+            }
+            musk();
             ajax_post(url, {}, function(data) {callback_fn(obj, data)});
         }
 
         function callback_fn (obj, data) {
             if ($(obj).text() == "新規作成") {
                 $(obj).text("再作成");
-                download_link = "/eb/download/subcontractor_request/" + data.pk + ".html";
-                $(obj).parent().append('|&nbsp;<a href="' + download_link + '" target="_blank" style="font-size: 11px;">Download</a>');
-                view_link = "/eb/subcontractor/subcontractor_request_view/" + data.pk + ".html";
-                $(obj).parent().append('|&nbsp;<a href="' + view_link + '" target="_blank" style="font-size: 11px;">' + data.request_no + '</a>');
+                // 請求書ダウンロード
+                download_request_link = "/eb/download/subcontractor_request/" + data.pk + ".html";
+                $(obj).parent().append('|&nbsp;<a href="' + download_request_link + '" target="_blank" style="font-size: 11px;">Download</a>');
+                // 請求書参照
+                view_request_link = "/eb/subcontractor/subcontractor_request_view/" + data.pk + ".html";
+                $(obj).parent().append('|&nbsp;<a href="' + view_request_link + '" target="_blank" style="font-size: 11px;">' + data.request_no + '</a>');
+                // 改行
+                $(obj).parent().append('<br/>');
+                // 支払通知書参照
+                view_pay_notify_link = "/eb/subcontractor/subcontractor_pay_notify_view/" + data.pk + ".html";
+                $(obj).parent().append('<a href="' + view_pay_notify_link + '" target="_blank" style="font-size: 11px;">支払通知書</a>');
+                // 支払通知書ダウンロード
+                download_pay_notify_link = "/eb/download/subcontractor_pay_notify/" + data.pk + ".html";
+                $(obj).parent().append('|&nbsp;<a href="' + download_pay_notify_link + '" target="_blank" style="font-size: 11px;">Download</a>');
             }
             alert("作成完了しました！");
+            unmask();
         }
     </script>
 {% endblock %}
@@ -43,18 +58,22 @@
     </div>
     {% if subcontractor %}
     <div class="dashboard">
-        <div class="dashboard-title">{{ subcontractor }}の請求書</div>
+        <div class="dashboard-title">{{ subcontractor }}の請求書と支払通知書</div>
         <form action="" method="get">
             {% for section, subcontractor_request in sections %}
-            <div style="width: 220px; float: left; border: 1px solid lightgray; padding: 5px; border-radius: 5px; margin-right: 10px;">
-                <img src="/static/admin/img/invoice.png" width="40px;" style="float: left;">
+            <div style="width: 230px; float: left; border: 1px solid lightgray; padding: 5px; border-radius: 5px; margin-right: 10px;">
+                <img src="/static/admin/img/invoice.png" width="58px;" style="float: left;">
                 <div style="padding-left: 5px; float: left; color: #ff00e7;">
                     {{ section }}<br/>
-                    <a onclick="generate_request(this, '{% url 'generate_subcontractor_request' subcontractor.pk section.pk year month %}')"
+                    <a onclick="generate_request(this, '{% url 'generate_subcontractor_request' subcontractor.pk section.pk year month %}', {% if subcontractor_request %}true{% else %}false{% endif %})"
                        style="font-size: 11px;" href="javascript:void(0)">{% if subcontractor_request %}再作成{% else %}新規作成{% endif %}</a>
                     {% if subcontractor_request %}
                         |&nbsp;<a href="{% url 'download_subcontractor_request' subcontractor_request.pk %}" target="_blank" style="font-size: 11px;">Download</a>
                         |&nbsp;<a href="{% url 'view_subcontractor_request' subcontractor_request.pk %}" target="_blank" style="font-size: 11px;">{{ subcontractor_request.request_no }}</a>
+                        <br/>
+                        <a href="{% url 'view_subcontractor_pay_notify' subcontractor_request.pk %}" style="font-size: 11px;" target="_blank">支払通知書</a>
+                        |&nbsp;<a href="{% url 'download_subcontractor_pay_notify' subcontractor_request.pk %}" style="font-size: 11px;" target="_blank">Download</a>
+                        |&nbsp;<a href="javascript:void(0)" style="font-size: 11px;" target="_blank">送信</a>
                     {% endif %}
                 </div>
             </div>

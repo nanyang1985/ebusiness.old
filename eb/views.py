@@ -1013,11 +1013,12 @@ class SubcontractorRequestView(BaseTemplateView):
         else:
             request_heading = None
         request_details = list(subcontractor_request.subcontractorrequestdetail_set.all())
-        # project_members = [detail.project_member for detail in request_details]
-        # detail_expenses, expenses_amount = biz.get_request_expenses_list(subcontractor_request.project,
-        #                                                                  subcontractor_request.year,
-        #                                                                  subcontractor_request.month,
-        #                                                                  project_members)
+        project_members = [detail.project_member for detail in request_details]
+        detail_expenses, expenses_amount = biz.get_subcontractor_request_expenses_list(
+            subcontractor_request.year,
+            subcontractor_request.month,
+            project_members
+        )
         if len(request_details) < 20:
             request_details.extend([None] * (20 - len(request_details)))
 
@@ -1030,7 +1031,34 @@ class SubcontractorRequestView(BaseTemplateView):
             'project_request': subcontractor_request,
             'request_heading': request_heading,
             'request_details': request_details,
-            'detail_expenses': [],
+            'detail_expenses': detail_expenses,
+        })
+        return self.render_to_response(context)
+
+
+class SubcontractorPayNotifyView(BaseTemplateView):
+    template_name = 'default/subcontractor_pay_notify.html'
+
+    def get(self, request, *args, **kwargs):
+        request_id = kwargs.get('request_id', 0)
+        subcontractor_request = get_object_or_404(models.SubcontractorRequest, pk=request_id)
+        if hasattr(subcontractor_request, 'subcontractorrequestheading'):
+            request_heading = subcontractor_request.subcontractorrequestheading
+        else:
+            request_heading = None
+        request_details = list(subcontractor_request.subcontractorrequestdetail_set.all())
+        detail_expenses = sum([d.expenses_price for d in request_details])
+
+        context = self.get_context_data()
+        title_args = (unicode(subcontractor_request.subcontractor),
+                      subcontractor_request.year,
+                      subcontractor_request.month)
+        context.update({
+            'title': u'支払通知書 | %s | %s年%s月' % title_args,
+            'project_request': subcontractor_request,
+            'request_heading': request_heading,
+            'request_details': request_details,
+            'detail_expenses': detail_expenses,
         })
         return self.render_to_response(context)
 
@@ -2056,6 +2084,7 @@ class DownloadMembersCostView(BaseView):
 class GenerateSubcontractorRequestView(BaseView):
 
     def post(self, request, *args, **kwargs):
+        company = biz.get_company()
         subcontractor_id = kwargs.get(str('subcontractor_id'))
         org_id = kwargs.get(str('org_id'))
         year = kwargs.get(str('year'))
@@ -2064,9 +2093,14 @@ class GenerateSubcontractorRequestView(BaseView):
         subcontractor = get_object_or_404(models.Subcontractor, pk=subcontractor_id)
         subcontractor_request = subcontractor.get_subcontractor_request(year, month, organization)
         data = biz.generate_subcontractor_request_data(subcontractor, year, month, subcontractor_request)
+        # 協力会社請求書
         path = file_gen.generate_request_linux(subcontractor, data, subcontractor_request.request_no, year + month)
         filename = os.path.basename(path)
         subcontractor_request.filename = filename
+        # お支払通知書
+        path = file_gen.generate_pay_notify(data, template_path=common.get_template_pay_notify_path(company))
+        filename = os.path.basename(path)
+        subcontractor_request.pay_notify_filename = filename
         subcontractor_request.created_user = request.user if not subcontractor_request.pk \
             else subcontractor_request.created_user
         subcontractor_request.updated_user = request.user
@@ -2100,6 +2134,26 @@ class DownloadSubcontractorRequestView(BaseView):
             # ファイルが存在しない場合、エラーとする。
             raise errors.FileNotExistException(constants.ERROR_REQUEST_FILE_NOT_EXISTS)
         filename = subcontractor_request.filename
+        response = HttpResponse(open(path, 'rb'), content_type="application/excel")
+        response['Content-Disposition'] = "filename=" + urllib.quote(filename.encode('UTF-8'))
+        return response
+
+
+class DownloadSubcontractorPayNotifyView(BaseView):
+
+    def get(self, request, *args, **kwargs):
+        subcontractor_request_id = kwargs.get('subcontractor_request_id')
+        subcontractor_request = get_object_or_404(models.SubcontractorRequest, pk=subcontractor_request_id)
+        path = os.path.join(
+            settings.GENERATED_FILES_ROOT,
+            "pay_notify",
+            subcontractor_request.year + subcontractor_request.month,
+            subcontractor_request.pay_notify_filename
+        )
+        if not os.path.exists(path):
+            # ファイルが存在しない場合、エラーとする。
+            raise errors.FileNotExistException(constants.ERROR_REQUEST_FILE_NOT_EXISTS)
+        filename = subcontractor_request.pay_notify_filename
         response = HttpResponse(open(path, 'rb'), content_type="application/excel")
         response['Content-Disposition'] = "filename=" + urllib.quote(filename.encode('UTF-8'))
         return response

@@ -347,6 +347,8 @@ class Company(AbstractCompany):
     request_file = models.FileField(blank=True, null=True, upload_to="./request", verbose_name=u"請求書テンプレート")
     request_lump_file = models.FileField(blank=True, null=True, upload_to="./request",
                                          verbose_name=u"請求書テンプレート(一括)")
+    pay_notify_file = models.FileField(blank=True, null=True, upload_to="./request",
+                                       verbose_name=u"支払通知書テンプレート")
     order_file = models.FileField(blank=True, null=True, upload_to="./eb_order", verbose_name=u"註文書テンプレート",
                                   help_text=u"協力会社への註文書。")
 
@@ -617,11 +619,13 @@ class Subcontractor(AbstractCompany):
             if request_no and re.match(r"^([0-9]{7}|[0-9]{7}-[0-9]{3})$", request_no):
                 no = request_no[4:7]
                 no = "%03d" % (int(no) + 1,)
-                next_request = "%s%s%s" % (year[2:], month, no)
             else:
-                next_request = "%s%s%s" % (year[2:], month, "001")
+                no = "001"
+            next_request = "%s%s%s" % (year[2:], month, no)
+            next_pay_notify_no = "EB%s%s%s" % (year[2:], month, no)
             subcontractor_request = SubcontractorRequest(
-                subcontractor=self, section=organization, year=year, month=month, request_no=next_request
+                subcontractor=self, section=organization, year=year, month=month, request_no=next_request,
+                pay_notify_no=next_pay_notify_no,
             )
             return subcontractor_request
         else:
@@ -2332,7 +2336,7 @@ class ProjectMember(models.Model):
         :return:
         """
         expense = self.memberexpenses_set.public_filter(year=str(year),
-                                                        month="%02d" % (month,),
+                                                        month="%02d" % int(month),
                                                         is_deleted=False).aggregate(price=Sum('price'))
         return expense.get('price') if expense.get('price') else 0
 
@@ -2444,11 +2448,13 @@ class SubcontractorRequest(models.Model):
     month = models.CharField(max_length=2, choices=constants.CHOICE_ATTENDANCE_MONTH, verbose_name=u"対象月")
     request_no = models.CharField(max_length=7, unique=True, verbose_name=u"請求番号")
     request_name = models.CharField(max_length=50, blank=True, null=True, verbose_name=u"請求名称")
+    pay_notify_no = models.CharField(max_length=9, unique=True, null=True, verbose_name=u"支払通知書番号")
     amount = models.IntegerField(default=0, verbose_name=u"請求金額（税込）")
     turnover_amount = models.IntegerField(default=0, verbose_name=u"売上金額（基本単価＋残業料）（税抜き）")
     tax_amount = models.IntegerField(default=0, verbose_name=u"税金")
     expenses_amount = models.IntegerField(default=0, verbose_name=u"精算金額")
     filename = models.CharField(max_length=255, blank=True, null=True, verbose_name=u"請求書ファイル名")
+    pay_notify_filename = models.CharField(max_length=255, blank=True, null=True, verbose_name=u"支払通知書ファイル名")
     created_user = models.ForeignKey(User, related_name='created_subcontractor_requests', null=True,
                                      on_delete=models.PROTECT, editable=False, verbose_name=u"作成者")
     created_date = models.DateTimeField(null=True, auto_now_add=True, editable=False, verbose_name=u"作成日時")
@@ -2488,6 +2494,7 @@ class SubcontractorRequest(models.Model):
                 client_post_code=data['DETAIL']['CLIENT_POST_CODE'],
                 client_address=data['DETAIL']['CLIENT_ADDRESS'],
                 client_tel=data['DETAIL']['CLIENT_TEL'],
+                client_fax=data['DETAIL']['CLIENT_FAX'],
                 client_name=data['DETAIL']['CLIENT_COMPANY_NAME'],
                 tax_rate=company.tax_rate,
                 decimal_type=company.decimal_type,
@@ -2495,6 +2502,7 @@ class SubcontractorRequest(models.Model):
                 work_period_end=data['EXTRA']['WORK_PERIOD_END'],
                 remit_date=data['EXTRA']['REMIT_DATE'],
                 publish_date=data['EXTRA']['PUBLISH_DATE'],
+                created_date=data['DETAIL']['CREATE_DATE'],
                 company_post_code=data['DETAIL']['POST_CODE'],
                 company_address=data['DETAIL']['ADDRESS'],
                 company_name=data['DETAIL']['COMPANY_NAME'],
@@ -2514,6 +2522,7 @@ class SubcontractorRequest(models.Model):
                 ym = data['EXTRA']['YM']
                 contract = project_member.member.get_contract(date)
                 detail = SubcontractorRequestDetail(subcontractor_request=self)
+                detail.bp_member_order = item['BP_MEMBER_ORDER']
                 detail.project_member = project_member
                 detail.member_section = project_member.member.get_section(date)
                 detail.member_type = 4
@@ -2530,8 +2539,10 @@ class SubcontractorRequest(models.Model):
                 detail.rate = item['ITEM_RATE']
                 detail.plus_per_hour = contract.allowance_overtime
                 detail.minus_per_hour = contract.allowance_absenteeism
+                detail.plus_amount = item['ITEM_PLUS_AMOUNT']
+                detail.minus_amount = item['ITEM_MINUS_AMOUNT']
                 detail.total_price = item['ITEM_AMOUNT_TOTAL']
-                detail.expenses_price = project_member.get_expenses_amount(ym[:4], int(ym[4:]))
+                detail.expenses_price = item['ITEM_EXPENSES_TOTAL']
                 detail.comment = item['ITEM_COMMENT']
                 # detail = SubcontractorRequestDetail(
                 #     subcontractor_request=self,
@@ -2568,6 +2579,7 @@ class SubcontractorRequestHeading(models.Model):
     client_post_code = models.CharField(blank=True, null=True, max_length=8, verbose_name=u"お客様郵便番号")
     client_address = models.CharField(blank=True, null=True, max_length=200, verbose_name=u"お客様住所１")
     client_tel = models.CharField(blank=True, null=True, max_length=15, verbose_name=u"お客様電話番号")
+    client_fax = models.CharField(blank=True, null=True, max_length=15, verbose_name=u"お客様ファックス")
     client_name = models.CharField(blank=True, null=True, max_length=30, verbose_name=u"お客様会社名")
     tax_rate = models.DecimalField(blank=True, null=True, max_digits=3, decimal_places=2, verbose_name=u"税率")
     decimal_type = models.CharField(blank=True, null=True, max_length=1, choices=constants.CHOICE_DECIMAL_TYPE,
@@ -2576,6 +2588,7 @@ class SubcontractorRequestHeading(models.Model):
     work_period_end = models.DateField(blank=True, null=True, verbose_name=u"作業期間＿終了")
     remit_date = models.DateField(blank=True, null=True, verbose_name=u"お支払い期限")
     publish_date = models.DateField(blank=True, null=True, verbose_name=u"発行日")
+    created_date = models.DateField(blank=True, null=True, verbose_name=u"作成日")
     company_post_code = models.CharField(blank=True, null=True, max_length=8, verbose_name=u"本社郵便番号")
     company_address = models.CharField(blank=True, null=True, max_length=200, verbose_name=u"本社住所")
     company_name = models.CharField(blank=True, null=True, max_length=30, verbose_name=u"会社名")
@@ -2598,6 +2611,7 @@ class SubcontractorRequestHeading(models.Model):
 
 class SubcontractorRequestDetail(models.Model):
     subcontractor_request = models.ForeignKey(SubcontractorRequest, on_delete=models.PROTECT, verbose_name=u"請求書")
+    bp_member_order = models.ForeignKey('BpMemberOrder', null=True, on_delete=models.PROTECT, verbose_name=u"ＢＰ注文書")
     project_member = models.ForeignKey('ProjectMember', on_delete=models.PROTECT, verbose_name=u"メンバー")
     member_section = models.ForeignKey(Section, verbose_name=u"部署")
     member_type = models.IntegerField(default=4, choices=constants.CHOICE_MEMBER_TYPE, verbose_name=u"社員区分")
@@ -2617,6 +2631,8 @@ class SubcontractorRequestDetail(models.Model):
     rate = models.DecimalField(max_digits=3, decimal_places=2, default=1, verbose_name=u"率")
     plus_per_hour = models.IntegerField(default=0, editable=False, verbose_name=u"増（円）")
     minus_per_hour = models.IntegerField(default=0, editable=False, verbose_name=u"減（円）")
+    plus_amount = models.IntegerField(default=0, editable=False, verbose_name=u"超過金額")
+    minus_amount = models.IntegerField(default=0, editable=False, verbose_name=u"控除金額")
     total_price = models.IntegerField(default=0, verbose_name=u"売上（基本単価＋残業料）（税抜き）")
     expenses_price = models.IntegerField(default=0, verbose_name=u"精算金額")
     comment = models.CharField(blank=True, null=True, max_length=50, verbose_name=u"備考")

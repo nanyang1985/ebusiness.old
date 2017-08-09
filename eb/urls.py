@@ -56,6 +56,8 @@ download_patterns = [
     url(r'^member/cost_list.html$', views.DownloadMembersCostView.as_view(), name='download_members_cost'),
     url(r'^subcontractor_request/(?P<subcontractor_request_id>[0-9]+).html$',
         views.DownloadSubcontractorRequestView.as_view(), name='download_subcontractor_request'),
+    url(r'^subcontractor_pay_notify/(?P<subcontractor_request_id>[0-9]+).html$',
+        views.DownloadSubcontractorPayNotifyView.as_view(), name='download_subcontractor_pay_notify'),
 ]
 
 image_patterns = [
@@ -111,6 +113,9 @@ subcontractor_patterns = [
         name='cost_subcontractor_members_by_month'),
     url(r'^subcontractor_request_view/(?P<request_id>[0-9]+).html$', views.SubcontractorRequestView.as_view(),
         name='view_subcontractor_request'),
+    url(r'^subcontractor_pay_notify_view/(?P<request_id>[0-9]+).html$',
+        views.SubcontractorPayNotifyView.as_view(),
+        name='view_subcontractor_pay_notify'),
 ]
 
 project_patterns = [

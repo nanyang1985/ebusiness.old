@@ -12,7 +12,8 @@ import StringIO
 import xlsxwriter
 import openpyxl as px
 from openpyxl.writer.excel import save_virtual_workbook
-from openpyxl.styles import Font
+from openpyxl.styles import Font, Border, Side, Alignment
+from openpyxl.drawing.image import Image
 
 try:
     import pythoncom
@@ -586,9 +587,9 @@ def generate_request_linux(project, data, request_no, ym):
     cell_format = book.add_format({'font_size': 11,
                                    'border': 1, })
     range1_format = book.add_format({'font_size': 11,
-                                    'left': 1,
-                                    'top': 1,
-                                    'bottom': 1})
+                                     'left': 1,
+                                     'top': 1,
+                                     'bottom': 1})
     range2_format = book.add_format({'font_size': 11,
                                     'top': 1,
                                     'bottom': 1})
@@ -789,6 +790,165 @@ def generate_request(company, project, data, request_no, ym):
         return path
     else:
         return generate_request_linux(project, data, request_no, ym)
+
+
+def generate_pay_notify(data, template_path):
+    """openpyxlを利用してお支払通知書を作成する。
+
+    :param data:
+    :param template_path:
+    :return:
+    """
+    from django.contrib.humanize.templatetags import humanize
+    book = px.load_workbook(template_path)
+    sheet = book.get_sheet_by_name('支払通知書')
+
+    pay_notify_no = data['DETAIL']['PAY_NOTIFY_NO']
+    partner_name = data['DETAIL']['COMPANY_NAME']
+    path = common.get_pay_notify_file_path(pay_notify_no, partner_name, data['EXTRA']['YM'])
+
+    # 電子印鑑
+    from django.conf import settings
+    img_path = os.path.join(settings.STATICFILES_DIRS[0], 'admin/img/signature.png')
+    img = Image(img_path)
+    sheet.add_image(img, 'R5')
+
+    # 見出し部分
+    for row in sheet.iter_rows():
+        for cell in row:
+            if cell.value and isinstance(cell.value, basestring):
+                replaced_string = get_openpyxl_replaced_string(cell.value, data['DETAIL'])
+                if replaced_string is not None:
+                    cell.value = replaced_string
+    # 合計金額（税込み）
+    amount = data['DETAIL']['ITEM_AMOUNT_ALL']
+    sheet.cell(row=14, column=8).value = '¥%s' % humanize.intcomma(amount)
+    # リスト部分
+    details = data['MEMBERS']
+    start_row = 17
+    thin = Side(border_style="thin", color="000000")
+    for detail in details:
+        sheet.row_dimensions[start_row].height = 20
+        # 番号
+        sheet.cell(row=start_row, column=1).value = detail['NO']
+        sheet.merge_cells(start_row=start_row, start_column=1, end_row=start_row + 3, end_column=1)
+        sheet.cell(row=start_row, column=1).border = Border(top=thin, left=thin, right=thin)
+        sheet.cell(row=start_row + 1, column=1).border = Border(top=thin, left=thin, right=thin)
+        sheet.cell(row=start_row + 2, column=1).border = Border(top=thin, left=thin, right=thin)
+        sheet.cell(row=start_row + 3, column=1).border = Border(top=thin, left=thin, right=thin, bottom=thin)
+        sheet.cell(row=start_row, column=1).alignment = Alignment(horizontal="center", vertical="center")
+        # 名前
+        sheet.cell(row=start_row, column=2).value = detail['ITEM_NAME']
+        sheet.cell(row=start_row, column=2).alignment = Alignment(vertical="center")
+        # 数量（勤務時間）
+        sheet.cell(row=start_row, column=8).value = detail['ITEM_WORK_HOURS']
+        sheet.cell(row=start_row, column=8).number_format = '#,##0.00'
+        sheet.cell(row=start_row, column=8).alignment = Alignment(vertical="center")
+        sheet.merge_cells(start_row=start_row, start_column=8, end_row=start_row, end_column=9)
+        # 単位
+        sheet.cell(row=start_row, column=10).value = '時間'
+        sheet.cell(row=start_row, column=10).alignment = Alignment(vertical="center")
+        sheet.merge_cells(start_row=start_row, start_column=10, end_row=start_row, end_column=11)
+        # 単価
+        sheet.cell(row=start_row, column=12).value = detail['ITEM_AMOUNT_BASIC']
+        sheet.cell(row=start_row, column=12).number_format = '#,##0'
+        sheet.cell(row=start_row, column=12).alignment = Alignment(vertical="center")
+        sheet.merge_cells(start_row=start_row, start_column=12, end_row=start_row, end_column=13)
+        # 金額
+        sheet.cell(row=start_row, column=14).value = detail['ITEM_AMOUNT_TOTAL']
+        sheet.cell(row=start_row, column=14).number_format = '#,##0'
+        sheet.cell(row=start_row, column=14).alignment = Alignment(vertical="center")
+        sheet.merge_cells(start_row=start_row, start_column=14, end_row=start_row, end_column=16)
+        # 諸経費
+        sheet.cell(row=start_row, column=17).value = 0
+        sheet.cell(row=start_row, column=17).number_format = '#,##0'
+        sheet.cell(row=start_row, column=17).alignment = Alignment(vertical="center")
+        sheet.merge_cells(start_row=start_row, start_column=17, end_row=start_row, end_column=18)
+        # 合計
+        sheet.cell(row=start_row, column=19).value = detail['ITEM_AMOUNT_TOTAL'] + 0
+        sheet.cell(row=start_row, column=19).number_format = '#,##0'
+        sheet.cell(row=start_row, column=19).alignment = Alignment(vertical="center")
+        sheet.merge_cells(start_row=start_row, start_column=19, end_row=start_row, end_column=21)
+        # 件名
+        sheet.cell(row=start_row + 1, column=2).value = "件名：%s" % unicode(detail['EXTRA_PROJECT_MEMBER'].project)
+        # 超過金額
+        sheet.cell(row=start_row + 2, column=2).value = "超過金額：%s" % humanize.intcomma(detail['ITEM_PLUS_AMOUNT'])
+        # 控除金額
+        sheet.cell(row=start_row + 2, column=6).value = "控除金額：%s" % humanize.intcomma(detail['ITEM_MINUS_AMOUNT'])
+        # 下限時間
+        sheet.cell(row=start_row + 3, column=2).value = "下限：%s時間" % detail['ITEM_MIN_HOURS']
+        # 上限時間
+        sheet.cell(row=start_row + 3, column=5).value = "上限：%s時間" % detail['ITEM_MAX_HOURS']
+        # 控除単価
+        sheet.cell(row=start_row + 3, column=8).value = "控除単価：¥%s" % humanize.intcomma(detail['ITEM_MINUS_PER_HOUR'])
+        # 超過単価
+        sheet.cell(row=start_row + 3, column=12).value = "超過単価：¥%s" % humanize.intcomma(detail['ITEM_PLUS_PER_HOUR'])
+        # 枠線
+        for i in range(2, 22):
+            args = dict(top=thin, bottom=thin)
+            if i in (8, 10, 12, 14, 17, 19):
+                args['left'] = thin
+            sheet.cell(row=start_row, column=i).border = Border(**args)
+        sheet.cell(row=start_row, column=21).border = Border(bottom=thin, right=thin)
+        sheet.cell(row=start_row + 1, column=21).border = Border(right=thin)
+        sheet.cell(row=start_row + 2, column=21).border = Border(right=thin)
+        sheet.cell(row=start_row + 3, column=21).border = Border(bottom=thin, right=thin)
+        start_row += 4
+
+    # リスト部分の下底枠線
+    for i in range(2, 22):
+        sheet.cell(row=start_row, column=i).border = Border(top=thin)
+    # 本体価格（内税含む）
+    sheet.row_dimensions[start_row].height = 17
+    sheet.cell(row=start_row, column=12).value = '本体価格（内税含む）'
+    sheet.cell(row=start_row, column=12).alignment = Alignment(horizontal="center", vertical="center")
+    sheet.merge_cells(start_row=start_row, start_column=12, end_row=start_row, end_column=15)
+    sheet.cell(row=start_row, column=16).value = data['DETAIL']['ITEM_AMOUNT_ATTENDANCE']
+    sheet.cell(row=start_row, column=16).alignment = Alignment(vertical="center")
+    sheet.cell(row=start_row, column=16).number_format = '#,##0'
+    sheet.merge_cells(start_row=start_row, start_column=16, end_row=start_row, end_column=18)
+    start_row += 1
+    # 消費税等（外税額のみ）
+    sheet.row_dimensions[start_row].height = 17
+    sheet.cell(row=start_row, column=12).value = '消費税等（外税額のみ）'
+    sheet.cell(row=start_row, column=12).alignment = Alignment(horizontal="center", vertical="center")
+    sheet.merge_cells(start_row=start_row, start_column=12, end_row=start_row, end_column=15)
+    sheet.cell(row=start_row, column=16).value = data['DETAIL']['ITEM_AMOUNT_ATTENDANCE_TAX']
+    sheet.cell(row=start_row, column=16).number_format = '#,##0'
+    sheet.cell(row=start_row, column=16).alignment = Alignment(vertical="center")
+    sheet.merge_cells(start_row=start_row, start_column=16, end_row=start_row, end_column=18)
+    start_row += 1
+    # 諸経費計
+    sheet.row_dimensions[start_row].height = 17
+    sheet.cell(row=start_row, column=12).value = '諸経費計'
+    sheet.cell(row=start_row, column=12).alignment = Alignment(horizontal="center", vertical="center")
+    sheet.merge_cells(start_row=start_row, start_column=12, end_row=start_row, end_column=15)
+    sheet.cell(row=start_row, column=16).value = 0
+    sheet.cell(row=start_row, column=16).alignment = Alignment(vertical="center")
+    sheet.cell(row=start_row, column=16).number_format = '#,##0'
+    sheet.merge_cells(start_row=start_row, start_column=16, end_row=start_row, end_column=18)
+    start_row += 1
+    # 合計
+    sheet.row_dimensions[start_row].height = 17
+    sheet.cell(row=start_row, column=12).value = '合計'
+    sheet.cell(row=start_row, column=12).alignment = Alignment(horizontal="center", vertical="center")
+    sheet.merge_cells(start_row=start_row, start_column=12, end_row=start_row, end_column=15)
+    sheet.cell(row=start_row, column=16).value = data['DETAIL']['ITEM_AMOUNT_ALL']
+    sheet.cell(row=start_row, column=16).number_format = '#,##0'
+    sheet.cell(row=start_row, column=16).alignment = Alignment(vertical="center")
+    sheet.merge_cells(start_row=start_row, start_column=16, end_row=start_row, end_column=18)
+    # 枠線
+    for r in range(start_row - 3, start_row + 1):
+        for c in range(12, 19):
+            args = dict(top=thin, bottom=thin)
+            if c in (12, 16):
+                args['left'] = thin
+            if c == 18:
+                args['right'] = thin
+            sheet.cell(row=r, column=c).border = Border(**args)
+
+    book.save(path)
+    return path
 
 
 def get_excel_template(path_file):
@@ -1313,6 +1473,8 @@ def get_openpyxl_replaced_string(str_format, data):
         replaced_string = str_format
         for replace_item in match_list:
             replace_value = data.get(replace_item[2:-2], '')
+            if not isinstance(replace_value, basestring):
+                replace_value = str(replace_value)
             replaced_string = replaced_string.replace(replace_item, replace_value if replace_value else '')
         return replaced_string
     else:

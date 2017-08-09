@@ -826,6 +826,7 @@ def generate_subcontractor_request_data(subcontractor, year, month, subcontracto
     company = get_company()
     first_day = common.get_first_day_by_month(datetime.date(int(year), int(month), 1))
     last_day = common.get_last_day_by_month(first_day)
+    today = datetime.date.today()
     data = {'DETAIL': {}, 'EXTRA': {}}
     data['EXTRA']['YM'] = first_day.strftime('%Y%m')
     data['EXTRA']['COMPANY'] = company
@@ -835,6 +836,8 @@ def generate_subcontractor_request_data(subcontractor, year, month, subcontracto
     data['DETAIL']['CLIENT_ADDRESS'] = (company.address1 or '') + (company.address2 or '')
     # お客様電話番号
     data['DETAIL']['CLIENT_TEL'] = company.tel or ''
+    # お客様ファックス
+    data['DETAIL']['CLIENT_FAX'] = company.fax or ''
     # お客様名称
     data['DETAIL']['CLIENT_COMPANY_NAME'] = company.name
     # 作業期間
@@ -857,9 +860,13 @@ def generate_subcontractor_request_data(subcontractor, year, month, subcontracto
     data['EXTRA']['REMIT_DATE'] = company.get_pay_date(date=first_day)
     # 請求番号
     data['DETAIL']['REQUEST_NO'] = subcontractor_request.request_no
+    # お支払通知書番号
+    data['DETAIL']['PAY_NOTIFY_NO'] = subcontractor_request.pay_notify_no
     # 発行日（対象月の最終日）
     data['DETAIL']['PUBLISH_DATE'] = last_day.strftime(u"%Y年%m月%d日".encode('utf-8')).decode('utf-8')
     data['EXTRA']['PUBLISH_DATE'] = last_day
+    # 作成日
+    data['DETAIL']['CREATE_DATE'] = today
     # 本社郵便番号
     data['DETAIL']['POST_CODE'] = common.get_full_postcode(subcontractor.post_code)
     # 本社住所
@@ -895,6 +902,7 @@ def generate_subcontractor_request_data(subcontractor, year, month, subcontracto
 
     section_members = subcontractor.get_members_by_month_and_section(year, month, subcontractor_request.section)
     members_amount = 0
+    project_members = []
     if False:
         members_amount = 0
         # 番号
@@ -918,42 +926,109 @@ def generate_subcontractor_request_data(subcontractor, year, month, subcontracto
             )
             if member_attendance_set.count() > 0:
                 member_attendance = member_attendance_set[0]
+                project_members.append(member_attendance.project_member)
                 contract_list = member.bpcontract_set.filter(
                     start_date__lte=last_day,
                     is_deleted=False,
                 ).order_by('-start_date')
+                try:
+                    bp_member_order = models.BpMemberOrder.objects.get(
+                        project_member=member_attendance.project_member,
+                        year=member_attendance.year,
+                        month=member_attendance.month
+                    )
+                except (ObjectDoesNotExist, MultipleObjectsReturned):
+                    bp_member_order = None
                 if contract_list.count() > 0:
                     contract = contract_list[0]
                     dict_expenses = dict()
                     # この項目は請求書の出力ではなく、履歴データをProjectRequestDetailに保存するために使う。
                     dict_expenses["EXTRA_PROJECT_MEMBER"] = member_attendance.project_member
+                    # BP注文書
+                    dict_expenses['BP_MEMBER_ORDER'] = bp_member_order
                     # 番号
                     dict_expenses['NO'] = str(i + 1)
                     # 項目
                     dict_expenses['ITEM_NAME'] = unicode(member)
+                    # 時間下限
+                    dict_expenses['ITEM_MIN_HOURS'] = contract.allowance_time_min
+                    # 時間上限
+                    dict_expenses['ITEM_MAX_HOURS'] = contract.allowance_time_max
+                    # 勤務時間
+                    dict_expenses['ITEM_WORK_HOURS'] = member_attendance.total_hours
+                    # 超過金額と控除金額
+                    extra_amount = member_attendance.get_overtime_cost()
+                    # 諸経費
+                    dict_expenses['ITEM_EXPENSES_TOTAL'] = \
+                        member_attendance.project_member.get_expenses_amount(year, month)
+                    if extra_amount > 0:
+                        dict_expenses['ITEM_PLUS_AMOUNT'] = extra_amount
+                        dict_expenses['ITEM_MINUS_AMOUNT'] = 0
+                    else:
+                        dict_expenses['ITEM_PLUS_AMOUNT'] = 0
+                        dict_expenses['ITEM_MINUS_AMOUNT'] = extra_amount
+                    # 基本金額
+                    dict_expenses['ITEM_AMOUNT_BASIC'] = contract.get_cost()
                     # 時給の場合
                     if contract.is_hourly_pay:
                         # 単価（円）
                         dict_expenses['ITEM_PRICE'] = contract.allowance_base or 0
                         # Min/Max（H）
                         dict_expenses['ITEM_MIN_MAX'] = u""
+                        # 残業時間
+                        dict_expenses['ITEM_EXTRA_HOURS'] = 0
+                        # 率
+                        dict_expenses['ITEM_RATE'] = 1
+                        # 減（円）
+                        dict_expenses['ITEM_MINUS_PER_HOUR'] = 0
+                        # 増（円）
+                        dict_expenses['ITEM_PLUS_PER_HOUR'] = 0
+                        # 基本金額＋残業金額
+                        dict_expenses['ITEM_AMOUNT_TOTAL'] = contract.get_cost() or 0
                     else:
                         # 単価（円）
                         dict_expenses['ITEM_PRICE'] = contract.get_cost() or 0
                         # Min/Max（H）
                         dict_expenses['ITEM_MIN_MAX'] = "%s/%s" % (
-                            int(contract.allowance_time_min), int(contract.allowance_time_min)
+                            int(contract.allowance_time_min), int(contract.allowance_time_max)
                         )
-                    dict_expenses.update(member_attendance.project_member.get_attendance_dict(first_day.year, first_day.month))
+                        # 残業時間
+                        extra_hours = member_attendance.get_overtime(contract)
+                        dict_expenses['ITEM_EXTRA_HOURS'] = extra_hours
+                        # 率
+                        dict_expenses['ITEM_RATE'] = 1
+                        # 減（円）
+                        dict_expenses['ITEM_MINUS_PER_HOUR'] = contract.allowance_absenteeism
+                        # 増（円）
+                        dict_expenses['ITEM_PLUS_PER_HOUR'] = contract.allowance_overtime
+
+                        if extra_hours > 0:
+                            dict_expenses['ITEM_AMOUNT_EXTRA'] = extra_hours * dict_expenses['ITEM_PLUS_PER_HOUR']
+                            dict_expenses['ITEM_PLUS_PER_HOUR2'] = dict_expenses['ITEM_PLUS_PER_HOUR']
+                            dict_expenses['ITEM_MINUS_PER_HOUR2'] = u""
+                        elif extra_hours < 0:
+                            dict_expenses['ITEM_AMOUNT_EXTRA'] = extra_hours * dict_expenses['ITEM_MINUS_PER_HOUR']
+                            dict_expenses['ITEM_PLUS_PER_HOUR2'] = u""
+                            dict_expenses['ITEM_MINUS_PER_HOUR2'] = dict_expenses['ITEM_MINUS_PER_HOUR']
+                        else:
+                            dict_expenses['ITEM_AMOUNT_EXTRA'] = 0
+                            dict_expenses['ITEM_PLUS_PER_HOUR2'] = u""
+                            dict_expenses['ITEM_MINUS_PER_HOUR2'] = u""
+                        # 基本金額＋残業金額
+                        dict_expenses['ITEM_AMOUNT_TOTAL'] = member_attendance.get_cost() + member_attendance.get_overtime_cost()
+                    # 備考
+                    dict_expenses['ITEM_COMMENT'] = member_attendance.comment \
+                        if member_attendance and member_attendance.comment else u""
+                    dict_expenses['ITEM_OTHER'] = u""
                     # 金額合計
                     members_amount += dict_expenses['ITEM_AMOUNT_TOTAL']
                     detail_members.append(dict_expenses)
 
-    # detail_expenses, expenses_amount = get_request_expenses_list(project,
-    #                                                              first_day.year,
-    #                                                              '%02d' % (first_day.month,),
-    #                                                              project_members)
-    detail_expenses, expenses_amount = [], 0
+    detail_expenses, expenses_amount = get_subcontractor_request_expenses_list(
+        first_day.year,
+        '%02d' % (first_day.month,),
+        project_members
+    )
 
     data['detail_all'] = detail_all
     data['MEMBERS'] = detail_members
@@ -976,8 +1051,38 @@ def generate_subcontractor_request_data(subcontractor, year, month, subcontracto
     return data
 
 
+def get_subcontractor_request_expenses_list(year, month, project_members):
+    # 精算リスト
+    dict_expenses = {}
+    expenses_list = models.MemberExpenses.objects.public_filter(
+        year=year, month=month,
+        project_member__in=project_members
+    )
+    for expenses in expenses_list:
+        if expenses.category.name not in dict_expenses:
+            dict_expenses[expenses.category.name] = [expenses]
+        else:
+            dict_expenses[expenses.category.name].append(expenses)
+    detail_expenses = []
+    expenses_amount = 0
+    for key, value in dict_expenses.iteritems():
+        d = dict()
+        member_list = []
+        amount = 0
+        for expenses in value:
+            member_list.append(expenses.project_member.member.first_name +
+                               expenses.project_member.member.last_name +
+                               u"¥%s" % (expenses.price,))
+            amount += expenses.price
+            expenses_amount += expenses.price
+        d['ITEM_EXPENSES_CATEGORY_SUMMARY'] = u"%s(%s)" % (key, u"、".join(member_list))
+        d['ITEM_EXPENSES_CATEGORY_AMOUNT'] = amount
+        detail_expenses.append(d)
+    return detail_expenses, expenses_amount
+
+
 def get_request_expenses_list(project, year, month, project_members):
-    # 清算リスト
+    # 精算リスト
     dict_expenses = {}
     for expenses in project.get_expenses(year, month, project_members):
         if expenses.category.name not in dict_expenses:

@@ -725,6 +725,18 @@ def get_subcontractor_request_file_path(request_no, subcontractor_name, ym):
     return os.path.join(path, filename).decode('UTF-8')
 
 
+def get_pay_notify_file_path(no, client_name, ym):
+    from django.conf import settings
+
+    now = datetime.datetime.now()
+    name_format = "EB支払通知書_%s_%s_%s.xlsx"
+    filename = name_format % (str(no), client_name.encode('UTF-8'), now.strftime("%Y%m%d_%H%M%S%f"))
+    path = os.path.join(settings.GENERATED_FILES_ROOT, "pay_notify", str(ym))
+    if not os.path.exists(path):
+        os.makedirs(path)
+    return os.path.join(path, filename).decode('UTF-8')
+
+
 def get_order_file_path(order_no, client_name, ym, is_request=False):
     """協力会社の注文書のパスを取得する。
 
@@ -746,6 +758,10 @@ def get_order_file_path(order_no, client_name, ym, is_request=False):
     if not os.path.exists(path):
         os.makedirs(path)
     return os.path.join(path, filename).decode('UTF-8')
+
+
+def get_template_pay_notify_path(company):
+    return company.pay_notify_file.path
 
 
 def get_template_order_path(contract, is_request=False):
