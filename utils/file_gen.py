@@ -807,11 +807,11 @@ def generate_pay_notify(data, template_path):
     partner_name = data['DETAIL']['COMPANY_NAME']
     path = common.get_pay_notify_file_path(pay_notify_no, partner_name, data['EXTRA']['YM'])
 
-    # 電子印鑑
-    from django.conf import settings
-    img_path = os.path.join(settings.STATICFILES_DIRS[0], 'admin/img/signature.png')
-    img = Image(img_path)
-    sheet.add_image(img, 'R5')
+    # # 電子印鑑
+    # from django.conf import settings
+    # img_path = os.path.join(settings.STATICFILES_DIRS[0], 'admin/img/signature.png')
+    # img = Image(img_path)
+    # sheet.add_image(img, 'R5')
 
     # 見出し部分
     for row in sheet.iter_rows():
@@ -871,6 +871,11 @@ def generate_pay_notify(data, template_path):
         sheet.merge_cells(start_row=start_row, start_column=19, end_row=start_row, end_column=21)
         # 件名
         sheet.cell(row=start_row + 1, column=2).value = "件名：%s" % unicode(detail['EXTRA_PROJECT_MEMBER'].project)
+        if detail['BP_MEMBER_ORDER']:
+            bp_order_no = detail['BP_MEMBER_ORDER'].order_no
+        else:
+            bp_order_no = ""
+        sheet.cell(row=start_row + 1, column=17).value = "発注伝票番号： %s" % bp_order_no
         # 超過金額
         sheet.cell(row=start_row + 2, column=2).value = "超過金額：%s" % humanize.intcomma(detail['ITEM_PLUS_AMOUNT'])
         # 控除金額
