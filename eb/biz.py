@@ -970,7 +970,7 @@ def generate_subcontractor_request_data(subcontractor, year, month, subcontracto
                     # 基本金額
                     dict_expenses['ITEM_AMOUNT_BASIC'] = contract.get_cost()
                     # 時給の場合
-                    if contract.is_hourly_pay:
+                    if contract.is_hourly_pay or contract.is_fixed_cost:
                         # 単価（円）
                         dict_expenses['ITEM_PRICE'] = contract.allowance_base or 0
                         # Min/Max（H）

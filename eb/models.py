@@ -2537,8 +2537,8 @@ class SubcontractorRequest(models.Model):
                 detail.total_hours = item['ITEM_WORK_HOURS'] if item['ITEM_WORK_HOURS'] else 0
                 detail.extra_hours = item['ITEM_EXTRA_HOURS'] if item['ITEM_EXTRA_HOURS'] else 0
                 detail.rate = item['ITEM_RATE']
-                detail.plus_per_hour = contract.allowance_overtime
-                detail.minus_per_hour = contract.allowance_absenteeism
+                detail.plus_per_hour = item['ITEM_PLUS_PER_HOUR']
+                detail.minus_per_hour = item['ITEM_MINUS_PER_HOUR']
                 detail.plus_amount = item['ITEM_PLUS_AMOUNT']
                 detail.minus_amount = item['ITEM_MINUS_AMOUNT']
                 detail.total_price = item['ITEM_AMOUNT_TOTAL']
