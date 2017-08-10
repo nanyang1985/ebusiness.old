@@ -807,11 +807,11 @@ def generate_pay_notify(data, template_path):
     partner_name = data['DETAIL']['COMPANY_NAME']
     path = common.get_pay_notify_file_path(pay_notify_no, partner_name, data['EXTRA']['YM'])
 
-    # # 電子印鑑
-    # from django.conf import settings
-    # img_path = os.path.join(settings.STATICFILES_DIRS[0], 'admin/img/signature.png')
-    # img = Image(img_path)
-    # sheet.add_image(img, 'R5')
+    # 電子印鑑
+    from django.conf import settings
+    img_path = os.path.join(settings.STATICFILES_DIRS[0], 'admin/img/signature.png')
+    img = Image(img_path)
+    sheet.add_image(img, 'R5')
 
     # 見出し部分
     for row in sheet.iter_rows():

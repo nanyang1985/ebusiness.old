@@ -323,7 +323,7 @@ function row_update_cancel(obj) {
 }
 
 function musk() {
-    $("body").append("<div class='musk'></div>")
+    $("body").append("<div class='musk'></div>");
 }
 
 function unmask() {
@@ -406,7 +406,6 @@ function ajax_post(url, data, callback) {
         url: url,
         data: data,
         dataType: "json",
-        async: false,
         success: callback
     });
 }
