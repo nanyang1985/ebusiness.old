@@ -512,9 +512,11 @@ def generate_request_linux(project, data, request_no, ym):
     if isinstance(project, models.Project):
         path = common.get_request_file_path(request_no, project.client.name, ym)
         is_lump = project.is_lump
+        is_bp_request = False
     else:
         path = common.get_subcontractor_request_file_path(request_no, unicode(project), ym)
         is_lump = False
+        is_bp_request = True
     book = xlsxwriter.Workbook(path)
     sheet = book.add_worksheet()
 
@@ -546,14 +548,18 @@ def generate_request_linux(project, data, request_no, ym):
     sheet.write_string('E12', u"\\" + data['DETAIL']['ITEM_AMOUNT_ALL_COMMA'] + u"円", format1)
     sheet.write_string('B14', u"作業期間　   ：")
     sheet.write_string('E14', data['DETAIL']['WORK_PERIOD'])
-    sheet.write_string('B16', u"注文番号　   ：")
-    sheet.write_string('E16', data['DETAIL']['ORDER_NO'])
-    sheet.write_string('B18', u"注文日　　　  ：")
-    sheet.write_string('E18', data['DETAIL']['REQUEST_DATE'])
-    sheet.write_string('B20', u"契約件名　　 ：　")
-    sheet.write_string('E20', data['DETAIL']['CONTRACT_NAME'])
-    sheet.write_string('B22', u"お支払い期限　：")
-    sheet.write_string('E22', data['DETAIL']['REMIT_DATE'])
+    if is_bp_request:
+        sheet.write_string('B16', u"お支払い期限　：")
+        sheet.write_string('E16', data['DETAIL']['REMIT_DATE'])
+    else:
+        sheet.write_string('B16', u"注文番号　   ：")
+        sheet.write_string('E16', data['DETAIL']['ORDER_NO'])
+        sheet.write_string('B18', u"注文日　　　  ：")
+        sheet.write_string('E18', data['DETAIL']['REQUEST_DATE'])
+        sheet.write_string('B20', u"契約件名　　 ：　")
+        sheet.write_string('E20', data['DETAIL']['CONTRACT_NAME'])
+        sheet.write_string('B22', u"お支払い期限　：")
+        sheet.write_string('E22', data['DETAIL']['REMIT_DATE'])
     sheet.write_string('M10', u"〒" + data['DETAIL']['POST_CODE'])
     sheet.write_string('M11', data['DETAIL']['ADDRESS'])
     sheet.write_string('M12', data['DETAIL']['COMPANY_NAME'])
@@ -828,7 +834,10 @@ def generate_pay_notify(data, template_path):
     start_row = 17
     thin = Side(border_style="thin", color="000000")
     for detail in details:
-        sheet.row_dimensions[start_row].height = 20
+        sheet.row_dimensions[start_row].height = 23
+        sheet.row_dimensions[start_row + 1].height = 22
+        sheet.row_dimensions[start_row + 2].height = 22
+        sheet.row_dimensions[start_row + 3].height = 22
         # 番号
         sheet.cell(row=start_row, column=1).value = detail['NO']
         sheet.merge_cells(start_row=start_row, start_column=1, end_row=start_row + 3, end_column=1)
@@ -875,7 +884,7 @@ def generate_pay_notify(data, template_path):
             bp_order_no = detail['BP_MEMBER_ORDER'].order_no
         else:
             bp_order_no = ""
-        sheet.cell(row=start_row + 1, column=17).value = "発注伝票番号： %s" % bp_order_no
+        sheet.cell(row=start_row + 1, column=16).value = "発注伝票番号： %s" % bp_order_no
         # 超過金額
         sheet.cell(row=start_row + 2, column=2).value = "超過金額：%s" % humanize.intcomma(detail['ITEM_PLUS_AMOUNT'])
         # 控除金額
@@ -904,7 +913,7 @@ def generate_pay_notify(data, template_path):
     for i in range(2, 22):
         sheet.cell(row=start_row, column=i).border = Border(top=thin)
     # 本体価格（内税含む）
-    sheet.row_dimensions[start_row].height = 17
+    sheet.row_dimensions[start_row].height = 23
     sheet.cell(row=start_row, column=12).value = '本体価格（内税含む）'
     sheet.cell(row=start_row, column=12).alignment = Alignment(horizontal="center", vertical="center")
     sheet.merge_cells(start_row=start_row, start_column=12, end_row=start_row, end_column=15)
@@ -914,7 +923,7 @@ def generate_pay_notify(data, template_path):
     sheet.merge_cells(start_row=start_row, start_column=16, end_row=start_row, end_column=18)
     start_row += 1
     # 消費税等（外税額のみ）
-    sheet.row_dimensions[start_row].height = 17
+    sheet.row_dimensions[start_row].height = 23
     sheet.cell(row=start_row, column=12).value = '消費税等（外税額のみ）'
     sheet.cell(row=start_row, column=12).alignment = Alignment(horizontal="center", vertical="center")
     sheet.merge_cells(start_row=start_row, start_column=12, end_row=start_row, end_column=15)
@@ -924,7 +933,7 @@ def generate_pay_notify(data, template_path):
     sheet.merge_cells(start_row=start_row, start_column=16, end_row=start_row, end_column=18)
     start_row += 1
     # 諸経費計
-    sheet.row_dimensions[start_row].height = 17
+    sheet.row_dimensions[start_row].height = 23
     sheet.cell(row=start_row, column=12).value = '諸経費計'
     sheet.cell(row=start_row, column=12).alignment = Alignment(horizontal="center", vertical="center")
     sheet.merge_cells(start_row=start_row, start_column=12, end_row=start_row, end_column=15)
@@ -934,7 +943,7 @@ def generate_pay_notify(data, template_path):
     sheet.merge_cells(start_row=start_row, start_column=16, end_row=start_row, end_column=18)
     start_row += 1
     # 合計
-    sheet.row_dimensions[start_row].height = 17
+    sheet.row_dimensions[start_row].height = 23
     sheet.cell(row=start_row, column=12).value = '合計'
     sheet.cell(row=start_row, column=12).alignment = Alignment(horizontal="center", vertical="center")
     sheet.merge_cells(start_row=start_row, start_column=12, end_row=start_row, end_column=15)

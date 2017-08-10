@@ -129,8 +129,8 @@
                 <td></td>
             </tr>
             <tr>
-                <td class="left align_left" colspan="15">件名：&nbsp;&nbsp;{{ item.project_member.project }}</td>
-                <td class="border_right" colspan="5">発注伝票番号：&nbsp;
+                <td class="left align_left" colspan="14">件名：&nbsp;&nbsp;{{ item.project_member.project }}</td>
+                <td class="border_right" colspan="6">発注伝票番号：&nbsp;
                     {% if item.bp_member_order %}
                     <a href="{% url 'bp_member_order' item.bp_member_order.pk %}">{{ item.bp_member_order.order_no }}</a>
                     {% endif %}

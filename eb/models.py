@@ -2519,7 +2519,6 @@ class SubcontractorRequest(models.Model):
             heading.save()
             for i, item in enumerate(data['MEMBERS']):
                 project_member = item["EXTRA_PROJECT_MEMBER"]
-                ym = data['EXTRA']['YM']
                 contract = project_member.member.get_contract(date)
                 detail = SubcontractorRequestDetail(subcontractor_request=self)
                 detail.bp_member_order = item['BP_MEMBER_ORDER']

@@ -984,7 +984,7 @@ def generate_subcontractor_request_data(subcontractor, year, month, subcontracto
                         # 増（円）
                         dict_expenses['ITEM_PLUS_PER_HOUR'] = 0
                         # 基本金額＋残業金額
-                        dict_expenses['ITEM_AMOUNT_TOTAL'] = contract.get_cost() or 0
+                        dict_expenses['ITEM_AMOUNT_TOTAL'] = member_attendance.get_cost()
                     else:
                         # 単価（円）
                         dict_expenses['ITEM_PRICE'] = contract.get_cost() or 0
