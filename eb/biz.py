@@ -959,8 +959,7 @@ def generate_subcontractor_request_data(subcontractor, year, month, subcontracto
                     # 超過金額と控除金額
                     extra_amount = member_attendance.get_overtime_cost()
                     # 諸経費
-                    dict_expenses['ITEM_EXPENSES_TOTAL'] = \
-                        member_attendance.project_member.get_expenses_amount(year, month)
+                    dict_expenses['ITEM_EXPENSES_TOTAL'] = member_attendance.get_bp_expenses_amount()
                     if extra_amount > 0:
                         dict_expenses['ITEM_PLUS_AMOUNT'] = extra_amount
                         dict_expenses['ITEM_MINUS_AMOUNT'] = 0
@@ -1054,7 +1053,7 @@ def generate_subcontractor_request_data(subcontractor, year, month, subcontracto
 def get_subcontractor_request_expenses_list(year, month, project_members):
     # 精算リスト
     dict_expenses = {}
-    expenses_list = models.MemberExpenses.objects.public_filter(
+    expenses_list = models.SubcontractorMemberExpenses.objects.public_filter(
         year=year, month=month,
         project_member__in=project_members
     )

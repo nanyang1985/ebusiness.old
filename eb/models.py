@@ -2717,6 +2717,24 @@ class EmployeeExpenses(BaseModel):
         return u"%s %s %s" % (self.member, self.get_year_display(), self.get_month_display())
 
 
+class SubcontractorMemberExpenses(BaseModel):
+    project_member = models.ForeignKey(ProjectMember, on_delete=models.PROTECT, verbose_name=u"要員")
+    year = models.CharField(max_length=4, default=str(datetime.date.today().year),
+                            choices=constants.CHOICE_ATTENDANCE_YEAR, verbose_name=u"対象年")
+    month = models.CharField(max_length=2, choices=constants.CHOICE_ATTENDANCE_MONTH, verbose_name=u"対象月")
+    category = models.ForeignKey(ExpensesCategory, on_delete=models.PROTECT, verbose_name=u"分類")
+    price = models.IntegerField(default=0, verbose_name=u"金額")
+
+    objects = PublicManager(is_deleted=False, project_member__is_deleted=False, category__is_deleted=False)
+
+    class Meta:
+        ordering = ['project_member', 'year', 'month']
+        verbose_name = verbose_name_plural = u"協力会社精算リスト"
+
+    def __unicode__(self):
+        return u"%s %s %s" % (self.project_member, self.get_year_display(), self.get_month_display())
+
+
 class MemberExpenses(BaseModel):
     project_member = models.ForeignKey(ProjectMember, on_delete=models.PROTECT, verbose_name=u"要員")
     year = models.CharField(max_length=4, default=str(datetime.date.today().year),
@@ -2729,7 +2747,7 @@ class MemberExpenses(BaseModel):
 
     class Meta:
         ordering = ['project_member', 'year', 'month']
-        verbose_name = verbose_name_plural = u"精算リスト"
+        verbose_name = verbose_name_plural = u"取引先精算リスト"
 
     def __unicode__(self):
         return u"%s %s %s" % (self.project_member, self.get_year_display(), self.get_month_display())
@@ -3009,6 +3027,13 @@ class MemberAttendance(BaseModel):
             return project_request
         else:
             return None
+
+    def get_bp_expenses_amount(self):
+        expense = SubcontractorMemberExpenses.objects.public_filter(project_member=self.project_member,
+                                                                    year=self.year,
+                                                                    month=self.month,
+                                                                    is_deleted=False).aggregate(price=Sum('price'))
+        return expense.get('price') if expense.get('price') else 0
 
     def save(self, force_insert=False, force_update=False, using=None,
              update_fields=None):

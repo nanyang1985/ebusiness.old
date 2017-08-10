@@ -2096,7 +2096,7 @@ class GenerateSubcontractorRequestView(BaseView):
         # 協力会社請求書
         path = file_gen.generate_request_linux(subcontractor, data, subcontractor_request.request_no, year + month)
         filename = os.path.basename(path)
-        subcontractor_request.filename = filename
+        subcontractor_request.figet_subcontractor_request_expenses_listlename = filename
         # お支払通知書
         path = file_gen.generate_pay_notify(data, template_path=common.get_template_pay_notify_path(company))
         filename = os.path.basename(path)

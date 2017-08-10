@@ -106,6 +106,15 @@ class EmployeeExpensesInline(admin.TabularInline):
         return queryset.filter(is_deleted=False)
 
 
+class SubcontractorMemberExpensesInline(admin.TabularInline):
+    model = models.SubcontractorMemberExpenses
+    extra = 0
+
+    def get_queryset(self, request):
+        queryset = super(SubcontractorMemberExpensesInline, self).get_queryset(request)
+        return queryset.filter(is_deleted=False)
+
+
 class MemberExpensesInline(admin.TabularInline):
     model = models.MemberExpenses
     extra = 0
@@ -706,7 +715,7 @@ class ProjectMemberAdmin(BaseAdmin):
     filter_horizontal = ['stages']
     list_display_links = ['member']
     list_filter = ['status', 'is_deleted']
-    inlines = (MemberAttendanceInline, MemberExpensesInline)
+    inlines = (MemberAttendanceInline, MemberExpensesInline, SubcontractorMemberExpensesInline)
 
     def display_project_client(self, obj):
         return obj.project.client.name
