@@ -13,6 +13,7 @@ from django.db import models
 from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
 
 from utils import common, constants
+from eb import models as sales_models
 
 
 class EboaManager(models.Manager):
@@ -3033,6 +3034,17 @@ class SysUser(models.Model):
     def __unicode__(self):
         return self.fullname
 
+    def get_sales_member(self):
+        """営業システムのメンバー情報を取得する。
+
+        :return:
+        """
+        try:
+            member = sales_models.Member.objects.get(eboa_user_id=self.userid)
+        except (ObjectDoesNotExist, MultipleObjectsReturned):
+            member = None
+        return member
+
     def get_section(self):
         orgs = self.sysorg_set.all()
         if orgs.count() > 0:
@@ -3681,6 +3693,17 @@ class EbEmployee(models.Model):
         return common.get_unicode(self.name)
 
     def get_contract(self):
+        """契約システムから契約情報取得
+
+        :return:
+        """
+        member = self.user.get_sales_member()
+        if member:
+            return member.get_latest_contract()
+        else:
+            return None
+
+    def get_eboa_contract(self):
         """契約情報取得
 
         :return:
@@ -3696,9 +3719,9 @@ class EbEmployee(models.Model):
 
         :return:
         """
-        query_set = self.user.sysuserorg_set.filter(isdelete=0)
-        if query_set.count() > 0:
-            return query_set[0].org
+        member = self.user.get_sales_member()
+        if member:
+            return member.section
         else:
             return None
 

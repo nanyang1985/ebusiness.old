@@ -594,9 +594,9 @@ def generate_request_linux(project, data, request_no, ym):
                                     'top': 1,
                                     'bottom': 1})
     range3_format = book.add_format({'font_size': 11,
-                                    'right': 1,
-                                    'top': 1,
-                                    'bottom': 1})
+                                     'right': 1,
+                                     'top': 1,
+                                     'bottom': 1})
     num_format = book.add_format({'num_format': '#,###', 'border': 1})
     float_format = book.add_format({'num_format': '#,###.00', 'border': 1})
     start_row = 24
@@ -1410,8 +1410,8 @@ def generate_eboa_members(members):
         sheet.cell(row=row, column=1).value = member.pk
         sheet.cell(row=row, column=2).value = member.name
         sheet.cell(row=row, column=3).value = member.residence_name_kana or ''
-        sheet.cell(row=row, column=4).value = contract.employer_type if contract else ''
-        sheet.cell(row=row, column=5).value = organization.orgname if organization else ''
+        sheet.cell(row=row, column=4).value = contract.get_member_type_display() if contract else ''
+        sheet.cell(row=row, column=5).value = unicode(organization) if organization else ''
         sheet.cell(row=row, column=6).value = member.get_sex_display()
         sheet.cell(row=row, column=7).value = member.birthday
         sheet.cell(row=row, column=8).value = member.zipcode
@@ -1424,7 +1424,7 @@ def generate_eboa_members(members):
         sheet.cell(row=row, column=15).value = member.join_date
         sheet.cell(row=row, column=16).value = ''
         sheet.cell(row=row, column=17).value = ''
-        sheet.cell(row=row, column=18).value = u"○" if contract and contract.endowment_insurance == "2" else ''
+        sheet.cell(row=row, column=18).value = u"○" if contract and contract.endowment_insurance == "1" else ''
         sheet.cell(row=row, column=19).value = ''
         sheet.cell(row=row, column=20).value = ''
         sheet.cell(row=row, column=21).value = ''
