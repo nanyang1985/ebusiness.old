@@ -557,8 +557,8 @@ def generate_request_linux(project, data, request_no, ym):
     sheet.write_string('M10', u"〒" + data['DETAIL']['POST_CODE'])
     sheet.write_string('M11', data['DETAIL']['ADDRESS'])
     sheet.write_string('M12', data['DETAIL']['COMPANY_NAME'])
-    sheet.write_string('M13', u"代表取締役　　" + data['DETAIL']['MASTER'])
-    sheet.write_string('M14', u"TEL：" + data['DETAIL']['TEL'])
+    sheet.write_string('M13', u"代表取締役　　%s" % data['DETAIL']['MASTER'] or u"")
+    sheet.write_string('M14', u"TEL：%s" % data['DETAIL']['TEL'])
     sheet.insert_textbox('M15', '', {'width': 90,
                                      'height': 90,
                                      'x_offset': 4,

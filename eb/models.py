@@ -588,14 +588,14 @@ class Subcontractor(AbstractCompany):
         :param section: 
         :return: 
         """
-        first_day = datetime.date(int(year), int(month), 1)
+        first_day = datetime.date(int(year), int(month), 20)
         members = self.get_members_by_month(first_day)
         section_pk_list = [s.pk for s in section.get_children()]
         section_pk_list.append(section.pk)
         ret_list = []
         for member in members:
             section = member.get_section(first_day)
-            if section.pk in section_pk_list:
+            if section and section.pk in section_pk_list:
                 ret_list.append(member)
         return ret_list
 
@@ -2597,7 +2597,7 @@ class SubcontractorRequestHeading(models.Model):
     bank = models.ForeignKey(SubcontractorBankInfo, blank=True, null=True, on_delete=models.PROTECT,
                              verbose_name=u"口座")
     bank_name = models.CharField(blank=True, null=True, max_length=20, verbose_name=u"銀行名称")
-    branch_no = models.CharField(blank=True, null=True, max_length=3, verbose_name=u"支店番号")
+    branch_no = models.CharField(blank=True, null=True, max_length=7, verbose_name=u"支店番号")
     branch_name = models.CharField(blank=True, null=True, max_length=20, verbose_name=u"支店名称")
     account_type = models.CharField(blank=True, null=True, max_length=1, choices=constants.CHOICE_ACCOUNT_TYPE,
                                     verbose_name=u"預金種類")
