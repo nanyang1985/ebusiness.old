@@ -1645,6 +1645,8 @@ class Project(models.Model):
                                 help_text=u"もし設定した終了日は一番最後の案件メンバーの終了日より以前の日付だったら、"
                                           u"自動的に最後のメンバーの終了日に設定する。")
     address = models.CharField(blank=True, null=True, max_length=255, verbose_name=u"作業場所")
+    nearest_station = models.CharField(blank=False, null=True, max_length=15, verbose_name=u"最寄駅",
+                                       help_text=u"必ず入力してください、沈さんの要求により追加しました。")
     status = models.IntegerField(choices=constants.CHOICE_PROJECT_STATUS, verbose_name=u"ステータス")
     attendance_type = models.CharField(max_length=1, default='1', choices=constants.CHOICE_ATTENDANCE_TYPE,
                                        verbose_name=u"出勤の計算区分")
