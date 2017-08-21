@@ -2884,10 +2884,10 @@ class MemberAttendance(BaseModel):
                 # 待機案件の場合、残業と欠勤を計算する必要がない。
                 return 0
             elif total_hours > contract.allowance_time_max:
-                overtime = total_hours - contract.allowance_time_max
+                overtime = total_hours - float(contract.allowance_time_max)
                 return int(overtime * contract.allowance_overtime)
             else:
-                absenteeism = total_hours - contract.allowance_time_min
+                absenteeism = total_hours - float(contract.allowance_time_min)
                 return int(absenteeism * contract.allowance_absenteeism)
         else:
             return 0

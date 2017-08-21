@@ -322,7 +322,7 @@ class BpContract(BaseModel):
         elif self.calculate_type == '02':
             return len(common.get_business_days(year, month)) * 8
         elif self.calculate_type == '03':
-            return int(len(common.get_business_days(year, month)) * 7.9)
+            return len(common.get_business_days(year, month)) * 7.9
         else:
             return self.allowance_time_min
 
