@@ -213,6 +213,12 @@ LOGGING = {
             'formatter': 'standard',
             'filename': os.path.join(BASE_DIR, "log/batch/push_waiting_member.log"),
         },
+        'sync_contract': {
+            'level': 'INFO',
+            'class': 'logging.FileHandler',
+            'formatter': 'standard',
+            'filename': os.path.join(BASE_DIR, "log/batch/sync_contract.log"),
+        },
         'eb_sales': {
             'level': 'INFO',
             'class': 'logging.FileHandler',
@@ -253,6 +259,11 @@ LOGGING = {
         },
         'eb.management.commands.push_waiting_member': {
             'handlers': ['push_waiting_member'],
+            'level': 'INFO',
+            'propagate': True,
+        },
+        'eb.management.commands.sync_contract': {
+            'handlers': ['sync_contract'],
             'level': 'INFO',
             'propagate': True,
         },

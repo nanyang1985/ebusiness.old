@@ -29,6 +29,7 @@ NAME_MEMBERS_COST = u"要員コスト一覧_%s"
 
 BATCH_MEMBER_STATUS = 'member_status'
 BATCH_SYNC_MEMBERS = 'sync_members'
+BATCH_SYNC_CONTRACT = 'sync_contract'
 BATCH_SEND_ATTENDANCE_FORMAT = 'send_attendance_format'
 BATCH_PUSH_NEW_MEMBER = 'push_new_member'
 BATCH_PUSH_BIRTHDAY = 'push_birthday'
@@ -276,7 +277,8 @@ CHOICE_BUSINESS_TYPE = (('01', u"業務の種類（プログラマー）"),
 CHOICE_CONTRACT_STATUS = (('01', u"登録済み"),
                           ('02', u"承認待ち"),
                           ('03', u"承認済み"),
-                          ('04', u"廃棄"))
+                          ('04', u"廃棄"),
+                          ('05', u"自動更新"))
 CHOICE_RECIPIENT_TYPE = (('01', u"宛先"),
                          ('02', u"ＣＣ"),
                          ('03', u"ＢＣＣ"))

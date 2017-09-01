@@ -108,6 +108,8 @@ class ContractChangeView(BaseTemplateView):
         api_id = kwargs.get('api_id')
         member = get_object_or_404(sales_models.Member, id_from_api=api_id)
         contract_set = biz.get_latest_contract(member)
+        all_contract = models.ViewContract.objects.public_filter(member=member)
+        join_dates = biz.get_join_dates(member)
 
         ver = request.GET.get('ver', None)
         if ver and contract_set.filter(contract_no=ver).count() > 0:
@@ -121,8 +123,10 @@ class ContractChangeView(BaseTemplateView):
         context.update({
             'member': member,
             'contract_set': contract_set,
+            'all_contract': all_contract,
             'contract': contract,
             'form': form,
+            'join_dates': join_dates,
         })
         return context
 

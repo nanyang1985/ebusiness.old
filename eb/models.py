@@ -1399,60 +1399,6 @@ class Member(AbstractMember):
         self.save()
 
 
-class V_Contract(models.Model):
-    member = models.ForeignKey(Member, db_column='member_id', verbose_name=u"社員テーブル主キー")
-    employee_id = models.CharField(max_length=30, verbose_name=u"給料王ＩＤ")
-    id = models.BigIntegerField(db_column='ID', primary_key=True)
-    code = models.CharField(max_length=2000, blank=True, null=True)
-    codeid = models.CharField(db_column='codeID', max_length=2000, blank=True, null=True)
-    contract_date = models.DateTimeField(db_column='CONTRACT_DATE')
-    contract_no = models.CharField(db_column='CONTRACT_NO', max_length=100, blank=True, null=True)
-    employer_type = models.CharField(db_column='EMPLOYER_TYPE', max_length=100, blank=True, null=True)
-    employment_date = models.DateTimeField(db_column='EMPLOYMENT_DATE')
-    employment_period_en = models.DateTimeField(db_column='EMPLOYMENT_PERIOD_EN')
-    employment_period = models.CharField(db_column='EMPLOYMENT_PERIOD', max_length=1000, blank=True, null=True)
-    business_addr = models.CharField(db_column='BUSINESS_ADDR', max_length=100, blank=True, null=True)
-    business_type = models.CharField(db_column='BUSINESS_TYPE', max_length=100, blank=True, null=True)
-    business_other = models.CharField(db_column='BUSINESS_OTHER', max_length=1000, blank=True, null=True)
-    business_time = models.CharField(db_column='BUSINESS_TIME', max_length=1000, blank=True, null=True)
-    allowance_base = models.DecimalField(db_column='ALLOWANCE_BASE', max_digits=13, decimal_places=0,
-                                         blank=True, null=True)
-    allowance_base_memo = models.CharField(db_column='ALLOWANCE_BASE_MEMO', max_length=1000, blank=True, null=True)
-    pay_site = models.DecimalField(db_column='PAY_SITE', max_digits=13, decimal_places=0, blank=True, null=True)
-    pay_site_memo = models.CharField(db_column='PAY_SITE_MEMO', max_length=1000, blank=True, null=True)
-    pay_position = models.DecimalField(db_column='PAY_POSITION', max_digits=13, decimal_places=0, blank=True, null=True)
-    pay_position_memo = models.CharField(db_column='PAY_POSITION_MEMO', max_length=1000, blank=True, null=True)
-    pay_duties = models.DecimalField(db_column='PAY_DUTIES', max_digits=13, decimal_places=0, blank=True, null=True)
-    pay_duties_memo = models.CharField(db_column='PAY_DUTIES_MEMO', max_length=1000, blank=True, null=True)
-    pay_diligence = models.DecimalField(db_column='PAY_DILIGENCE', max_digits=13, decimal_places=0,
-                                        blank=True, null=True)
-    pay_safety = models.DecimalField(db_column='PAY_SAFETY', max_digits=13, decimal_places=0, blank=True, null=True)
-    pay_qual = models.DecimalField(db_column='PAY_QUAL', max_digits=13, decimal_places=0, blank=True, null=True)
-    pay_qual_memo = models.CharField(db_column='PAY_QUAL_MEMO', max_length=1000, blank=True, null=True)
-    pay_commute = models.DecimalField(db_column='PAY_COMMUTE', max_digits=13, decimal_places=0, blank=True, null=True,
-                                      verbose_name=u"交通費")
-    pay_commute_memo = models.CharField(db_column='PAY_COMMUTE_MEMO', max_length=1000, blank=True, null=True)
-    pay_overtime = models.CharField(db_column='PAY_OVERTIME', max_length=100, blank=True, null=True)
-    pay_absence = models.CharField(db_column='PAY_ABSENCE', max_length=100, blank=True, null=True)
-    endowment_insurance = models.CharField(db_column='ENDOWMENT_INSURANCE', max_length=100, blank=True, null=True,
-                                           verbose_name=u"社会保険加入有無",
-                                           help_text=u"1:加入しない、2:加入する")
-    allowance_date = models.CharField(db_column='ALLOWANCE_DATE', max_length=1000, blank=True, null=True)
-    allowance_change = models.CharField(db_column='ALLOWANCE_CHANGE', max_length=1000, blank=True, null=True)
-    bonus = models.CharField(db_column='BONUS', max_length=1000, blank=True, null=True)
-    holiday = models.CharField(db_column='HOLIDAY', max_length=1000, blank=True, null=True)
-    paid_vacation = models.CharField(db_column='PAID_VACATION', max_length=1000, blank=True, null=True)
-    not_paid_vacation = models.CharField(db_column='NOT_PAID_VACATION', max_length=1000, blank=True, null=True)
-    about_discharge = models.CharField(db_column='ABOUT_DISCHARGE', max_length=1000, blank=True, null=True)
-    memo = models.CharField(db_column='MEMO', max_length=1000, blank=True, null=True)
-    cost = models.DecimalField(max_digits=13, decimal_places=0, blank=True, null=True)
-
-    class Meta:
-        managed = False
-        db_table = 'v_contract'
-        verbose_name = verbose_name_plural = u"社員契約情報"
-
-
 class MemberSectionPeriod(BaseModel):
     member = models.ForeignKey(Member, on_delete=models.PROTECT, verbose_name=u"社員名")
     division = models.ForeignKey(Section, on_delete=models.PROTECT, blank=True, null=True,

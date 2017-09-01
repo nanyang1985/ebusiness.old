@@ -5,12 +5,34 @@
 <link rel="stylesheet" type="text/css" href="/static/admin/css/base.css" />
 <link rel="stylesheet" type="text/css" href="/static/admin/css/forms.css" />
 <link rel="stylesheet" type="text/css" href="/static/contract/css/base.css"/>
+<link rel="stylesheet" type="text/css" href="/static/vis-4.20.1/vis.css"/>
+<script type="text/javascript" src="/static/vis-4.20.1/vis.js"></script>
 <script type="text/javascript" src="/jsi18n/"></script>
 <script type="text/javascript" src="/static/admin/js/core.js"></script>
-<script type="text/javascript" src="/static/admin/js/admin/RelatedObjectLookups.js"></script>
 {{ form.media }}
+<style type="text/css">
+    #contract_lines {
+        width: 894px;
+        margin: 0px;
+        border: 3px solid #3d9eea;
+        background-color: white;
+        margin-bottom: 8px;
+        border-radius: 7px;
+    }
+    .vis-item.join_day {
+        background-color: #00ff97;
+    }
+    .vis-item.auto_updated {
+        background-color: transparent;
+        border-style: dashed;
+    }
+    .vis-item .vis-item-overflow {
+        overflow: visible;
+    }
+</style>
 <script type="text/javascript">
-django.jQuery = $
+django.jQuery = $;
+var timeline;
     function switch_version(obj) {
         window.location = "{% url 'contract_change' member.id_from_api %}?ver=" + $(obj).val()
     }
@@ -24,7 +46,69 @@ django.jQuery = $
         });
 
         showBusinessTypeOther($("#id_business_type"));
+        setTimeline();
     });
+
+    function setTimeline() {
+        var container = document.getElementById('contract_lines');
+        var groups = new vis.DataSet();
+        groups.add({id: "lbl", content: ""});
+        groups.add({id: "eb", content: "EB契約"});
+        var items = new vis.DataSet();
+        {% for join_date in join_dates %}
+        items.add({
+            content: "入社日",
+            title: "{{ join_date|date:'Y年m月d日' }}",
+            group: "lbl",
+            start: "{{ join_date|date:'Y-m-d' }} 0:00:00",
+            className: "join_day",
+            member_type: 4,
+        });
+        {% endfor %}
+        {% for c in all_contract %}
+        item_data = {
+            id: {{ c.id }},
+            content: "{% if c.status == '05' %}&nbsp;{% else %}{{ c.contract_no }}{% endif %}",
+            title: "{{ c.contract_no }}",
+            group: "eb",
+            start: "{{ c.start_date|date:'Y-m-d' }} 0:00:00",
+            editable: false,
+            member_type: {{ c.member_type }},
+            className: getItemClassName({{ c.member_type }}, "{{ c.status }}")
+        };
+        {% if c.end_date %}item_data.end = "{{ c.end_date|date:'Y-m-d' }} 23:59:59";{% endif %}
+        items.add(item_data);
+        {% endfor %}
+        var options = {
+            template: function (item, element, data) {
+                var html;
+                if (data.member_type != 4) {
+                    html = '<a href="{% url 'contract_change' member.id_from_api %}?ver=' + item.content + '">'
+                        + item.content + '</a>';
+                } else {
+                    html = item.content;
+                }
+                return html;
+            },
+            max: '2030-12-30',
+            min: '2014-01-01',
+            zoomMin: 24 * 60 * 60 * 10000,
+            stack: false
+        };
+        timeline = new vis.Timeline(container, items, groups, options);
+        timeline.setSelection([{{ contract.id }}], {focus: true});
+    }
+
+    function getItemClassName(member_type, status) {
+        className = "";
+        if (member_type == 4) {
+
+        }
+        if (status == '05') {
+            className += " auto_updated";
+        }
+        return className;
+    }
 
     function showBusinessTypeOther(obj) {
         if ($(obj).val() == "16") {
@@ -34,6 +118,7 @@ django.jQuery = $
         }
     }
 </script>
+<script type="text/javascript" src="/static/admin/js/admin/RelatedObjectLookups.js"></script>
 {% endblock %}
 
 {% block content %}
@@ -81,6 +166,8 @@ django.jQuery = $
         </table>
     </div>
     <div class="flowBottom"></div>
+
+    <div id="contract_lines" class=""></div>
 
     <div class="flowTop"></div>
     <div class="flowBox">

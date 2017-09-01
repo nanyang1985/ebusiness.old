@@ -26,6 +26,7 @@ header div.nav {
     height: 20px;
     width: 100%;
     padding-left: 10px;
+    z-index: 99;
 }
 
 header div.nav a {

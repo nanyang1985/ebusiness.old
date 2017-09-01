@@ -4,7 +4,7 @@ Created on 2017/04/24
 
 @author: Yang Wanjun
 """
-from django.db.models import Prefetch, Subquery, OuterRef, CharField
+from django.db.models import Prefetch, Subquery, OuterRef, CharField, Min
 from eb import models as sales_models
 from . import models
 
@@ -12,12 +12,12 @@ from . import models
 def get_members():
     contract_set = models.Contract.objects.filter(
         is_deleted=False
-    ).exclude(status='04').order_by('-employment_date', '-contract_no')
+    ).exclude(status__in=['04', '05']).order_by('-employment_date', '-contract_no')
     queryset = sales_models.Member.objects.all().annotate(
         contract_member_type=Subquery(
             models.Contract.objects.filter(
                 is_deleted=False, member=OuterRef('pk')
-            ).exclude(status='04').order_by(
+            ).exclude(status__in=['04', '05']).order_by(
                 '-employment_date', '-contract_no'
             ).values('member_type')[:1],
             output_field=CharField()
@@ -25,7 +25,7 @@ def get_members():
         endowment_insurance=Subquery(
             models.Contract.objects.filter(
                 is_deleted=False, member=OuterRef('pk')
-            ).exclude(status='04').order_by(
+            ).exclude(status__in=['04', '05']).order_by(
                 '-employment_date', '-contract_no'
             ).values('endowment_insurance')[:1],
             output_field=CharField()
@@ -37,7 +37,31 @@ def get_members():
 
 
 def get_latest_contract(member):
+    """最新の契約情報を取得する。
+    
+    :param member: 
+    :return: 
+    """
     contract_set = member.contract_set.filter(
         is_deleted=False
-    ).exclude(status='04').order_by('-employment_date', '-contract_no')
+    ).exclude(status__in=['04', '05']).order_by('-employment_date', '-contract_no')
     return contract_set
+
+
+def get_join_dates(member):
+    """入社日を取得する。
+    
+    下記の条件で複数の日付が取得できます：
+    一回入社してから会社をやめて、また入社した場合は
+    
+    :param member: 
+    :return: 
+    """
+    join_dates = []
+    min_start_date = member.contract_set.filter(
+        is_deleted=False
+    ).exclude(status__in=['04', '05']).aggregate(Min('start_date'))
+    start_date = min_start_date.get('start_date__min')
+    if start_date:
+        join_dates.append(start_date)
+    return join_dates

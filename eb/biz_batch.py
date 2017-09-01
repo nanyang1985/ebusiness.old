@@ -17,6 +17,7 @@ from . import biz, biz_config
 from utils import constants, common, file_gen
 from eb import models
 from eboa import models as eboa_models
+from contract import models as contract_models
 
 from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
 from django.contrib.admin.models import LogEntry, ADDITION, CHANGE
@@ -25,7 +26,7 @@ from django.utils.text import get_text_list
 from django.utils.translation import ugettext as _
 from django.contrib.auth.models import User
 from django.db.models.functions import ExtractMonth, ExtractDay
-from django.db.models import Q, Prefetch
+from django.db.models import Q, Prefetch, Subquery, OuterRef, CharField
 
 
 def sync_members(batch):
@@ -654,3 +655,91 @@ def push_notification(users, title, message, gcm_url=None):
                              })
 
         requests.post(gcm_url, data=params, headers=headers)
+
+
+def batch_sync_contract(batch):
+    logger = batch.get_logger()
+    # 契約社員の契約情報だけを抽出する。
+    query_set = contract_models.Contract.objects.public_filter(member_id=478).annotate(
+        max_contract_no=Subquery(
+            contract_models.Contract.objects.public_filter(
+                is_deleted=False, member=OuterRef('member'), start_date=OuterRef('start_date')
+            ).exclude(status__in=['04', '05']).order_by(
+                '-contract_no'
+            ).values('contract_no')[:1],
+            output_field=CharField()
+        ),
+    ).exclude(status__in=['04', '05']).order_by('member_id', 'contract_no', 'start_date').prefetch_related(
+        Prefetch('member'),
+    )
+    today = datetime.date.today()
+    count = query_set.count()
+    for i, contract in enumerate(query_set):
+        if contract.contract_no == contract.max_contract_no:
+            filters = {'member': contract.member, 'start_date__gt': contract.start_date,
+                       'status__in': ['01', '02', '03', '05']}
+            if contract.member.is_retired and contract.member.retired_date is None:
+                # すでに退職で、かつ退職日が入れてない場合はスキップする。
+                continue
+            elif contract.member_type == 1:
+                # 正社員の場合、契約終了日を再設定する。
+                if i + 1 < count and contract.member.pk == query_set[i + 1].member.pk:
+                    end_date = query_set[i + 1].start_date + datetime.timedelta(days=-1)
+                    if contract.end_date is None and contract.end_date2 is None:
+                        contract.end_date2 = end_date
+                        contract.save(update_fields=['end_date2'])
+                        logger.info(u'%s: %sの雇用終了日が設定しました。' % (unicode(contract.member), contract.contract_no))
+            elif i + 1 < count and contract.member.pk == query_set[i + 1].member.pk:
+                # 新しい契約が存在する場合
+                if contract.end_date is None:
+                    # 契約終了日が空白の場合はスキップする。
+                    continue
+                if query_set[i + 1].start_date < contract.end_date:
+                    # 契約期間が重複した場合はスキップする。
+                    continue
+                if query_set[i + 1].start_date == contract.end_date + datetime.timedelta(days=1):
+                    # 新しい契約との契約期間が連続の場合はスキップする。
+                    continue
+                filters['start_date__lt'] = query_set[i + 1].start_date
+
+                auto_contract_set = contract_models.Contract.objects.public_filter(**filters).order_by('contract_no')
+                if auto_contract_set.count() == 0:
+                    contract.start_date = contract.end_date + datetime.timedelta(days=1)
+                    contract.end_date = query_set[i + 1].start_date + datetime.timedelta(days=-1)
+                    contract.status = '05'
+                    contract.pk = None
+                    contract.save()
+                    logger.info(u'%s: %sが自動更新しました。' % (unicode(contract.member), contract.contract_no))
+            elif contract.end_date and contract.end_date < today:
+                # 新しい契約が存在しない場合
+                filters['start_date__lt'] = common.get_last_day_by_month(today)
+                auto_contract_set = contract_models.Contract.objects.public_filter(**filters).order_by(
+                    '-contract_no', '-start_date'
+                )
+                if auto_contract_set.count() == 0:
+                    # 自動更新された契約もない場合、今月末まで更新する。
+                    contract.start_date = contract.end_date + datetime.timedelta(days=1)
+                    if contract.member.is_retired and contract.member.retired_date:
+                        end_date = contract.member.retired_date
+                        contract.retired_date = end_date
+                    else:
+                        end_date = filters['start_date__lt']
+                    contract.end_date = end_date
+                    contract.status = '05'
+                    contract.pk = None
+                    contract.save()
+                    logger.info(u'%s: %sが自動更新しました。' % (unicode(contract.member), contract.contract_no))
+                else:
+                    # 自動更新された契約が存在する場合、今月末まで足りない期間分の契約を追加する。
+                    if auto_contract_set[0].retired_date is not None:
+                        # 退職済みの場合はスキップする。
+                        continue
+                    last_end_date = auto_contract_set[0].end_date
+                    if last_end_date < filters['start_date__lt']:
+                        contract.start_date = last_end_date + datetime.timedelta(days=1)
+                        contract.end_date = filters['start_date__lt']
+                        contract.status = '05'
+                        contract.pk = None
+                        contract.save()
+                        logger.info(u'%s: %sが自動更新しました。' % (unicode(contract.member), contract.contract_no))
+

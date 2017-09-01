@@ -1,0 +1,6 @@
+﻿-- 正社員の契約終了日をNULLに設定。
+update eb_contract c join eb_member m on m.id = c.member_id
+set c.end_date = null
+where start_date = end_date
+and c.member_type = 1;
+
