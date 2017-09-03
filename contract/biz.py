@@ -46,22 +46,3 @@ def get_latest_contract(member):
         is_deleted=False
     ).exclude(status__in=['04', '05']).order_by('-employment_date', '-contract_no')
     return contract_set
-
-
-def get_join_dates(member):
-    """入社日を取得する。
-    
-    下記の条件で複数の日付が取得できます：
-    一回入社してから会社をやめて、また入社した場合は
-    
-    :param member: 
-    :return: 
-    """
-    join_dates = []
-    min_start_date = member.contract_set.filter(
-        is_deleted=False
-    ).exclude(status__in=['04', '05']).aggregate(Min('start_date'))
-    start_date = min_start_date.get('start_date__min')
-    if start_date:
-        join_dates.append(start_date)
-    return join_dates

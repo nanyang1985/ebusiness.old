@@ -26,7 +26,7 @@ from django.utils.text import get_text_list
 from django.utils.translation import ugettext as _
 from django.contrib.auth.models import User
 from django.db.models.functions import ExtractMonth, ExtractDay
-from django.db.models import Q, Prefetch, Subquery, OuterRef, CharField
+from django.db.models import Q, Prefetch, Subquery, OuterRef, CharField, DateField
 
 
 def sync_members(batch):
@@ -660,7 +660,7 @@ def push_notification(users, title, message, gcm_url=None):
 def batch_sync_contract(batch):
     logger = batch.get_logger()
     # 契約社員の契約情報だけを抽出する。
-    query_set = contract_models.Contract.objects.public_filter(member_id=478).annotate(
+    query_set = contract_models.Contract.objects.public_all().annotate(
         max_contract_no=Subquery(
             contract_models.Contract.objects.public_filter(
                 is_deleted=False, member=OuterRef('member'), start_date=OuterRef('start_date')
@@ -669,6 +669,14 @@ def batch_sync_contract(batch):
             ).values('contract_no')[:1],
             output_field=CharField()
         ),
+        first_start_date=Subquery(
+            contract_models.Contract.objects.public_filter(
+                is_deleted=False, member=OuterRef('member')
+            ).exclude(status__in=['04', '05']).order_by(
+                'start_date'
+            ).values('start_date')[:1],
+            output_field=DateField()
+        ),
     ).exclude(status__in=['04', '05']).order_by('member_id', 'contract_no', 'start_date').prefetch_related(
         Prefetch('member'),
     )
@@ -676,6 +684,12 @@ def batch_sync_contract(batch):
     count = query_set.count()
     for i, contract in enumerate(query_set):
         if contract.contract_no == contract.max_contract_no:
+            if contract.start_date == contract.first_start_date and contract.join_date is None:
+                contract.join_date = contract.start_date
+                contract.save(update_fields=['join_date'])
+                logger.info(u'%s: %sの入社日が%sに設定しました。' % (
+                    unicode(contract.member), contract.contract_no, contract.join_date
+                ))
             filters = {'member': contract.member, 'start_date__gt': contract.start_date,
                        'status__in': ['01', '02', '03', '05']}
             if contract.member.is_retired and contract.member.retired_date is None:

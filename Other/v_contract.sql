@@ -70,32 +70,21 @@ VIEW `v_contract` AS
         `eb_contract`.`move_flg` AS `move_flg`,
         (CASE
             WHEN
-                 (SELECT
+                (SELECT
                         MAX(`c1`.`contract_no`)
                     FROM
                         `eb_contract` `c1`
                     WHERE
-                        ((`c1`.`start_date` = `eb_contract`.`start_date`)
-                            AND (`c1`.`member_id` = `eb_contract`.`member_id`)
-                            AND (`c1`.`is_deleted` = 0)
-                            AND (`c1`.`status` <> '04')) = `eb_contract`.`contract_no`)
+                        `c1`.`start_date` = `eb_contract`.`start_date`
+                            AND `c1`.`member_id` = `eb_contract`.`member_id`
+                            AND `c1`.`is_deleted` = 0
+                            AND `c1`.`status` <> '04') = `eb_contract`.`contract_no`
             THEN
                 0
             ELSE 1
         END) AS `is_old`,
-        (CASE
-            WHEN
-                EXISTS( SELECT
-                        1
-                    FROM
-                        `eb_contract` `c1`
-                    WHERE
-                        ((`c1`.`start_date` < `eb_contract`.`start_date`)
-                            AND (`c1`.`member_id` = `eb_contract`.`member_id`)))
-            THEN
-                `eb_contract`.`contract_no`
-            ELSE '入社日'
-        END) AS `auto_comment`,
+        `eb_contract`.`join_date` AS `join_date`,
+        `eb_contract`.`retired_date` AS `retired_date`,
         `eb_contract`.`created_date` AS `created_date`,
         `eb_contract`.`updated_date` AS `updated_date`,
         `eb_contract`.`is_deleted` AS `is_deleted`,
@@ -167,10 +156,11 @@ VIEW `v_contract` AS
         0 AS `is_loan`,
         0 AS `move_flg`,
         0 AS `is_old`,
-        '' AS `auto_comment`,
+        NULL AS `join_date`,
+        NULL AS `retired_date`,
         `eb_bp_contract`.`created_date` AS `created_date`,
         `eb_bp_contract`.`updated_date` AS `updated_date`,
         `eb_bp_contract`.`is_deleted` AS `is_deleted`,
         `eb_bp_contract`.`deleted_date` AS `deleted_date`
     FROM
-        `eb_bp_contract`;
+        `eb_bp_contract`

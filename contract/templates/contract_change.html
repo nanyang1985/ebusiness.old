@@ -19,11 +19,14 @@
         margin-bottom: 8px;
         border-radius: 7px;
     }
-    .vis-item.join_day {
+    .vis-item.join_date {
         background-color: #00ff97;
     }
+    .vis-item.retired_date {
+        background-color: #ffb7c3;
+    }
     .vis-item.auto_updated {
-        background-color: transparent;
+        background-color: rgba(202, 243, 215, 0.5);
         border-style: dashed;
     }
     .vis-item .vis-item-overflow {
@@ -55,29 +58,39 @@ var timeline;
         groups.add({id: "lbl", content: ""});
         groups.add({id: "eb", content: "EB契約"});
         var items = new vis.DataSet();
-        {% for join_date in join_dates %}
-        items.add({
-            content: "入社日",
-            title: "{{ join_date|date:'Y年m月d日' }}",
-            group: "lbl",
-            start: "{{ join_date|date:'Y-m-d' }} 0:00:00",
-            className: "join_day",
-            member_type: 4,
-        });
-        {% endfor %}
         {% for c in all_contract %}
-        item_data = {
-            id: {{ c.id }},
-            content: "{% if c.status == '05' %}&nbsp;{% else %}{{ c.contract_no }}{% endif %}",
-            title: "{{ c.contract_no }}",
-            group: "eb",
-            start: "{{ c.start_date|date:'Y-m-d' }} 0:00:00",
-            editable: false,
-            member_type: {{ c.member_type }},
-            className: getItemClassName({{ c.member_type }}, "{{ c.status }}")
-        };
-        {% if c.end_date %}item_data.end = "{{ c.end_date|date:'Y-m-d' }} 23:59:59";{% endif %}
-        items.add(item_data);
+            {% if c.join_date %}
+                items.add({
+                    content: "入社",
+                    title: "{{ c.join_date|date:'Y年m月d日' }}",
+                    group: "lbl",
+                    start: "{{ c.join_date|date:'Y-m-d' }} 0:00:00",
+                    className: "join_date",
+                    member_type: 4,
+                });
+            {% endif %}
+            {% if c.retired_date %}
+                items.add({
+                    content: "退職",
+                    title: "{{ c.retired_date|date:'Y年m月d日' }}",
+                    group: "lbl",
+                    start: "{{ c.retired_date|date:'Y-m-d' }} 23:59:59",
+                    className: "retired_date",
+                    member_type: 4,
+                });
+            {% endif %}
+            item_data = {
+                id: {{ c.id }},
+                content: "{% if c.status == '05' %}&nbsp;{% else %}{{ c.contract_no }}{% endif %}",
+                title: "{{ c.contract_no }}",
+                group: "eb",
+                start: "{{ c.start_date|date:'Y-m-d' }} 0:00:00",
+                editable: false,
+                member_type: {{ c.member_type }},
+                className: getItemClassName({{ c.member_type }}, "{{ c.status }}")
+            };
+            {% if c.end_date %}item_data.end = "{{ c.end_date|date:'Y-m-d' }} 23:59:59";{% endif %}
+            items.add(item_data);
         {% endfor %}
         var options = {
             template: function (item, element, data) {
