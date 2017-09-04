@@ -84,15 +84,24 @@ if sys.platform == 'linux2':
             'PORT': '3306',
         },
     }
-elif sys.platform == 'win32' and getpass.getuser() == '411328':
+elif sys.platform == 'win32' and getpass.getuser() == 'EB097':
     DATABASES = {
         'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+            'ENGINE': 'django.db.backends.mysql',
+            'NAME': 'eb_sales',
+            'USER': 'root',
+            'PASSWORD': 'root',
+            'HOST': '192.168.11.78',
+            'PORT': '3306',
         },
+
         'bpm_eboa': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': os.path.join(BASE_DIR, 'eboa.sqlite3'),
+            'ENGINE': 'django.db.backends.mysql',
+            'NAME': 'bpm_eboa',
+            'USER': 'root',
+            'PASSWORD': 'root',
+            'HOST': '192.168.11.78',
+            'PORT': '3306',
         },
     }
 else:

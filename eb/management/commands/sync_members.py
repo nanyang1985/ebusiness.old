@@ -24,5 +24,4 @@ class Command(BaseBatch):
         logger.info(u"バッチ実行開始。username: %s" % username)
         # count = biz_batch.sync_members(self.batch)
         biz_batch.sync_members_for_change(self.batch)
-        # if count == 0:
-        #     logger.info(u"新入社員がいません。")
+        logger.info(u"バッチ実行終了。username: %s" % username)

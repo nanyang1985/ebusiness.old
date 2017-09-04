@@ -188,14 +188,47 @@ def sync_members_for_change(batch):
         try:
             oa_member = eboa_models.EbEmployee.objects.get(user__userid=member.eboa_user_id)
             changed_list = []
+            # カタカナ
+            if oa_member.residence_name_kana:
+                try:
+                    if isinstance(oa_member.residence_name_kana, unicode):
+                        residence_name_kana = oa_member.residence_name_kana
+                    else:
+                        residence_name_kana = unicode(oa_member.residence_name_kana.decode('utf8'))
+                    kana_list = re.split(r"\s+", residence_name_kana, maxsplit=1)
+                    if kana_list and len(kana_list) == 2:
+                        common.get_object_changed_message(member, 'first_name_ja', kana_list[0], changed_list)
+                        common.get_object_changed_message(member, 'last_name_ja', kana_list[1], changed_list)
+                        member.first_name_ja = kana_list[0]
+                        member.last_name_ja = kana_list[1]
+                except Exception as ex:
+                    logger.error(u"%sの名前「%s」を読み込む時エラーが発生しました。" % (unicode(oa_member), residence_name_kana))
+                    logger.error(ex)
+            # ローマ字
+            if oa_member.passport_name:
+                try:
+                    en_name_list = re.split(r"\s+", oa_member.passport_name, maxsplit=1)
+                    if en_name_list and len(en_name_list) == 2:
+                        common.get_object_changed_message(member, 'first_name_en', en_name_list[0], changed_list)
+                        common.get_object_changed_message(member, 'last_name_en', en_name_list[1], changed_list)
+                        member.first_name_en = en_name_list[0].capitalize()
+                        member.last_name_en = en_name_list[1].capitalize()
+                except Exception as ex:
+                    logger.error(u"%sの名前「%s」を読み込む時エラーが発生しました。" % (unicode(oa_member), oa_member.passport_name))
+                    logger.error(ex)
             # 生年月日
             if oa_member.birthday:
                 try:
-                    birthday = datetime.datetime.strptime(oa_member.birthday, '%Y-%m-%d').date()
+                    if len(oa_member.birthday) > 10:
+                        date_format = '%Y-%m-%d %H:%M:%S'
+                    else:
+                        date_format = '%Y-%m-%d'
+                    birthday = datetime.datetime.strptime(oa_member.birthday, date_format).date()
                     common.get_object_changed_message(member, 'birthday', birthday, changed_list)
                     member.birthday = birthday
-                except ValueError:
-                    pass
+                except Exception as ex:
+                    logger.error(u"%sの生年月日「%s」を読み込む時エラーが発生しました。" % (unicode(oa_member), oa_member.birthday))
+                    logger.error(ex)
             zip_code = oa_member.zipcode.replace('-', '') if oa_member.zipcode else ""
             # 郵便番号
             if re.match(r'^[0-9]{7}$', zip_code) and member.post_code != zip_code:
