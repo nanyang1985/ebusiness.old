@@ -315,7 +315,7 @@ class BpContract(BaseModel):
     comment = models.TextField(blank=True, null=True,  verbose_name=u"備考")
 
     class Meta:
-        ordering = ['company', 'member', 'start_date']
+        ordering = ['company', 'member', '-start_date']
         verbose_name = verbose_name_plural = u"ＢＰ契約"
         db_table = 'eb_bp_contract'
 

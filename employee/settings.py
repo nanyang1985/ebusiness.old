@@ -228,6 +228,12 @@ LOGGING = {
             'formatter': 'standard',
             'filename': os.path.join(BASE_DIR, "log/batch/sync_contract.log"),
         },
+        'sync_bp_contract': {
+            'level': 'INFO',
+            'class': 'logging.FileHandler',
+            'formatter': 'standard',
+            'filename': os.path.join(BASE_DIR, "log/batch/sync_bp_contract.log"),
+        },
         'eb_sales': {
             'level': 'INFO',
             'class': 'logging.FileHandler',
@@ -273,6 +279,11 @@ LOGGING = {
         },
         'eb.management.commands.sync_contract': {
             'handlers': ['sync_contract'],
+            'level': 'INFO',
+            'propagate': True,
+        },
+        'eb.management.commands.sync_bp_contract': {
+            'handlers': ['sync_bp_contract'],
             'level': 'INFO',
             'propagate': True,
         },

@@ -30,6 +30,7 @@ NAME_MEMBERS_COST = u"要員コスト一覧_%s"
 BATCH_MEMBER_STATUS = 'member_status'
 BATCH_SYNC_MEMBERS = 'sync_members'
 BATCH_SYNC_CONTRACT = 'sync_contract'
+BATCH_SYNC_BP_CONTRACT = 'sync_bp_contract'
 BATCH_SEND_ATTENDANCE_FORMAT = 'send_attendance_format'
 BATCH_PUSH_NEW_MEMBER = 'push_new_member'
 BATCH_PUSH_BIRTHDAY = 'push_birthday'

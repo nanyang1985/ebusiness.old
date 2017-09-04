@@ -790,3 +790,53 @@ def batch_sync_contract(batch):
                         contract.save()
                         logger.info(u'%s: %sが自動更新しました。' % (unicode(contract.member), contract.contract_no))
 
+
+def batch_sync_bp_contract(batch):
+    logger = batch.get_logger()
+    bp_contract_set = contract_models.BpContract.objects.public_filter(is_deleted=False).order_by('start_date')
+    project_member_set = models.ProjectMember.objects.public_filter(is_deleted=False, status=2).order_by('-end_date')
+    query_set = models.Member.objects.public_filter(subcontractor__isnull=False).prefetch_related(
+        Prefetch('bpcontract_set', queryset=bp_contract_set, to_attr='bp_contract_set'),
+        Prefetch('projectmember_set', queryset=project_member_set, to_attr='project_member_set'),
+    )
+    for member in query_set:
+        if member.bp_contract_set:
+            bp_contract = member.bp_contract_set[0]
+            if member.join_date < bp_contract.start_date:
+                bp_contract.pk = None
+                bp_contract.end_date = bp_contract.start_date + datetime.timedelta(days=-1)
+                bp_contract.start_date = member.join_date
+                bp_contract.status = '05'
+                bp_contract.save()
+                logger.info(u'%s: %s～%sがＢＰ契約によって自動更新しました。' % (unicode(member), bp_contract.start_date, bp_contract.end_date))
+        elif member.is_retired and member.retired_date:
+            # 退職した場合
+            bp_contract = contract_models.BpContract(member=member)
+            bp_contract.company = member.subcontractor
+            bp_contract.member_type = 4
+            bp_contract.start_date = member.join_date
+            bp_contract.end_date = member.retired_date
+            bp_contract.is_hourly_pay = False
+            bp_contract.is_fixed_cost = False
+            bp_contract.is_show_formula = False
+            bp_contract.allowance_base = 0
+            bp_contract.status = '05'
+            bp_contract.save()
+            logger.info(u'%s: %s～%sが退職によって自動更新しました。' % (unicode(member), bp_contract.start_date, bp_contract.end_date))
+        elif member.project_member_set:
+            # 退職が設定してない、最後の案件の終了日で設定する。
+            project_member = member.project_member_set[0]
+            bp_contract = contract_models.BpContract(member=member)
+            bp_contract.company = member.subcontractor
+            bp_contract.member_type = 4
+            bp_contract.start_date = member.join_date
+            bp_contract.end_date = project_member.end_date
+            bp_contract.is_hourly_pay = False
+            bp_contract.is_fixed_cost = False
+            bp_contract.is_show_formula = False
+            bp_contract.allowance_base = 0
+            bp_contract.status = '05'
+            bp_contract.save()
+            logger.info(u'%s: %s～%sがアサインした案件によって自動更新しました。' % (unicode(member), bp_contract.start_date, bp_contract.end_date))
+        else:
+            logger.info(u"%s: 処理できない。" % unicode(member))
