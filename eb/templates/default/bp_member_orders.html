@@ -12,29 +12,18 @@
 
 {% block content %}
     <div class="dashboard">
-        <div class="dashboard-title">ＢＰメンバー注文情報</div>
+        <div class="dashboard-title">{{ title }}</div>
         <form>
             <a href="{% url 'contract:contract_bpcontract_add' %}?from=portal&_popup=1&member_id={{member.pk}}" class="button" target="_blank">契約追加</a>
         </form>
     </div>
     <div id="mask" onclick="hide_dialog()" class="mask"></div>
-    <table class="detail" cellpadding="0" cellspacing="0">
-        <tr>
-            <th>名前</th>
-            <td>{{ member }}</td>
-            <th>協力会社</th>
-            <td>{{ member.subcontractor }}
-                <a style="font-size: 9px; float: right;" target="_blank"
-                   href="{% url 'admin:eb_subcontractor_change' member.subcontractor.pk %}?from=portal&_popup=1">編集
-                </a>
-            </td>
-        </tr>
-    </table>
     <table class="list" cellpadding="0" cellspacing="0">
         <thead>
             <tr>
-                <th>開始日</th>
-                <th>終了日</th>
+                <th style="width: 100px;">開始日</th>
+                <th style="width: 100px;">終了日</th>
+                <th>会社名</th>
                 <th>時給</th>
                 <th>固定</th>
                 <th>基本給</th>
@@ -53,6 +42,7 @@
                     <tr class="{% cycle 'row1' 'row2' %}">
                         <td>{{ contract.start_date }}</td>
                         <td>{{ contract.end_date }}</td>
+                        <td>{{ contract.company }}</td>
                         <td>
                             {% if contract.is_hourly_pay %}
                                 <img width="12px" src="/static/{{ theme }}/img/icon-normal.png" />

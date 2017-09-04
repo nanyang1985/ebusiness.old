@@ -2052,7 +2052,7 @@ class DownloadSectionAttendance(BaseView):
         section_id = kwargs.get('section_id', 0)
         year = kwargs.get('year', 0)
         month = kwargs.get('month', 0)
-        date = datetime.date(int(year), int(month), 20)
+        date = datetime.date(int(year), int(month), 21)
         section = get_object_or_404(models.Section, pk=section_id)
         batch = biz.get_batch_manage(constants.BATCH_SEND_ATTENDANCE_FORMAT)
         project_members = biz.get_project_members_month_section(section, date)

@@ -1,5 +1,7 @@
 # coding: utf-8
 import os
+import sys
+import getpass
 import MySQLdb
 import django
 from django.core.management import call_command
@@ -12,9 +14,14 @@ from flow import migrations as flow_migrations
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "employee.settings")
 django.setup()
 
-user = 'root'
-password = 'root'
-host = 'localhost'
+if sys.platform == 'win32' and getpass.getuser() == 'EB097':
+    user = 'root'
+    password = 'root'
+    host = '192.168.11.78'
+else:
+    user = 'root'
+    password = 'root'
+    host = 'localhost'
 
 
 def main():

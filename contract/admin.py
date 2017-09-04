@@ -100,7 +100,7 @@ class BpContractAdmin(BaseAdmin):
     list_display = ['member', 'company', 'start_date', 'end_date', 'is_hourly_pay', 'allowance_base']
     search_fields = ('member__first_name', 'member__last_name', 'company')
     fieldsets = (
-        (None, {'fields': ('member',
+        (None, {'fields': (('member', 'company'),
                            'start_date',
                            'end_date',
                            ('is_hourly_pay', 'is_fixed_cost', 'is_show_formula'),
@@ -124,8 +124,13 @@ class BpContractAdmin(BaseAdmin):
         form = super(BpContractAdmin, self).get_form(request, obj, **kwargs)
         member_id = request.GET.get('member_id')
         try:
-            member = sales_models.Member.objects.get(pk=member_id)
-            form.base_fields['member'].initial = member
+            if obj is None:
+                member = sales_models.Member.objects.get(pk=member_id)
+                form.base_fields['member'].initial = member
+                # 追加の場合、会社は１個前の契約の会社を選択する。
+                contract_set = models.BpContract.objects.public_filter(member=member).order_by('-start_date')
+                if contract_set.count() > 0:
+                    form.base_fields['company'].initial = contract_set[0].company
         except (ObjectDoesNotExist, MultipleObjectsReturned):
             pass
         return form

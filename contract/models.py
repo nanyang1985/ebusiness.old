@@ -310,6 +310,8 @@ class BpContract(BaseModel):
     allowance_absenteeism_memo = models.CharField(max_length=255, blank=True, null=True, verbose_name=u"欠勤手当メモ")
     allowance_other = models.IntegerField(default=0, verbose_name=u"その他手当")
     allowance_other_memo = models.CharField(max_length=255, blank=True, null=True, verbose_name=u"その他手当メモ")
+    status = models.CharField(max_length=2, default='01', choices=constants.CHOICE_CONTRACT_STATUS,
+                              verbose_name=u"契約状態")
     comment = models.TextField(blank=True, null=True,  verbose_name=u"備考")
 
     class Meta:

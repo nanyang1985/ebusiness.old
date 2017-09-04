@@ -120,7 +120,7 @@ class ContractForm(BaseForm):
 class BpContractForm(BaseForm):
     class Meta:
         model = models.BpContract
-        exclude = ('company',)
+        fields = '__all__'
 
     def __init__(self, *args, **kwargs):
         super(BpContractForm, self).__init__(*args, **kwargs)
