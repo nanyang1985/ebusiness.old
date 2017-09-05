@@ -153,56 +153,9 @@ class Contract(BaseModel):
             cost = int((cost * 14) / 12)
         return cost
 
-    def get_cost_monthly(self):
-        """在職証明書、所得証明書出力時、正社員の場合でも*14/12の必要はない
-        
-        :return: 
-        """
-        cost = self.allowance_base \
-               + self.allowance_base_other \
-               + self.allowance_work \
-               + self.allowance_director \
-               + self.allowance_position \
-               + self.allowance_diligence \
-               + self.allowance_security \
-               + self.allowance_qualification \
-               + self.allowance_other
-        return cost
-
-    def get_cost_yearly(self):
-        """年収を取得する。
-
-        :return:
-        """
-        cost = self.allowance_base \
-               + self.allowance_base_other \
-               + self.allowance_work \
-               + self.allowance_director \
-               + self.allowance_position \
-               + self.allowance_diligence \
-               + self.allowance_security \
-               + self.allowance_qualification \
-               + self.allowance_other
-        if self.member_type == 1:
-            return int(cost * 14)
-        else:
-            return cost * 12
-
     def get_next_contract_no(self):
         today = datetime.date.today()
         return "EB%04d%s" % (int(self.member.id_from_api), today.strftime('%Y%m%d'))
-
-    def get_business_position(self):
-        """在職証明書の職務位置に使われる
-
-        :return:
-        """
-        business_type_name = self.get_business_type_display()
-        m = re.search(r'（([^（）]+)）', business_type_name)
-        if m and m.groups():
-            return m.groups()[0]
-        else:
-            return business_type_name
 
     @property
     def is_fixed_cost(self):
@@ -526,3 +479,49 @@ class ViewContract(models.Model):
     def __unicode__(self):
         return unicode(self.member)
 
+    def get_business_position(self):
+        """在職証明書の職務位置に使われる
+
+        :return:
+        """
+        business_type_name = self.get_business_type_display()
+        m = re.search(r'（([^（）]+)）', business_type_name)
+        if m and m.groups():
+            return m.groups()[0]
+        else:
+            return business_type_name
+
+    def get_cost_monthly(self):
+        """在職証明書、所得証明書出力時、正社員の場合でも*14/12の必要はない
+
+        :return:
+        """
+        cost = self.allowance_base \
+               + self.allowance_base_other \
+               + self.allowance_work \
+               + self.allowance_director \
+               + self.allowance_position \
+               + self.allowance_diligence \
+               + self.allowance_security \
+               + self.allowance_qualification \
+               + self.allowance_other
+        return cost
+
+    def get_cost_yearly(self):
+        """年収を取得する。
+
+        :return:
+        """
+        cost = self.allowance_base \
+               + self.allowance_base_other \
+               + self.allowance_work \
+               + self.allowance_director \
+               + self.allowance_position \
+               + self.allowance_diligence \
+               + self.allowance_security \
+               + self.allowance_qualification \
+               + self.allowance_other
+        if self.member_type == 1:
+            return int(cost * 14)
+        else:
+            return cost * 12

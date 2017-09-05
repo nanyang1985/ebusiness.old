@@ -1305,7 +1305,6 @@ class Member(AbstractMember):
         :param date 対象年月
         :return:
         """
-
         logger = common.get_sales_logger()
         try:
             contract = self.viewcontract_set.get(
