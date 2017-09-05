@@ -101,7 +101,7 @@ def sync_members(batch):
             introduction = data.get("introduction", None)
             # 部署
             department_id = data.get('departmentId', None)
-            department_name = data.get("department", None)
+            # department_name = data.get("department", None)
             org_id = constants.DICT_ORG_MAPPING.get(department_id, None)
             if api_id:
                 # 契約情報取得する。
@@ -202,7 +202,7 @@ def sync_members_for_change(batch):
                         member.first_name_ja = kana_list[0]
                         member.last_name_ja = kana_list[1]
                 except Exception as ex:
-                    logger.error(u"%sの名前「%s」を読み込む時エラーが発生しました。" % (unicode(oa_member), residence_name_kana))
+                    logger.error(u"%sの名前「%s」を読み込む時エラーが発生しました。" % (unicode(oa_member), oa_member.residence_name_kana))
                     logger.error(ex)
             # ローマ字
             if oa_member.passport_name:
@@ -521,7 +521,7 @@ def members_to_excel(data_list, path):
     book.save(path)
 
 
-def batch_sync_members_cost(batch, year, month, username):
+def batch_sync_members_cost(batch, year, month):
     """社員コストを同期する
 
     請求書作成後の請求明細と出勤情報明細に月給とコストを更新する。
@@ -530,7 +530,6 @@ def batch_sync_members_cost(batch, year, month, username):
     :param batch:実行するバッチ
     :param year:該当年のデータ
     :param month:該当月のデータ
-    :param username:実行するユーザー
     :return:
     """
     logger = batch.get_logger()
@@ -735,17 +734,22 @@ def batch_sync_contract(batch):
                     if contract.end_date is None and contract.end_date2 is None:
                         contract.end_date2 = end_date
                         contract.save(update_fields=['end_date2'])
-                        logger.info(u'%s: %sの雇用終了日が設定しました。' % (unicode(contract.member), contract.contract_no))
+                        logger.info(u'%s: %sの雇用終了日（%s）が再設定しました。', unicode(contract.member), contract.contract_no,
+                                    contract.end_date2)
             elif i + 1 < count and contract.member.pk == query_set[i + 1].member.pk:
                 # 新しい契約が存在する場合
                 if contract.end_date is None:
                     # 契約終了日が空白の場合はスキップする。
                     continue
-                if query_set[i + 1].start_date < contract.end_date:
-                    # 契約期間が重複した場合はスキップする。
-                    continue
                 if query_set[i + 1].start_date == contract.end_date + datetime.timedelta(days=1):
                     # 新しい契約との契約期間が連続の場合はスキップする。
+                    continue
+                if query_set[i + 1].start_date < contract.end_date:
+                    # 契約期間が重複した場合は契約終了日を再設定する。
+                    contract.end_date2 = query_set[i + 1].start_date + datetime.timedelta(days=-1)
+                    contract.save(update_fields=['end_date2'])
+                    logger.info(u'%s: %sの雇用終了日（%s）が再設定しました。', unicode(contract.member), contract.contract_no,
+                                contract.end_date2)
                     continue
                 filters['start_date__lt'] = query_set[i + 1].start_date
 
@@ -756,7 +760,8 @@ def batch_sync_contract(batch):
                     contract.status = '05'
                     contract.pk = None
                     contract.save()
-                    logger.info(u'%s: %sが自動更新しました。' % (unicode(contract.member), contract.contract_no))
+                    logger.info(u'%s: %sの契約期間（%s～%s）が自動追加しました。', unicode(contract.member), contract.contract_no,
+                                contract.start_date, contract.end_date)
             elif contract.end_date and contract.end_date < today:
                 # 新しい契約が存在しない場合
                 filters['start_date__lt'] = common.get_last_day_by_month(today)
@@ -839,4 +844,4 @@ def batch_sync_bp_contract(batch):
             bp_contract.save()
             logger.info(u'%s: %s～%sがアサインした案件によって自動更新しました。' % (unicode(member), bp_contract.start_date, bp_contract.end_date))
         else:
-            logger.info(u"%s: 処理できない。" % unicode(member))
+            logger.error(u"%s: 処理できない。", unicode(member))

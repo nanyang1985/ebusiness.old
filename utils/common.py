@@ -13,6 +13,7 @@ import calendar
 import xlsxwriter
 import StringIO
 import math
+import logging
 
 import constants, errors
 import jholiday
@@ -1062,6 +1063,14 @@ def get_bp_order_publish_date(year, month, str_date):
     else:
         from pandas.tseries.offsets import BDay
         return datetime.date(int(year), int(month), 1) - BDay(1)
+
+
+def get_sales_logger():
+    """営業システムのロガーを取得する。
+
+    :return:
+    """
+    return logging.getLogger('eb_sales')
 
 
 if __name__ == "__main__":

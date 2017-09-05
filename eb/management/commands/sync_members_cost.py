@@ -30,7 +30,7 @@ class Command(BaseBatch):
         if not year or not month or month < 0 or month > 12 or len(str(year)) != 4:
             raise CommandError(u"{year: %s, month: %s}は正しい年月ではありません！" % (year, month))
         logger.info(u"%s年%s月のコスト同期を開始します。username: %s" % (year, month, username))
-        biz_batch.batch_sync_members_cost(self.batch, year, month, username)
+        biz_batch.batch_sync_members_cost(self.batch, year, month)
 
     def add_arguments(self, parser):
         parser.add_argument('year', nargs='?', type=int)

@@ -507,6 +507,7 @@ class ViewContract(models.Model):
     is_old = models.BooleanField(db_column='is_old', default=False, verbose_name=u"上書きされた契約")
     join_date = models.DateField(db_column='join_date', blank=True, null=True, verbose_name=u"入社年月日")
     retired_date = models.DateField(db_column='retired_date', blank=True, null=True, verbose_name=u"退職年月日")
+    cost = models.IntegerField(db_column='cost', verbose_name=u"基本給", help_text=u"コスト")
     created_date = models.DateTimeField(db_column='created_date', null=True, editable=False, verbose_name=u"作成日時")
     updated_date = models.DateTimeField(db_column='updated_date', editable=False, verbose_name=u"更新日時")
     is_deleted = models.BooleanField(db_column='is_deleted', default=False, editable=False, verbose_name=u"削除フラグ")
