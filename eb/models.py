@@ -1305,21 +1305,20 @@ class Member(AbstractMember):
         :param date 対象年月
         :return:
         """
-        logger = common.get_sales_logger()
-        try:
-            contract = self.viewcontract_set.get(
-                Q(end_date__gte=date) | Q(end_date__isnull=True),
-                start_date__lte=date,
-                is_deleted=False,
-                status__in=['01', '02', '03', '05'],
-                is_old=False,
-            )
-        except ObjectDoesNotExist:
-            logger.error(u"%s: 契約情報が存在しません。指定日付：%s", unicode(self), date)
-            contract = None
-        except MultipleObjectsReturned:
-            logger.error(u"%s: 契約情報が複数存在している。指定日付：%s", unicode(self), date)
-            contract = None
+        contract = None
+        last_day = common.get_last_day_by_month(date)
+        contract_list = self.contract_set.filter(
+            employment_date__lte=last_day
+        ).exclude(status='04').order_by('-employment_date', '-contract_no')
+        bp_contract_list = self.bpcontract_set.filter(
+            start_date__lte=last_day,
+            is_deleted=False,
+        ).order_by('-start_date')
+        if bp_contract_list.count() > 0:
+            contract = bp_contract_list[0]
+        else:
+            if contract_list.count() > 0:
+                contract = contract_list[0]
         return contract
 
     def is_belong_to(self, user, date):
@@ -2779,9 +2778,9 @@ class MemberAttendance(BaseModel):
         contract = self.get_contract()
         if contract:
             if contract.is_hourly_pay:
-                return int(contract.cost * self.get_total_hours_cost())
+                return int(contract.get_cost() * self.get_total_hours_cost())
             else:
-                return contract.cost
+                return contract.get_cost()
         return 0
 
     @classmethod

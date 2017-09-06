@@ -161,6 +161,53 @@ class Contract(BaseModel):
     def is_fixed_cost(self):
         return False
 
+    def get_cost_monthly(self):
+        """在職証明書、所得証明書出力時、正社員の場合でも*14/12の必要はない
+
+        :return:
+        """
+        cost = self.allowance_base \
+               + self.allowance_base_other \
+               + self.allowance_work \
+               + self.allowance_director \
+               + self.allowance_position \
+               + self.allowance_diligence \
+               + self.allowance_security \
+               + self.allowance_qualification \
+               + self.allowance_other
+        return cost
+
+    def get_cost_yearly(self):
+        """年収を取得する。
+
+        :return:
+        """
+        cost = self.allowance_base \
+               + self.allowance_base_other \
+               + self.allowance_work \
+               + self.allowance_director \
+               + self.allowance_position \
+               + self.allowance_diligence \
+               + self.allowance_security \
+               + self.allowance_qualification \
+               + self.allowance_other
+        if self.member_type == 1:
+            return int(cost * 14)
+        else:
+            return cost * 12
+
+    def get_business_position(self):
+        """在職証明書の職務位置に使われる
+
+        :return:
+        """
+        business_type_name = self.get_business_type_display()
+        m = re.search(r'（([^（）]+)）', business_type_name)
+        if m and m.groups():
+            return m.groups()[0]
+        else:
+            return business_type_name
+
     def save(self, force_insert=False, force_update=False, using=None,
              update_fields=None):
         if self.member.contract_set.filter(is_deleted=False).exclude(status='04').count() == 0:
