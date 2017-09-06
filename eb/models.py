@@ -1282,7 +1282,7 @@ class Member(AbstractMember):
         """
         contract = self.get_contract(date)
         if contract:
-            return contract.cost
+            return contract.get_cost()
         else:
             return 0
 
