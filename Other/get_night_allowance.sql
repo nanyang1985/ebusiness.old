@@ -1,6 +1,6 @@
-DROP FUNCTION IF EXISTS get_night_allowance
-
 DELIMITER //
+
+DROP FUNCTION IF EXISTS get_night_allowance //
 
 CREATE FUNCTION get_night_allowance (night_days integer) RETURNS integer
 BEGIN

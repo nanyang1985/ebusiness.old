@@ -1,6 +1,6 @@
-DROP FUNCTION IF EXISTS get_attendance_total_hours
-
 DELIMITER //
+
+DROP FUNCTION IF EXISTS get_attendance_total_hours //
 
 CREATE FUNCTION get_attendance_total_hours (total_hours decimal(5, 2)) RETURNS DECIMAL(5, 2)
 BEGIN

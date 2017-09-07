@@ -1,6 +1,6 @@
-DROP FUNCTION IF EXISTS get_overtime
-
 DELIMITER //
+
+DROP FUNCTION IF EXISTS get_overtime //
 
 /* 残業時間を取得する */
 CREATE FUNCTION get_overtime (raw_hours DECIMAL(5, 2),

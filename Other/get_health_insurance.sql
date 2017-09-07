@@ -1,6 +1,6 @@
-DROP FUNCTION IF EXISTS get_health_insurance
-
 DELIMITER //
+
+DROP FUNCTION IF EXISTS get_health_insurance //
 
 /* 健康保険を取得する */
 CREATE FUNCTION get_health_insurance (

@@ -1210,8 +1210,8 @@ def generate_organization_turnover(user, template_path, data_frame, year=None, m
 
         # 出勤情報取得
         date = datetime.date(int(year), int(month), 1)
-        if not pd.isnull(row_data.id) and (not pd.isnull(row_data.memberattendance_id) or row_data.is_reserve is True):
-            member = models.Member.objects.get(pk=row_data.id)
+        if not pd.isnull(row_data.member_id) and (not pd.isnull(row_data.memberattendance_id) or row_data.is_reserve is True):
+            member = models.Member.objects.get(pk=row_data.member_id)
             is_own = member.is_belong_to(user, date)
         else:
             is_own = False

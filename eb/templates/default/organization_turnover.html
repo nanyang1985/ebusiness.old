@@ -237,7 +237,7 @@
                         <tr class="row2"><td class="center red" colspan="29">メンバーがいません。</td></tr>
                     {% else %}
                         {% for idx, data_row in data_frame.iterrows %}
-                        {% is_belong_to request.user data_row.id year month as is_own %}
+                        {% is_belong_to request.user data_row.member_id year month as is_own %}
                         <tr>
                             <td style="text-align:center; width: 20px;">{{ forloop.counter }}</td>
                             <!-- 社員番号 -->
