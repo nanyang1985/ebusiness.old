@@ -377,12 +377,17 @@ class BpContract(BaseModel):
     def get_allowance_absenteeism_memo(self, year, month):
         if self.is_hourly_pay or self.is_fixed_cost:
             allowance_absenteeism_memo = ''
-        elif self.calculate_type in ('01', '02', '03'):
+        elif self.calculate_type == '01':
+            allowance_absenteeism_memo = self.allowance_absenteeism_memo
+        elif self.calculate_type in ('02', '03'):
             allowance_time_min = self.get_allowance_time_min(year, month)
             allowance_absenteeism = self.get_allowance_absenteeism(year, month)
-            allowance_absenteeism_memo = u"不足単価：¥%s/%sh=¥%s/h" % (
-                humanize.intcomma(self.allowance_base), allowance_time_min, humanize.intcomma(allowance_absenteeism)
-            )
+            if self.is_show_formula:
+                allowance_absenteeism_memo = u"不足単価：¥%s/%sh=¥%s/h" % (
+                    humanize.intcomma(self.allowance_base), allowance_time_min, humanize.intcomma(allowance_absenteeism)
+                )
+            else:
+                allowance_absenteeism_memo = u"不足単価：¥%s/h" % humanize.intcomma(allowance_absenteeism)
         else:
             allowance_absenteeism_memo = self.allowance_absenteeism_memo
         return allowance_absenteeism_memo
