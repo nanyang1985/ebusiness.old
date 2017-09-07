@@ -47,7 +47,7 @@
             {% if members %}
                 {% for member in members %}
                     {% with contract=member.get_current_contract %}
-                    {% is_belong_to request.user member current_year current_month as is_own %}
+                    {% is_belong_to request.user member.pk current_year current_month as is_own %}
                     <tr class="{% cycle 'row1' 'row2' %}">
                         <td>
                             {% if contract.member_type == 1 or contract.member_type == 2 %}

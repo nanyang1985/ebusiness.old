@@ -6,10 +6,11 @@ Created on 2017/05/02
 """
 from __future__ import unicode_literals
 import datetime
+import pandas as pd
 from django import template
 
 from utils import common
-from eb import biz
+from eb import biz, models
 
 register = template.Library()
 
@@ -98,9 +99,13 @@ class GenerateOrganizationFilter(template.Node):
 
 
 @register.simple_tag()
-def is_belong_to(user, member, year, month, *args, **kwargs):
-    date = datetime.date(int(year), int(month), 1)
-    return member.is_belong_to(user, date)
+def is_belong_to(user, member_id, year, month, *args, **kwargs):
+    if not pd.isnull(member_id):
+        date = datetime.date(int(year), int(month), 1)
+        member = models.Member.objects.get(pk=member_id)
+        return member.is_belong_to(user, date)
+    else:
+        return False
 
 
 @register.simple_tag()

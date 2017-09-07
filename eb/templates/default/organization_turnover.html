@@ -2,6 +2,7 @@
 {% load humanize %}
 {% load order_by_tag %}
 {% load is_repeated %}
+{% load sales_templates %}
 
 {% block header %}
 <script type="text/javascript">
@@ -317,6 +318,7 @@
                         <tr class="row2"><td class="center red" colspan="29">メンバーがいません。</td></tr>
                     {% else %}
                         {% for idx, data_row in data_frame.iterrows %}
+                        {% is_belong_to request.user data_row.id year month as is_own %}
                         <tr>
                             <td style="text-align:center; width: 20px;">{{ forloop.counter }}</td>
                             <!-- 社員番号 -->
@@ -356,36 +358,52 @@
                             {% else %}
                                 <td class="num {% if data_row.projectrequestdetail_id %}project_requested{% endif %}">{{ data_row.traffic_cost|floatformat:0|intcomma }}</td>
                             {% endif %}
-                            <!-- 売上（税込） -->
-                            <td class="num {% if data_row.projectrequestdetail_id %}project_requested{% endif %}">{{ data_row.all_price|floatformat:0|intcomma }}</td>
-                            <!-- 売上（税別） -->
-                            <td class="num {% if data_row.projectrequestdetail_id %}project_requested{% endif %}">{{ data_row.total_price|floatformat:0|intcomma }}</td>
-                            <!-- 売上（経費） -->
-                            <td class="num {% if data_row.projectrequestdetail_id %}project_requested{% endif %}">{{ data_row.expenses_price|floatformat:0|intcomma }}</td>
-                            <!-- 原価（月給） -->
-                            <td class="num">{{ data_row.salary|floatformat:0|intcomma }}</td>
-                            <!-- 原価（手当） -->
-                            {% if data_row.prev_allowance %}
-                                <td class="num prev_month_data">{{ data_row.prev_allowance|default:''|intcomma }}</td>
+                            {% if is_own %}
+                                <!-- 売上（税込） -->
+                                <td class="num {% if data_row.projectrequestdetail_id %}project_requested{% endif %}">{{ data_row.all_price|floatformat:0|intcomma }}</td>
+                                <!-- 売上（税別） -->
+                                <td class="num {% if data_row.projectrequestdetail_id %}project_requested{% endif %}">{{ data_row.total_price|floatformat:0|intcomma }}</td>
+                                <!-- 売上（経費） -->
+                                <td class="num {% if data_row.projectrequestdetail_id %}project_requested{% endif %}">{{ data_row.expenses_price|floatformat:0|intcomma }}</td>
+                                <!-- 原価（月給） -->
+                                <td class="num">{{ data_row.salary|floatformat:0|intcomma }}</td>
+                                <!-- 原価（手当） -->
+                                {% if data_row.prev_allowance %}
+                                    <td class="num prev_month_data">{{ data_row.prev_allowance|default:''|intcomma }}</td>
+                                {% else %}
+                                    <td class="num">{{ data_row.allowance|floatformat:0|intcomma }}</td>
+                                {% endif %}
+                                <!-- 原価（深夜手当） -->
+                                <td class="num">{{ data_row.night_allowance|floatformat:0|intcomma }}</td>
+                                <!-- 原価（残業／控除） -->
+                                <td class="num {% if data_row.overtime_cost < 0 %}red{% endif %}">{{ data_row.overtime_cost|floatformat:0|intcomma }}</td>
+                                <!-- 原価（交通費） -->
+                                <td class="num">{{ data_row.traffic_cost|floatformat:0|intcomma }}</td>
+                                <!-- 原価（経費） -->
+                                <td class="num">{{ data_row.expenses|floatformat:0|intcomma }}</td>
+                                <!-- 原価（雇用／労災） -->
+                                <td class="num">{{ data_row.employment_insurance|floatformat:0|intcomma }}</td>
+                                <!-- 原価（健康／厚生） -->
+                                <td class="num">{{ data_row.health_insurance|floatformat:0|intcomma }}</td>
+                                <!-- 原価（原価合計） -->
+                                <td class="num">{{ data_row.total_cost|floatformat:0|intcomma }}</td>
+                                <!-- 原価（利益） -->
+                                <td class="num {% if data_row.profit < 0 %}red{% endif %}">{{ data_row.profit|floatformat:0|intcomma }}</td>
                             {% else %}
-                                <td class="num">{{ data_row.allowance|floatformat:0|intcomma }}</td>
+                                <td class="{% if data_row.projectrequestdetail_id %}project_requested{% endif %}" style="color: lightblue;">******</td>
+                                <td class="{% if data_row.projectrequestdetail_id %}project_requested{% endif %}" style="color: lightblue;">******</td>
+                                <td class="{% if data_row.projectrequestdetail_id %}project_requested{% endif %}" style="color: lightblue;">******</td>
+                                <td style="color: lightblue;">******</td>
+                                <td style="color: lightblue;">******</td>
+                                <td style="color: lightblue;">******</td>
+                                <td style="color: lightblue;">******</td>
+                                <td style="color: lightblue;">******</td>
+                                <td style="color: lightblue;">******</td>
+                                <td style="color: lightblue;">******</td>
+                                <td style="color: lightblue;">******</td>
+                                <td style="color: lightblue;">******</td>
+                                <td style="color: lightblue;">******</td>
                             {% endif %}
-                            <!-- 原価（深夜手当） -->
-                            <td class="num">{{ data_row.night_allowance|floatformat:0|intcomma }}</td>
-                            <!-- 原価（残業／控除） -->
-                            <td class="num {% if data_row.overtime_cost < 0 %}red{% endif %}">{{ data_row.overtime_cost|floatformat:0|intcomma }}</td>
-                            <!-- 原価（交通費） -->
-                            <td class="num">{{ data_row.traffic_cost|floatformat:0|intcomma }}</td>
-                            <!-- 原価（経費） -->
-                            <td class="num">{{ data_row.expenses|floatformat:0|intcomma }}</td>
-                            <!-- 原価（雇用／労災） -->
-                            <td class="num">{{ data_row.employment_insurance|floatformat:0|intcomma }}</td>
-                            <!-- 原価（健康／厚生） -->
-                            <td class="num">{{ data_row.health_insurance|floatformat:0|intcomma }}</td>
-                            <!-- 原価（原価合計） -->
-                            <td class="num">{{ data_row.total_cost|floatformat:0|intcomma }}</td>
-                            <!-- 原価（利益） -->
-                            <td class="num {% if data_row.profit < 0 %}red{% endif %}">{{ data_row.profit|floatformat:0|intcomma }}</td>
                         </tr>
                         {% endfor %}
                     {% endif %}
