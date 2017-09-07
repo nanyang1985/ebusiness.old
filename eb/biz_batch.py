@@ -807,7 +807,7 @@ def batch_sync_bp_contract(batch):
     for member in query_set:
         if member.bp_contract_set:
             bp_contract = member.bp_contract_set[0]
-            if member.join_date < bp_contract.start_date:
+            if member.join_date.strftime('%Y%m') < bp_contract.start_date.strftime('%Y%m'):
                 bp_contract.pk = None
                 bp_contract.end_date = bp_contract.start_date + datetime.timedelta(days=-1)
                 bp_contract.start_date = member.join_date

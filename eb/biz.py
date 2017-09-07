@@ -7,7 +7,9 @@ Created on 2016/01/12
 import datetime
 import uuid
 import StringIO
+import pandas as pd
 
+from django.db import connection
 from django.db.models import Q, Max, Prefetch
 from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
@@ -243,6 +245,43 @@ def get_business_partner_members_with_contract():
     return queryset.prefetch_related(
         Prefetch('bpcontract_set', queryset=contract_set, to_attr='latest_contract_set'),
     )
+
+
+def get_organization_turnover(year, month, section):
+    """指定年月の部署の経営データを取得する。
+
+    :param year:
+    :param month:
+    :param section:
+    :return:
+    """
+    df = pd.read_sql("call proc_organization_turnover('%s%s')" % (year, month), connection)
+    if section:
+        all_children = section.get_children()
+        org_pk_list = [org.pk for org in all_children]
+        org_pk_list.append(section.pk)
+        df = df[(df.division_id.isin(org_pk_list)) | (df.section_id.isin(org_pk_list)) | (df.subsection_id.isin(org_pk_list))]
+    # 出向
+    loan_df = df[df.is_loan==1]
+    for index, row in loan_df.iterrows():
+        related_row = df.loc[(df.projectmember_id == row.projectmember_id) & (df.is_loan == 0)]
+        if related_row.empty:
+            continue
+        df.set_value(index, 'salary', df.loc[index]['salary'] + related_row.iloc[0].salary)
+        # df.set_value(index, 'allowance', df.loc[index]['allowance'] + related_row.iloc[0].allowance)
+        # df.set_value(index, 'night_allowance', df.loc[index]['night_allowance'] + related_row.iloc[0].night_allowance)
+        # df.set_value(index, 'expenses', df.loc[index]['expenses'] + related_row.iloc[0].expenses)
+        # df.set_value(index, 'employment_insurance', df.loc[index]['employment_insurance'] + related_row.iloc[0].employment_insurance)
+        # df.set_value(index, 'health_insurance', df.loc[index]['health_insurance'] + related_row.iloc[0].health_insurance)
+        # df.drop(related_row.index[0])
+        df = df.iloc[df.index!=related_row.index[0]]
+
+    # 原価合計を計算する。
+    df['total_cost'] = df['salary'] + df['allowance'] + df['night_allowance'] + df['overtime_cost'] + df[
+        'traffic_cost'] + df['expenses'] + df['employment_insurance'] + df['health_insurance']
+    # 利益
+    df['profit'] = df['total_price'] - df['total_cost']
+    return df
 
 
 def get_project_members_month_section(section, date, user=None):

@@ -27,7 +27,8 @@ member_patterns = [
 section_patterns = [
     url(r'^sections.html$', views.SectionListView.as_view(), name='section_list'),
     url(r'^(?P<section_id>[0-9]+).html$', views.SectionDetailView.as_view(), name='section_detail'),
-    url(r'^(?P<section_id>[0-9]+)/attendance.html$', views.section_attendance, name='section_attendance'),
+    url(r'^(?P<section_id>[0-9]+)/attendance.html$', views.OrganizationTurnoverView.as_view(),
+        name='organization_turnover'),
 ]
 
 generate_patterns = [
@@ -50,8 +51,8 @@ download_patterns = [
         name='download_project_quotation'),
     url(r'^resume/(?P<member_id>[0-9]+).html$', views.DownloadResumeView.as_view(), name='download_resume'),
     url(r'^section/(?P<section_id>[0-9]+)/attendance/(?P<year>[0-9]{4})/(?P<month>[0-9]{2}).html$',
-        views.DownloadSectionAttendance.as_view(),
-        name='download_section_attendance'),
+        views.DownloadOrganizationTurnover.as_view(),
+        name='download_organization_turnover'),
     url(r'^member/list/eboa_info.html$', eboa_views.download_eboa_members, name='download_eboa_members'),
     url(r'^member/cost_list.html$', views.DownloadMembersCostView.as_view(), name='download_members_cost'),
     url(r'^subcontractor_request/(?P<subcontractor_request_id>[0-9]+).html$',

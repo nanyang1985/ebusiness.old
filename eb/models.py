@@ -2053,6 +2053,8 @@ class ProjectRequestHeading(models.Model):
 class ProjectRequestDetail(models.Model):
     project_request = models.ForeignKey(ProjectRequest, on_delete=models.PROTECT, verbose_name=u"請求書")
     project_member = models.ForeignKey('ProjectMember', on_delete=models.PROTECT, verbose_name=u"メンバー")
+    year = models.CharField(blank=True, null=True, max_length=4, verbose_name=u"対象年")
+    month = models.CharField(blank=True, null=True, max_length=2, verbose_name=u"対象月")
     member_section = models.ForeignKey(Section, verbose_name=u"部署")
     member_type = models.IntegerField(default=0, choices=constants.CHOICE_MEMBER_TYPE, verbose_name=u"社員区分")
     salesperson = models.ForeignKey(Salesperson, blank=True, null=True, on_delete=models.PROTECT, verbose_name=u"営業員")

@@ -25,6 +25,7 @@ except:
 import constants
 import common
 import errors
+import pandas as pd
 from eb import models
 
 
@@ -1167,13 +1168,12 @@ def replace_excel_list(sheet, items, range_start='ITERATOR_START', range_end='IT
         print ex.message
 
 
-def generate_attendance_format(user, template_path, project_members, lump_projects, year=None, month=None):
+def generate_organization_turnover(user, template_path, data_frame, year=None, month=None):
     """出勤情報をダウンロードする
 
     :param user: ログインユーザー
     :param template_path: テンプレートの格納場所
-    :param project_members: 案件メンバー
-    :param lump_projects: 一括案件
+    :param data_frame: ストアドプロシージャ(proc_organization_turnover)から読み込んだデータフレーム
     :param year:
     :param month:
     :return: エクセルのバイナリ
@@ -1182,131 +1182,120 @@ def generate_attendance_format(user, template_path, project_members, lump_projec
     sheet = book.get_sheet_by_name('Sheet1')
 
     start_row = constants.POS_ATTENDANCE_START_ROW
-    count = project_members.count() + lump_projects.count()
+    count = data_frame.shape[0]
     set_openpyxl_styles(sheet, 'B5:AE%s' % (start_row + count + 2,), 5)
-    for i, project_member in enumerate(project_members):
+    for i, row_data in data_frame.iterrows():
         # NO
-        sheet.cell(row=start_row, column=2).value = i + 1
+        sheet.cell(row=start_row, column=2).value = "=ROW() - 4"
         # 隠し項目（Project_member ID)
-        sheet.cell(row=start_row, column=3).value = project_member.id
+        sheet.cell(row=start_row, column=3).value = row_data.projectmember_id or ''
         # 社員番号
-        sheet.cell(row=start_row, column=4).value = project_member.member.employee_id
+        sheet.cell(row=start_row, column=4).value = row_data.employee_id or ''
         # 氏名
-        sheet.cell(row=start_row, column=5).value = project_member.member.__unicode__()
+        sheet.cell(row=start_row, column=5).value = (row_data.first_name or '') + ' ' + (row_data.last_name or '')
         # 所在部署
-        section = project_member.member.get_section()
-        if section:
-            sheet.cell(row=start_row, column=6).value = section.__unicode__()
+        sheet.cell(row=start_row, column=6).value = row_data.section_name or ''
         # 会社
-        if project_member.member.company:
-            sheet.cell(row=start_row, column=7).value = project_member.member.company.name
-        else:
-            # 他者技術者
-            sheet.cell(row=start_row, column=7).value = project_member.member.subcontractor.name
+        sheet.cell(row=start_row, column=7).value = row_data.company_name or ''
         # 契約形態
-        sheet.cell(row=start_row, column=9).value = project_member.member.get_member_type_display()
+        sheet.cell(row=start_row, column=9).value = row_data.member_type_name or ''
         # 案件名
-        sheet.cell(row=start_row, column=10).value = project_member.project.name
+        sheet.cell(row=start_row, column=10).value = row_data.project_name or ''
         # 顧客名
-        sheet.cell(row=start_row, column=11).value = project_member.project.client.name
+        sheet.cell(row=start_row, column=11).value = row_data.client_name or ''
         # 契約種類
-        sheet.cell(row=start_row, column=12).value = u"一括" if project_member.project.is_lump else 'SES'
+        sheet.cell(row=start_row, column=12).value = u"一括" if row_data.is_lump else 'SES'
+        if row_data.is_lump:
+            pass
 
         # 出勤情報取得
-        if len(project_member.current_attendance_set) == 1:
-            attendance = project_member.current_attendance_set[0]
-            date = datetime.date(int(attendance.year), int(attendance.month), 20)
-            is_own = project_member.member.is_belong_to(user, date)
-        elif project_member.project.is_reserve:
-            attendance = models.MemberAttendance(project_member=project_member, year=year, month=month)
-            date = datetime.date(int(attendance.year), int(attendance.month), 20)
-            is_own = project_member.member.is_belong_to(user, date)
+        date = datetime.date(int(year), int(month), 1)
+        if not pd.isnull(row_data.id) and (not pd.isnull(row_data.memberattendance_id) or row_data.is_reserve is True):
+            member = models.Member.objects.get(pk=row_data.id)
+            is_own = member.is_belong_to(user, date)
         else:
-            attendance = None
             is_own = False
-        if attendance and is_own:
+        if not pd.isnull(row_data.memberattendance_id) and row_data.memberattendance_id > 0 and is_own:
             # 社会保険加入有無
-            contract = attendance.get_contract()
-            if contract and hasattr(contract, 'endowment_insurance') and contract.endowment_insurance == "1":
+            if row_data.endowment_insurance == "1":
                 sheet.cell(row=start_row, column=8).value = u"○"
             # 勤務時間
-            sheet.cell(row=start_row, column=13).value = attendance.total_hours
+            sheet.cell(row=start_row, column=13).value = row_data.total_hours
             # 勤務に数
-            sheet.cell(row=start_row, column=14).value = attendance.total_days
+            sheet.cell(row=start_row, column=14).value = row_data.total_days
             # 深夜日数
-            sheet.cell(row=start_row, column=15).value = attendance.night_days
+            sheet.cell(row=start_row, column=15).value = row_data.night_days
             # 客先立替金
-            sheet.cell(row=start_row, column=16).value = attendance.advances_paid_client
+            sheet.cell(row=start_row, column=16).value = row_data.advances_paid_client
             # 立替金
-            sheet.cell(row=start_row, column=17).value = attendance.advances_paid
+            sheet.cell(row=start_row, column=17).value = row_data.advances_paid
             # 勤務交通費
-            sheet.cell(row=start_row, column=18).value = attendance.traffic_cost
+            sheet.cell(row=start_row, column=18).value = row_data.traffic_cost
 
-            # 請求情報取得
-            if len(project_member.project_request_detail_set) == 1:
-                request_detail = project_member.project_request_detail_set[0]
-            else:
-                request_detail = None
-            if request_detail:
-                # 売上（税込）
-                sheet.cell(row=start_row, column=19).value = request_detail.get_all_price()
-                # 売上（税抜）
-                sheet.cell(row=start_row, column=20).value = request_detail.total_price
-                # 売上（経費）
-                sheet.cell(row=start_row, column=21).value = request_detail.expenses_price
-            elif project_member.project.is_lump:
-                # 売上（税込）
-                sheet.cell(row=start_row, column=19).value = project_member.project.all_price_lump
-                # 売上（税抜）
-                sheet.cell(row=start_row, column=20).value = project_member.project.lump_amount
-                # 売上（経費）
-                sheet.cell(row=start_row, column=21).value = 0
-
-            if request_detail or project_member.project.is_lump or project_member.project.is_reserve:
-                # 月給
-                sheet.cell(row=start_row, column=22).value = attendance.get_cost()
-                # 手当
-                sheet.cell(row=start_row, column=23).value = attendance.allowance
-                # 深夜手当
-                sheet.cell(row=start_row, column=24).value = attendance.get_night_allowance()
-                # 残業／控除
-                sheet.cell(row=start_row, column=25).value = attendance.get_overtime_cost()
-                # 交通費(原価)
-                sheet.cell(row=start_row, column=26).value = attendance.traffic_cost
-                # 経費(原価)
-                sheet.cell(row=start_row, column=27).value = attendance.expenses
-        else:
-            if len(project_member.prev_attendance_set) == 1:
-                prev_attendance = project_member.prev_attendance_set[0]
-                if prev_attendance.traffic_cost:
-                    # 勤務交通費
-                    sheet.cell(row=start_row, column=18).value = prev_attendance.traffic_cost
-                    # # 交通費(原価)
-                    # sheet.cell(row=start_row, column=26).value = prev_attendance.traffic_cost
-                if prev_attendance.allowance:
-                    # 手当
-                    sheet.cell(row=start_row, column=23).value = prev_attendance.allowance
-
-        start_row += 1
-    # 一括案件
-    for i, lump_project in enumerate(lump_projects):
-        # NO
-        sheet.cell(row=start_row, column=2).value = project_members.count() + 1 + i
-        # 案件名
-        sheet.cell(row=start_row, column=10).value = lump_project.name
-        # 顧客名
-        sheet.cell(row=start_row, column=11).value = lump_project.client.name
-        # 契約種類
-        sheet.cell(row=start_row, column=12).value = u"一括"
-        project_request = lump_project.project_request_set[0] if lump_project.project_request_set else None
-        if project_request:
             # 売上（税込）
-            sheet.cell(row=start_row, column=19).value = project_request.amount
+            sheet.cell(row=start_row, column=19).value = row_data.all_price
             # 売上（税抜）
-            sheet.cell(row=start_row, column=20).value = project_request.turnover_amount
+            sheet.cell(row=start_row, column=20).value = row_data.total_price
             # 売上（経費）
-            sheet.cell(row=start_row, column=21).value = project_request.expenses_amount
+            sheet.cell(row=start_row, column=21).value = row_data.expenses_price
+            # 月給
+            sheet.cell(row=start_row, column=22).value = row_data.salary
+            # 手当
+            sheet.cell(row=start_row, column=23).value = row_data.allowance
+            # 深夜手当
+            sheet.cell(row=start_row, column=24).value = row_data.night_allowance
+            # 残業／控除
+            sheet.cell(row=start_row, column=25).value = row_data.overtime_cost
+            # 交通費(原価)
+            sheet.cell(row=start_row, column=26).value = row_data.traffic_cost
+            # 経費(原価)
+            sheet.cell(row=start_row, column=27).value = row_data.expenses
+            # 雇用／労災(原価)
+            sheet.cell(row=start_row, column=28).value = row_data.employment_insurance
+            # 健康／厚生(原価)
+            sheet.cell(row=start_row, column=29).value = row_data.health_insurance
+        elif not pd.isnull(row_data.is_lump) and row_data.is_lump == 1:
+            # 一括案件の場合
+
+            # 売上（税込）
+            sheet.cell(row=start_row, column=19).value = row_data.all_price
+            # 売上（税抜）
+            sheet.cell(row=start_row, column=20).value = row_data.total_price
+            # 売上（経費）
+            sheet.cell(row=start_row, column=21).value = row_data.expenses_price
+        else:
+            pass
+            # if len(project_member.prev_attendance_set) == 1:
+            #     prev_attendance = project_member.prev_attendance_set[0]
+            #     if prev_attendance.traffic_cost:
+            #         # 勤務交通費
+            #         sheet.cell(row=start_row, column=18).value = prev_attendance.traffic_cost
+            #         # # 交通費(原価)
+            #         # sheet.cell(row=start_row, column=26).value = prev_attendance.traffic_cost
+            #     if prev_attendance.allowance:
+            #         # 手当
+            #         sheet.cell(row=start_row, column=23).value = prev_attendance.allowance
+
         start_row += 1
+    # # 一括案件
+    # for i, lump_project in enumerate(lump_projects):
+    #     # NO
+    #     sheet.cell(row=start_row, column=2).value = project_members.count() + 1 + i
+    #     # 案件名
+    #     sheet.cell(row=start_row, column=10).value = lump_project.name
+    #     # 顧客名
+    #     sheet.cell(row=start_row, column=11).value = lump_project.client.name
+    #     # 契約種類
+    #     sheet.cell(row=start_row, column=12).value = u"一括"
+    #     project_request = lump_project.project_request_set[0] if lump_project.project_request_set else None
+    #     if project_request:
+    #         # 売上（税込）
+    #         sheet.cell(row=start_row, column=19).value = project_request.amount
+    #         # 売上（税抜）
+    #         sheet.cell(row=start_row, column=20).value = project_request.turnover_amount
+    #         # 売上（経費）
+    #         sheet.cell(row=start_row, column=21).value = project_request.expenses_amount
+    #     start_row += 1
 
     # 合計
     sheet.cell(row=start_row, column=18).value = "他社技術者の合計"

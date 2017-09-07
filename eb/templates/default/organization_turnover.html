@@ -1,0 +1,441 @@
+{% extends theme|add:"/base.html" %}
+{% load humanize %}
+{% load order_by_tag %}
+{% load is_repeated %}
+
+{% block header %}
+<script type="text/javascript">
+    $(document).ready(function() {
+        setScrollBodyHeight();
+        ////("total_col_01", "col_01");
+        //calculate_total("total_col_02", "col_02");
+        //calculate_total("total_col_03", "col_03");
+        //calculate_total("total_col_04", "col_04");
+        //calculate_total("total_col_05", "col_05");
+        //calculate_total("total_col_06", "col_06");
+        //calculate_total("total_col_07", "col_07");
+        //calculate_total("total_col_08", "col_08");
+        //calculate_total("total_col_09", "col_09");
+        //calculate_total("total_col_10", "col_10");
+        //calculate_total("total_col_11", "col_11");
+        //calculate_total("total_col_12", "col_12");
+        //calculate_total("total_col_13", "col_13");
+    });
+
+    function checkUploadAttendance(form) {
+        var filename = $("#attendance_file").val();
+        if (filename == "") {
+            alert("アップロードするファイルを選択してください！");
+            return false;
+        }
+        ext = filename.substr(filename.length - 5);
+        if (ext.toLowerCase() != ".xlsx") {
+            alert("エクセルファイル(.xlsx)を選択してください！");
+            return false;
+        }
+        musk();
+        return true;
+    }
+    function setScrollBodyHeight() {
+        $("header").css("height", "47px");
+        $("header div.header-top").css("display", "none");
+        $("header div.header-nav ul li ul").css("top", "42px");
+        $("footer").css("display", "none");
+
+        height = window.innerHeight - $(".sub_scroll_container")[0].offsetTop - 20;
+        $(".sub_scroll_container").css("height", height);
+    }
+    function switchDisplay() {
+        if ($("#switch").text() == " 展開") {
+            setDisplayExpand(true);
+        } else {
+            setDisplayExpand(false);
+        }
+        setScrollBodyHeight();
+    }
+    function setDisplayExpand(isExpand) {
+        if (isExpand) {
+            $("section .dashboard .dashboard-title").css("display", "none");
+            $("section .dashboard form").css("display", "none");
+            $("section div.container").css("margin", "0");
+            $("section div.container").css("width", window.innerWidth);
+            $("section div.scroll_container").css("width", window.innerWidth);
+            $("#switch").html('<i class="fa fa-compress" aria-hidden="true"> 折畳</i>');
+        } else {
+            $("section .dashboard .dashboard-title").css("display", "");
+            $("section .dashboard form").css("display", "");
+            $("section div.container").css("margin", "0 auto");
+            $("section div.container").css("width", "1100px");
+            $("section div.scroll_container").css("width", "1100px");
+            $("#switch").html('<i class="fa fa-expand" aria-hidden="true"></i> 展開');
+        }
+    }
+
+    function calculate_total(id, cls) {
+        total_obj = $("#" + id);
+        total_subcontractor_obj = $("#" + id + "_subcontractor");
+        total_self_obj = $("#" + id + "_self");
+        total = 0;
+        total_subcontractor = 0;
+        total_self = 0;
+        $.each($("." + cls), function(i, obj) {
+            text = $(obj).text();
+            member_type = $(".row_" + (i+1) + ".col_member_type").text();
+            if (text.trim() != "") {
+                val = toNum(text);
+                total = total + val;
+                if (member_type == "他社技術者") {
+                    total_subcontractor = total_subcontractor + val;
+                } else {
+                    total_self = total_self + val;
+                }
+            }
+        });
+        total_obj.text(toNumComma(total));
+        total_obj.css("font-size", "12px");
+        total_subcontractor_obj.text(toNumComma(total_subcontractor));
+        total_self_obj.text(toNumComma(total_self));
+    }
+
+    function calculate_employment_insurance(row, cols) {
+        var member_type = $("." + row + ".col_member_type").text();
+        if (member_type == "正社員" || member_type == "契約社員") {
+            total = calculate_cols_sum(row, cols);
+            return toNumComma(Math.floor(total * 0.01));
+        } else {
+            return "";
+        }
+    }
+
+    function calculate_health_insurance(row, cols) {
+        var insurance = $("." + row + ".col_insurance").text().trim();
+        if (insurance == "○") {
+            total = calculate_cols_sum(row, cols);
+            return toNumComma(Math.floor(total * 0.14));
+        } else {
+            return "";
+        }
+    }
+
+    function calculate_cols_sum(row, cols) {
+        var total = 0;
+        for (var col of cols) {
+            text = $("." + row + "." + col).text()
+            total = total + toNum(text);
+        }
+        return total;
+    }
+
+    function toNum(text) {
+        if (text.trim() == "") {
+            return 0;
+        } else {
+            text = text.split(',').join('');
+            return parseInt(text);
+        }
+    }
+
+    function toNumComma(num) {
+        int_comma = (num + "").replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,');
+        return int_comma;
+    }
+
+    window.addEventListener('resize', function (event) {
+        setScrollBodyHeight();
+    });
+</script>
+<style type="text/css">
+    table.attendance {
+        border-top: thin solid black;
+        border-right: thin solid black;
+        font-size: 12px;
+        table-layout: fixed;
+    }
+    table.attendance thead th {
+        text-align: center;
+        border-left: thin solid black;
+        border-bottom: thin solid black;
+    }
+    table.attendance tbody {
+        background: white;
+    }
+    table.attendance tbody td {
+        padding-top: 2px;
+        padding-bottom: 2px;
+        border-left: thin solid black;
+        border-bottom: thin solid black;
+    }
+    table.attendance tfoot {
+        font-size: 13px;
+        background: linear-gradient(#fff, #eee);
+    }
+    table.attendance tfoot tr {
+        height: 30px;
+    }
+    table.attendance tfoot td {
+        padding-top: 4px;
+        padding-left: 5px;
+        border-left: thin solid lightgray;
+        border-bottom: thin solid lightgray;
+        border-right: 0 solid lightgray;
+    }
+    table.attendance th.bk01 {
+        background: rgb(180, 198, 231);
+    }
+    table.attendance th.bk02 {
+        background: rgb(198, 224, 180);
+    }
+    table.attendance th.bk03 {
+        background: rgb(255, 230, 153);
+    }
+    table.attendance th.bk04 {
+        background: rgb(244, 176, 132);
+    }
+    table.attendance th.bk05 {
+        background: rgb(155, 194, 230);
+    }
+    table.attendance th.bk06 {
+        background: rgb(255, 255, 0);
+    }
+    table.attendance th, td {
+        padding: 0 3px;
+        overflow: hidden;
+        white-space: nowrap;
+    }
+    table.attendance td.error {
+        background: red;
+        color: white;
+    }
+    div.error {
+        background: red;
+        padding: 4px 6px;
+        margin-bottom: 10px;
+        border: 3px solid white;
+        color: white;
+    }
+    table.attendance tbody tr:hover {
+        background-color: LightGreen;
+    }
+    table.attendance tbody tr:hover td {
+        background-color: transparent;
+    }
+    .prev_month_data {
+        background-color: darkorange;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+    <div class="dashboard">
+        <div class="dashboard-title">{{ title }}</div>
+        <form onsubmit="return checkUploadAttendance(this);" method="post"  enctype="multipart/form-data">
+            {% if perms.eb.input_attendance %}
+            <div>{% csrf_token %}</div>
+            <div style="color: gray;">既に請求書作成済みの出勤情報は上書きしません。</div>
+            <input type="file" id="attendance_file" name="attendance_file"/>
+            <input type="submit" value="勤怠情報アップロード">
+            {% endif %}
+            <div class="example" style="float: right;">
+                <span>凡例:</span>
+                <div class="lump_project">【一括】一括案件</div>
+                <div class="project_requested">請求書作成済</div>
+                <div class="error" style="padding: 0px 2px;">エラー発生</div>
+                <div class="prev_month_data" style="padding: 0px 2px;">先月のデータ</div>
+            </div>
+            <div class="clear"></div>
+        </form>
+        <div class="dashboard-tail">
+            {% if theme == "default" %}
+            <a id="switch" href="javascript:switchDisplay()"><i class="fa fa-expand" aria-hidden="true"></i> 展開</a>
+            {% endif %}
+            <a href="?_year={{ prev_month|date:'Y' }}&_month={{ prev_month|date:'m' }}"><i class="fa fa-angle-double-left" aria-hidden="true"></i> 先月</a>
+            <a href="?_year={{ next_month|date:'Y' }}&_month={{ next_month|date:'m' }}">来月 <i class="fa fa-angle-double-right" aria-hidden="true"></i></a>
+            <a href="{% url 'download_organization_turnover' section.pk year month %}" target="_blank"><i class="fa fa-download" aria-hidden="true"></i> ダウンロード</a>
+        </div>
+    </div>
+    {% if has_error %}
+        <div class="error">
+            アップロードするデータにエラーが発生している。エラーのないデータは正常にDBに取込みました。
+        </div>
+    {% endif %}
+    {% if format_error %}
+        <div class="error">
+            フォーマット不正でエラーになりました、最新のテンプレートでアップロードしてください。
+        </div>
+    {% endif %}
+    <div class="scroll_container">
+        <table class="attendance" cellspacing="0" cellpadding="0">
+            <thead>
+                <tr>
+                    <th class="bk01" rowspan="2" style="width: 20px;">No</th>
+                    <th class="bk01" colspan="6">基本データ</th>
+                    <th class="bk02" colspan="3">案件情報</th>
+                    <th class="bk03" colspan="6">勤務情報</th>
+                    <th class="bk04" colspan="3">売上</th>
+                    <th class="bk05" colspan="9">原価</th>
+                    <th class="bk06" rowspan="2">利益</th>
+                </tr>
+                <tr>
+                    <!--基本データ-->
+                    <th class="bk01">{% create_order_display "社員番号" "member__employee_id" %}</th>
+                    <th class="bk01">{% create_order_display "名前" "member__first_name" %}</th>
+                    <th class="bk01">所在部署</th>
+                    <th class="bk01">{% create_order_display "所属" "member__subcontractor__name" %}</th>
+                    <th class="bk01">社会保険<br/>加入有無</th>
+                    <th class="bk01">{% create_order_display "契約形態" "" %}</th>
+                    <!--案件情報-->
+                    <th class="bk02">{% create_order_display "案件名" "project__name" %}</th>
+                    <th class="bk02">{% create_order_display "顧客" "project__client__name" %}</th>
+                    <th class="bk02">契約種類</th>
+                    <!--勤務情報-->
+                    <th class="bk03 red">勤務時間</th>
+                    <th class="bk03 red">勤務日数</th>
+                    <th class="bk03 red">深夜日数</th>
+                    <th class="bk03 red">客先立替金</th>
+                    <th class="bk03 red">立替金</th>
+                    <th class="bk03 red">勤務交通費</th>
+                    <!--売上-->
+                    <th class="bk04">税込</th>
+                    <th class="bk04">税別</th>
+                    <th class="bk04">経費</th>
+                    <th class="bk05">月給</th>
+                    <th class="bk05 red">手当</th>
+                    <th class="bk05">深夜手当</th>
+                    <th class="bk05">残業／控除</th>
+                    <th class="bk05">交通費</th>
+                    <th class="bk05 red">経費</th>
+                    <th class="bk05">雇用／労災</th>
+                    <th class="bk05">健康／厚生</th>
+                    <th class="bk05">原価合計</th>
+                </tr>
+            </thead>
+        </table>
+        <div class="sub_scroll_container">
+            <table class="attendance" cellspacing="0" cellpadding="0">
+                <tbody>
+                    {% if data_frame is None %}
+                        <tr class="row2"><td class="center red" colspan="29">メンバーがいません。</td></tr>
+                    {% else %}
+                        {% for data_row in data_frame.iterrows %}
+                        <tr>
+                            <td style="text-align:center; width: 20px;">{{ forloop.counter }}</td>
+                            <!-- 社員番号 -->
+                            <td>{{ data_row.1.employee_id|default:'' }}</td>
+                            <!-- 名前 -->
+                            <td><a href="{% url 'member_detail' data_row.1.employee_id %}">{{ data_row.1.first_name|default:'' }} {{ data_row.1.last_name|default:'' }}</a></td>
+                            <!-- 部署 -->
+                            <td>{{ data_row.1.section_name|default:'' }}</td>
+                            <!-- 所属 -->
+                            <td>{{ data_row.1.company_name|default:'' }}</td>
+                            <!-- 社会保険加入有無 -->
+                            <td class="center">{% if data_row.1.endowment_insurance == "1" %}○{% endif %}</td>
+                            <!-- 契約形態 -->
+                            <td>{{ data_row.1.member_type_name|default:'' }}</td>
+                            <!-- 案件名 -->
+                            <td title="{{ data_row.1.project_name }}"
+                                {% if data_row.1.is_reserve %}class="reserve_project"
+                                {% elif data_row.1.is_lump %}class="lump_project"{% endif %}>
+                                <a href="{% url 'project_detail' data_row.1.project_id %}">{{ data_row.1.project_name }}</a></td>
+                            <!-- 顧客 -->
+                            <td>{{ data_row.1.client_name }}</td>
+                            <!-- 契約種類 -->
+                            <td>{% if data_row.1.is_lump %}一括{% else %}SES{% endif %}</td>
+                            <!-- 勤務時間 -->
+                            <td class="num {% if data_row.1.projectrequestdetail_id %}project_requested{% endif %}">{{ data_row.1.total_hours|floatformat:2|intcomma }}</td>
+                            <!-- 勤務日数 -->
+                            <td class="num {% if data_row.1.projectrequestdetail_id %}project_requested{% endif %}">{{ data_row.1.total_days|floatformat:0|intcomma }}</td>
+                            <!-- 深夜日数 -->
+                            <td class="num {% if data_row.1.projectrequestdetail_id %}project_requested{% endif %}">{{ data_row.1.night_days|floatformat:0|intcomma }}</td>
+                            <!-- 客先立替金 -->
+                            <td class="num {% if data_row.1.projectrequestdetail_id %}project_requested{% endif %}">{{ data_row.1.advances_paid_client|floatformat:0|intcomma }}</td>
+                            <!-- 立替金 -->
+                            <td class="num {% if data_row.1.projectrequestdetail_id %}project_requested{% endif %}">{{ data_row.1.advances_paid|floatformat:0|intcomma }}</td>
+                            <!-- 勤務交通費 -->
+                            <td class="num {% if data_row.1.projectrequestdetail_id %}project_requested{% endif %}">{{ data_row.1.traffic_cost|floatformat:0|intcomma }}</td>
+                            <!-- 売上（税込） -->
+                            <td class="num {% if data_row.1.projectrequestdetail_id %}project_requested{% endif %}">{{ data_row.1.all_price|floatformat:0|intcomma }}</td>
+                            <!-- 売上（税別） -->
+                            <td class="num {% if data_row.1.projectrequestdetail_id %}project_requested{% endif %}">{{ data_row.1.total_price|floatformat:0|intcomma }}</td>
+                            <!-- 売上（経費） -->
+                            <td class="num {% if data_row.1.projectrequestdetail_id %}project_requested{% endif %}">{{ data_row.1.expenses_price|floatformat:0|intcomma }}</td>
+                            <!-- 原価（月給） -->
+                            <td class="num">{{ data_row.1.salary|floatformat:0|intcomma }}</td>
+                            <!-- 原価（手当） -->
+                            <td class="num">{{ data_row.1.allowance|floatformat:0|intcomma }}</td>
+                            <!-- 原価（深夜手当） -->
+                            <td class="num">{{ data_row.1.night_allowance|floatformat:0|intcomma }}</td>
+                            <!-- 原価（残業／控除） -->
+                            <td class="num {% if data_row.1.overtime_cost < 0 %}red{% endif %}">{{ data_row.1.overtime_cost|floatformat:0|intcomma }}</td>
+                            <!-- 原価（交通費） -->
+                            <td class="num">{{ data_row.1.traffic_cost|floatformat:0|intcomma }}</td>
+                            <!-- 原価（経費） -->
+                            <td class="num">{{ data_row.1.expenses|floatformat:0|intcomma }}</td>
+                            <!-- 原価（雇用／労災） -->
+                            <td class="num">{{ data_row.1.employment_insurance|floatformat:0|intcomma }}</td>
+                            <!-- 原価（健康／厚生） -->
+                            <td class="num">{{ data_row.1.health_insurance|floatformat:0|intcomma }}</td>
+                            <!-- 原価（原価合計） -->
+                            <td class="num">{{ data_row.1.total_cost|floatformat:0|intcomma }}</td>
+                            <!-- 原価（利益） -->
+                            <td class="num {% if data_row.1.profit < 0 %}red{% endif %}">{{ data_row.1.profit|floatformat:0|intcomma }}</td>
+                        </tr>
+                        {% endfor %}
+                    {% endif %}
+                </tbody>
+                <tfoot>
+                    <tr style="height: 20px; font-size: 12px;">
+                        <td colspan="10" rowspan="3">
+                            {{ project_members|length }} 件
+                        </td>
+                        <td colspan="6" style="text-align: right;">他社技術者の合計</td>
+                        <td class="num">{{ summary_subcontractor.all_price|floatformat:0|intcomma }}</td>
+                        <td class="num">{{ summary_subcontractor.total_price|floatformat:0|intcomma }}</td>
+                        <td class="num">{{ summary_subcontractor.expenses_price|floatformat:0|intcomma }}</td>
+                        <td class="num">{{ summary_subcontractor.salary|floatformat:0|intcomma }}</td>
+                        <td class="num">{{ summary_subcontractor.allowance|floatformat:0|intcomma }}</td>
+                        <td class="num">{{ summary_subcontractor.night_allowance|floatformat:0|intcomma }}</td>
+                        <td class="num">{{ summary_subcontractor.overtime_cost|floatformat:0|intcomma }}</td>
+                        <td class="num">{{ summary_subcontractor.traffic_cost|floatformat:0|intcomma }}</td>
+                        <td class="num">{{ summary_subcontractor.expenses|floatformat:0|intcomma }}</td>
+                        <td class="num">{{ summary_subcontractor.employment_insurance|floatformat:0|intcomma }}</td>
+                        <td class="num">{{ summary_subcontractor.health_insurance|floatformat:0|intcomma }}</td>
+                        <td class="num">{{ summary_subcontractor.total_cost|floatformat:0|intcomma }}</td>
+                        <td class="num">{{ summary_subcontractor.profit|floatformat:0|intcomma }}</td>
+                    </tr>
+                    <tr style="height: 20px; font-size: 12px;">
+                        <td colspan="6" style="text-align: right;">自社の合計</td>
+                        <td class="num">{{ summary_self.all_price|floatformat:0|intcomma }}</td>
+                        <td class="num">{{ summary_self.total_price|floatformat:0|intcomma }}</td>
+                        <td class="num">{{ summary_self.expenses_price|floatformat:0|intcomma }}</td>
+                        <td class="num">{{ summary_self.salary|floatformat:0|intcomma }}</td>
+                        <td class="num">{{ summary_self.allowance|floatformat:0|intcomma }}</td>
+                        <td class="num">{{ summary_self.night_allowance|floatformat:0|intcomma }}</td>
+                        <td class="num">{{ summary_self.overtime_cost|floatformat:0|intcomma }}</td>
+                        <td class="num">{{ summary_self.traffic_cost|floatformat:0|intcomma }}</td>
+                        <td class="num">{{ summary_self.expenses|floatformat:0|intcomma }}</td>
+                        <td class="num">{{ summary_self.employment_insurance|floatformat:0|intcomma }}</td>
+                        <td class="num">{{ summary_self.health_insurance|floatformat:0|intcomma }}</td>
+                        <td class="num">{{ summary_self.total_cost|floatformat:0|intcomma }}</td>
+                        <td class="num">{{ summary_self.profit|floatformat:0|intcomma }}</td>
+                    </tr>
+                    <tr style="font-size: 12px;">
+                        <td colspan="6" style="text-align: right;">すべての合計</td>
+                        <td class="num">{{ data_frame.sum.all_price|floatformat:0|intcomma }}</td>
+                        <td class="num">{{ data_frame.sum.total_price|floatformat:0|intcomma }}</td>
+                        <td class="num">{{ data_frame.sum.expenses_price|floatformat:0|intcomma }}</td>
+                        <td class="num">{{ data_frame.sum.salary|floatformat:0|intcomma }}</td>
+                        <td class="num">{{ data_frame.sum.allowance|floatformat:0|intcomma }}</td>
+                        <td class="num">{{ data_frame.sum.night_allowance|floatformat:0|intcomma }}</td>
+                        <td class="num">{{ data_frame.sum.overtime_cost|floatformat:0|intcomma }}</td>
+                        <td class="num">{{ data_frame.sum.traffic_cost|floatformat:0|intcomma }}</td>
+                        <td class="num">{{ data_frame.sum.expenses|floatformat:0|intcomma }}</td>
+                        <td class="num">{{ data_frame.sum.employment_insurance|floatformat:0|intcomma }}</td>
+                        <td class="num">{{ data_frame.sum.health_insurance|floatformat:0|intcomma }}</td>
+                        <td class="num">{{ data_frame.sum.total_cost|floatformat:0|intcomma }}</td>
+                        <td class="num">{{ data_frame.sum.profit|floatformat:0|intcomma }}</td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+{% endblock %}

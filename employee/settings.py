@@ -91,8 +91,8 @@ elif sys.platform == 'win32' and getpass.getuser() == 'EB097':
             'NAME': 'eb_sales',
             'USER': 'root',
             'PASSWORD': 'root',
-            'HOST': '192.168.11.78',
-            'PORT': '3306',
+            'HOST': '',
+            'PORT': '',
         },
 
         'bpm_eboa': {
@@ -100,8 +100,8 @@ elif sys.platform == 'win32' and getpass.getuser() == 'EB097':
             'NAME': 'bpm_eboa',
             'USER': 'root',
             'PASSWORD': 'root',
-            'HOST': '192.168.11.78',
-            'PORT': '3306',
+            'HOST': '',
+            'PORT': '',
         },
     }
 else:

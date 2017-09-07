@@ -899,6 +899,39 @@ class SectionDetailView(BaseTemplateView):
         return self.render_to_response(context)
 
 
+class OrganizationTurnoverView(BaseTemplateView):
+    template_name = 'default/organization_turnover.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(OrganizationTurnoverView, self).get_context_data(**kwargs)
+        today = datetime.date.today()
+        section_id = kwargs.get('section_id', 0)
+        section = get_object_or_404(models.Section, pk=section_id)
+        request = kwargs.get('request')
+        year = request.GET.get('_year', today.year)
+        month = request.GET.get('_month', '%02d' % today.month)
+        prev_month = common.add_months(datetime.date(int(year), int(month), 1), -1)
+        next_month = common.add_months(datetime.date(int(year), int(month), 1), 1)
+
+        data_frame = biz.get_organization_turnover(year, month, section)
+        summary_subcontractor = data_frame.loc[data_frame.member_type == 4].sum()
+        summary_self = data_frame.loc[data_frame.member_type != 4].sum()
+
+        context.update({
+            'title': u'出勤 | %s年%s月 | %s | %s' % (year, month, section.name, constants.NAME_SYSTEM),
+            'section': section,
+            'year': year,
+            'month': month,
+            'prev_month': prev_month,
+            'next_month': next_month,
+            'data_frame': data_frame,
+            'summary_subcontractor': summary_subcontractor,
+            'summary_self': summary_self,
+        })
+        context.update(csrf(request))
+        return context
+
+
 @login_required(login_url='/eb/login/')
 @csrf_protect
 def section_attendance(request, section_id):
@@ -966,7 +999,7 @@ def section_attendance(request, section_id):
     })
     context.update(csrf(request))
 
-    template = loader.get_template('default/section_attendance.html')
+    template = loader.get_template('default/organization_turnover.html')
     return HttpResponse(template.render(context, request))
 
 
@@ -2046,24 +2079,41 @@ class DownloadResumeView(BaseView):
         return response
 
 
-class DownloadSectionAttendance(BaseView):
-
+class DownloadOrganizationTurnover(BaseView):
     def get(self, request, *args, **kwargs):
         section_id = kwargs.get('section_id', 0)
         year = kwargs.get('year', 0)
         month = kwargs.get('month', 0)
-        date = datetime.date(int(year), int(month), 21)
         section = get_object_or_404(models.Section, pk=section_id)
         batch = biz.get_batch_manage(constants.BATCH_SEND_ATTENDANCE_FORMAT)
-        project_members = biz.get_project_members_month_section(section, date)
-        lump_projects = biz.get_lump_projects_by_section(section, date)
+        data_frame = biz.get_organization_turnover(year, month, section)
         filename = constants.NAME_SECTION_ATTENDANCE % (section.name, int(year), int(month))
-        output = file_gen.generate_attendance_format(
-            request.user, batch.mail_template.attachment1.path, project_members, lump_projects, year, month
+        output = file_gen.generate_organization_turnover(
+            request.user, batch.mail_template.attachment1.path, data_frame, year, month
         )
         response = HttpResponse(output, content_type="application/ms-excel")
         response['Content-Disposition'] = "filename=" + urllib.quote(filename.encode('utf-8')) + ".xlsx"
         return response
+
+
+# class DownloadSectionAttendance(BaseView):
+#
+#     def get(self, request, *args, **kwargs):
+#         section_id = kwargs.get('section_id', 0)
+#         year = kwargs.get('year', 0)
+#         month = kwargs.get('month', 0)
+#         date = datetime.date(int(year), int(month), 21)
+#         section = get_object_or_404(models.Section, pk=section_id)
+#         batch = biz.get_batch_manage(constants.BATCH_SEND_ATTENDANCE_FORMAT)
+#         project_members = biz.get_project_members_month_section(section, date)
+#         lump_projects = biz.get_lump_projects_by_section(section, date)
+#         filename = constants.NAME_SECTION_ATTENDANCE % (section.name, int(year), int(month))
+#         output = file_gen.generate_attendance_format(
+#             request.user, batch.mail_template.attachment1.path, project_members, lump_projects, year, month
+#         )
+#         response = HttpResponse(output, content_type="application/ms-excel")
+#         response['Content-Disposition'] = "filename=" + urllib.quote(filename.encode('utf-8')) + ".xlsx"
+#         return response
 
 
 class DownloadMembersCostView(BaseView):
