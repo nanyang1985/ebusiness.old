@@ -51,6 +51,8 @@ select * from
 		   end as member_type_name
 		 , c.is_loan
 		 , IF(p.is_lump, (select t1.id from eb_projectrequest t1 where t1.project_id = p.id and concat(t1.year, t1.month) = in_ym), IFNULL(prd.id, 0)) as projectrequestdetail_id
+         , IF(ma.id is null, IFNULL(prev_ma.traffic_cost, 0), 0) as prev_traffic_cost			-- 先月の勤務交通費
+         , IF(ma.id is null, IFNULL(prev_ma.allowance, 0), 0) as prev_allowance					-- 先月の手当
          , ma.id as memberattendance_id
 		 , IFNULL(ma.total_hours, 0) as total_hours
 		 , IFNULL(ma.total_days, 0) as total_days
@@ -103,6 +105,8 @@ select * from
 	  join eb_project p on p.id = pm.project_id
 	  join eb_client c1 on c1.id = p.client_id
 	  left join eb_memberattendance ma on ma.project_member_id = pm.id and concat(ma.year, ma.month) = in_ym
+      left join eb_memberattendance prev_ma on prev_ma.project_member_id = pm.id 
+                                           and concat(prev_ma.year, prev_ma.month) = DATE_FORMAT(STR_TO_DATE(concat(in_ym, '01'), '%Y%m%d') - INTERVAL 1 MONTH, '%Y%m')
 	  left join eb_projectrequestdetail prd on prd.project_member_id = pm.id and concat(prd.year, prd.month) = in_ym
 	  left join eb_projectrequest pr on pr.id = prd.project_request_id and concat(pr.year, pr.month) = in_ym
 	  left join eb_projectrequestheading prh on prh.project_request_id = pr.id
@@ -135,6 +139,8 @@ select * from
 		 , null as member_type_name
 		 , 0 as is_loan
 		 , pr.id as projectrequestdetail_id
+         , 0 as prev_traffic_cost
+         , 0 as prev_allowance
          , null as memberattendance_id
 		 , 0 as total_hours
 		 , 0 as total_days

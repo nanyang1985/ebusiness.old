@@ -1254,6 +1254,12 @@ def generate_organization_turnover(user, template_path, data_frame, year=None, m
             sheet.cell(row=start_row, column=28).value = row_data.employment_insurance
             # 健康／厚生(原価)
             sheet.cell(row=start_row, column=29).value = row_data.health_insurance
+        elif row_data.prev_traffic_cost > 0:
+            # 勤務情報が入力してない場合、先月の交通費を使用する。
+            # 勤務交通費
+            sheet.cell(row=start_row, column=18).value = row_data.prev_traffic_cost
+            # 手当
+            sheet.cell(row=start_row, column=23).value = row_data.prev_allowance
         elif not pd.isnull(row_data.is_lump) and row_data.is_lump == 1:
             # 一括案件の場合
 
@@ -1265,37 +1271,8 @@ def generate_organization_turnover(user, template_path, data_frame, year=None, m
             sheet.cell(row=start_row, column=21).value = row_data.expenses_price
         else:
             pass
-            # if len(project_member.prev_attendance_set) == 1:
-            #     prev_attendance = project_member.prev_attendance_set[0]
-            #     if prev_attendance.traffic_cost:
-            #         # 勤務交通費
-            #         sheet.cell(row=start_row, column=18).value = prev_attendance.traffic_cost
-            #         # # 交通費(原価)
-            #         # sheet.cell(row=start_row, column=26).value = prev_attendance.traffic_cost
-            #     if prev_attendance.allowance:
-            #         # 手当
-            #         sheet.cell(row=start_row, column=23).value = prev_attendance.allowance
 
         start_row += 1
-    # # 一括案件
-    # for i, lump_project in enumerate(lump_projects):
-    #     # NO
-    #     sheet.cell(row=start_row, column=2).value = project_members.count() + 1 + i
-    #     # 案件名
-    #     sheet.cell(row=start_row, column=10).value = lump_project.name
-    #     # 顧客名
-    #     sheet.cell(row=start_row, column=11).value = lump_project.client.name
-    #     # 契約種類
-    #     sheet.cell(row=start_row, column=12).value = u"一括"
-    #     project_request = lump_project.project_request_set[0] if lump_project.project_request_set else None
-    #     if project_request:
-    #         # 売上（税込）
-    #         sheet.cell(row=start_row, column=19).value = project_request.amount
-    #         # 売上（税抜）
-    #         sheet.cell(row=start_row, column=20).value = project_request.turnover_amount
-    #         # 売上（経費）
-    #         sheet.cell(row=start_row, column=21).value = project_request.expenses_amount
-    #     start_row += 1
 
     # 合計
     sheet.cell(row=start_row, column=18).value = "他社技術者の合計"
