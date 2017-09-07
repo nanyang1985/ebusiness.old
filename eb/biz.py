@@ -247,7 +247,7 @@ def get_business_partner_members_with_contract():
     )
 
 
-def get_organization_turnover(year, month, section):
+def get_organization_turnover(year, month, section, order_list=None):
     """指定年月の部署の経営データを取得する。
 
     :param year:
@@ -281,6 +281,10 @@ def get_organization_turnover(year, month, section):
         'traffic_cost'] + df['expenses'] + df['employment_insurance'] + df['health_insurance']
     # 利益
     df['profit'] = df['total_price'] - df['total_cost']
+    if order_list:
+        name = order_list[0].strip('-')
+        ascending = not order_list[0].startswith('-')
+        df = df.sort_values(by=name, ascending=ascending)
     return df
 
 

@@ -8,19 +8,6 @@
 <script type="text/javascript">
     $(document).ready(function() {
         setScrollBodyHeight();
-        ////("total_col_01", "col_01");
-        //calculate_total("total_col_02", "col_02");
-        //calculate_total("total_col_03", "col_03");
-        //calculate_total("total_col_04", "col_04");
-        //calculate_total("total_col_05", "col_05");
-        //calculate_total("total_col_06", "col_06");
-        //calculate_total("total_col_07", "col_07");
-        //calculate_total("total_col_08", "col_08");
-        //calculate_total("total_col_09", "col_09");
-        //calculate_total("total_col_10", "col_10");
-        //calculate_total("total_col_11", "col_11");
-        //calculate_total("total_col_12", "col_12");
-        //calculate_total("total_col_13", "col_13");
     });
 
     function checkUploadAttendance(form) {
@@ -70,75 +57,6 @@
             $("section div.scroll_container").css("width", "1100px");
             $("#switch").html('<i class="fa fa-expand" aria-hidden="true"></i> 展開');
         }
-    }
-
-    function calculate_total(id, cls) {
-        total_obj = $("#" + id);
-        total_subcontractor_obj = $("#" + id + "_subcontractor");
-        total_self_obj = $("#" + id + "_self");
-        total = 0;
-        total_subcontractor = 0;
-        total_self = 0;
-        $.each($("." + cls), function(i, obj) {
-            text = $(obj).text();
-            member_type = $(".row_" + (i+1) + ".col_member_type").text();
-            if (text.trim() != "") {
-                val = toNum(text);
-                total = total + val;
-                if (member_type == "他社技術者") {
-                    total_subcontractor = total_subcontractor + val;
-                } else {
-                    total_self = total_self + val;
-                }
-            }
-        });
-        total_obj.text(toNumComma(total));
-        total_obj.css("font-size", "12px");
-        total_subcontractor_obj.text(toNumComma(total_subcontractor));
-        total_self_obj.text(toNumComma(total_self));
-    }
-
-    function calculate_employment_insurance(row, cols) {
-        var member_type = $("." + row + ".col_member_type").text();
-        if (member_type == "正社員" || member_type == "契約社員") {
-            total = calculate_cols_sum(row, cols);
-            return toNumComma(Math.floor(total * 0.01));
-        } else {
-            return "";
-        }
-    }
-
-    function calculate_health_insurance(row, cols) {
-        var insurance = $("." + row + ".col_insurance").text().trim();
-        if (insurance == "○") {
-            total = calculate_cols_sum(row, cols);
-            return toNumComma(Math.floor(total * 0.14));
-        } else {
-            return "";
-        }
-    }
-
-    function calculate_cols_sum(row, cols) {
-        var total = 0;
-        for (var col of cols) {
-            text = $("." + row + "." + col).text()
-            total = total + toNum(text);
-        }
-        return total;
-    }
-
-    function toNum(text) {
-        if (text.trim() == "") {
-            return 0;
-        } else {
-            text = text.split(',').join('');
-            return parseInt(text);
-        }
-    }
-
-    function toNumComma(num) {
-        int_comma = (num + "").replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,');
-        return int_comma;
     }
 
     window.addEventListener('resize', function (event) {
@@ -213,6 +131,7 @@
         margin-bottom: 10px;
         border: 3px solid white;
         color: white;
+        font-weight: bold;
     }
     table.attendance tbody tr:hover {
         background-color: LightGreen;
@@ -249,8 +168,8 @@
             {% if theme == "default" %}
             <a id="switch" href="javascript:switchDisplay()"><i class="fa fa-expand" aria-hidden="true"></i> 展開</a>
             {% endif %}
-            <a href="?_year={{ prev_month|date:'Y' }}&_month={{ prev_month|date:'m' }}"><i class="fa fa-angle-double-left" aria-hidden="true"></i> 先月</a>
-            <a href="?_year={{ next_month|date:'Y' }}&_month={{ next_month|date:'m' }}">来月 <i class="fa fa-angle-double-right" aria-hidden="true"></i></a>
+            <a href="{% url 'organization_turnover' section.pk prev_month|date:'Y' prev_month|date:'m' %}"><i class="fa fa-angle-double-left" aria-hidden="true"></i> 先月</a>
+            <a href="{% url 'organization_turnover' section.pk next_month|date:'Y' next_month|date:'m' %}">来月 <i class="fa fa-angle-double-right" aria-hidden="true"></i></a>
             <a href="{% url 'download_organization_turnover' section.pk year month %}" target="_blank"><i class="fa fa-download" aria-hidden="true"></i> ダウンロード</a>
         </div>
     </div>
@@ -278,15 +197,15 @@
                 </tr>
                 <tr>
                     <!--基本データ-->
-                    <th class="bk01">{% create_order_display "社員番号" "member__employee_id" %}</th>
-                    <th class="bk01">{% create_order_display "名前" "member__first_name" %}</th>
+                    <th class="bk01">{% create_single_order_display "社員番号" "employee_id" %}</th>
+                    <th class="bk01">{% create_single_order_display "名前" "first_name" %}</th>
                     <th class="bk01">所在部署</th>
-                    <th class="bk01">{% create_order_display "所属" "member__subcontractor__name" %}</th>
+                    <th class="bk01">{% create_single_order_display "所属" "company_name" %}</th>
                     <th class="bk01">社会保険<br/>加入有無</th>
-                    <th class="bk01">{% create_order_display "契約形態" "" %}</th>
+                    <th class="bk01">{% create_single_order_display "契約形態" "member_type" %}</th>
                     <!--案件情報-->
-                    <th class="bk02">{% create_order_display "案件名" "project__name" %}</th>
-                    <th class="bk02">{% create_order_display "顧客" "project__client__name" %}</th>
+                    <th class="bk02">{% create_single_order_display "案件名" "project_name" %}</th>
+                    <th class="bk02">{% create_single_order_display "顧客" "client_name" %}</th>
                     <th class="bk02">契約種類</th>
                     <!--勤務情報-->
                     <th class="bk03 red">勤務時間</th>

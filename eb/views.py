@@ -908,12 +908,16 @@ class OrganizationTurnoverView(BaseTemplateView):
         section_id = kwargs.get('section_id', 0)
         section = get_object_or_404(models.Section, pk=section_id)
         request = kwargs.get('request')
-        year = request.GET.get('_year', today.year)
-        month = request.GET.get('_month', '%02d' % today.month)
+        year = kwargs.get('year')
+        month = kwargs.get('month')
         prev_month = common.add_months(datetime.date(int(year), int(month), 1), -1)
         next_month = common.add_months(datetime.date(int(year), int(month), 1), 1)
+        o = request.GET.get('o', None)
+        dict_order = common.get_ordering_dict(o, ['first_name', 'employee_id', 'company_name', 'project_name',
+                                                  'client_name', 'member_type'])
+        order_list = common.get_ordering_list(o)
 
-        data_frame = biz.get_organization_turnover(year, month, section)
+        data_frame = biz.get_organization_turnover(year, month, section, order_list)
         summary_subcontractor = data_frame.loc[data_frame.member_type == 4].sum()
         summary_self = data_frame.loc[data_frame.member_type != 4].sum()
 
@@ -927,80 +931,24 @@ class OrganizationTurnoverView(BaseTemplateView):
             'data_frame': data_frame,
             'summary_subcontractor': summary_subcontractor,
             'summary_self': summary_self,
+            'dict_order': dict_order,
         })
         context.update(csrf(request))
         return context
 
-
-@login_required(login_url='/eb/login/')
-@csrf_protect
-def section_attendance(request, section_id):
-    section = get_object_or_404(models.Section, pk=section_id)
-    today = datetime.date.today()
-    year = request.GET.get('_year', today.year)
-    month = request.GET.get('_month', '%02d' % today.month)
-    date = datetime.date(int(year), int(month), 21)
-    prev_month = common.add_months(datetime.date(int(year), int(month), 1), -1)
-    next_month = common.add_months(datetime.date(int(year), int(month), 1), 1)
-
-    param_dict, params = common.get_request_params(request.GET)
-
-    project_members = biz.get_project_members_month_section(section, date)
-    lump_projects = biz.get_lump_projects_by_section(section, date)
-
-    o = request.GET.get('o', None)
-    dict_order = common.get_ordering_dict(o, ['member__first_name', 'member__employee_id',
-                                              'member__subcontractor__name', 'project__name',
-                                              'project__client__name', 'member__member_type'])
-    order_list = common.get_ordering_list(o)
-
-    if order_list:
-        project_members = project_members.order_by(*order_list)
-
-    # 出勤リストをアップロード時
-    messages = []
-    format_error = False
-    if request.method == 'POST':
+    def post(self, request, *args, **kwargs):
+        kwargs['request'] = request
+        context = self.get_context_data(**kwargs)
+        year = context.get('year')
+        month = context.get('month')
         input_excel = request.FILES['attendance_file']
         format_error, messages = file_loader.load_section_attendance(input_excel.read(), year, month, request.user.id)
-
-    all_project_members = []
-    for project_member in project_members:
-        msg = ''
-        if messages:
-            for project_member_id, code, name, msg_content in messages:
-                if project_member.id == project_member_id:
-                    msg = msg_content
-                    break
-        if not project_member.current_attendance_set:
-            # 出勤情報がない場合、例えば待機案件のメンバーなど。
-            project_member.current_attendance_set = [models.MemberAttendance(project_member=project_member,
-                                                                             year=year, month=month,
-                                                                             total_hours=0)]
-        all_project_members.append((project_member, None, project_member.member.is_belong_to(request.user, date), msg))
-    for lump_project in lump_projects:
-        all_project_members.append((None, lump_project, True, ''))
-
-    context = get_base_context()
-    context.update({
-        'title': u'出勤 | %s年%s月 | %s | %s' % (year, month, section.name, constants.NAME_SYSTEM),
-        'section': section,
-        'project_members': all_project_members,
-        'lump_projects': lump_projects,
-        'dict_order': dict_order,
-        'params': params,
-        'year': year,
-        'month': month,
-        'prev_month': prev_month,
-        'next_month': next_month,
-        'has_error': True if messages else False,
-        'format_error': format_error,
-        'repeat_check_list': [],
-    })
-    context.update(csrf(request))
-
-    template = loader.get_template('default/organization_turnover.html')
-    return HttpResponse(template.render(context, request))
+        context['format_error'] = format_error
+        if format_error:
+            return self.render_to_response(context)
+        else:
+            section = context.get('section')
+            return redirect(reverse("organization_turnover", args=(section.pk, year, month)))
 
 
 @method_decorator(permission_required('eb.view_turnover', raise_exception=True), name='get')

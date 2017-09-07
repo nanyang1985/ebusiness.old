@@ -105,7 +105,7 @@ def is_belong_to(user, member_id, year, month, *args, **kwargs):
         member = models.Member.objects.get(pk=member_id)
         return member.is_belong_to(user, date)
     else:
-        return False
+        return True
 
 
 @register.simple_tag()

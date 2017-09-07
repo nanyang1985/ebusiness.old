@@ -27,7 +27,8 @@ member_patterns = [
 section_patterns = [
     url(r'^sections.html$', views.SectionListView.as_view(), name='section_list'),
     url(r'^(?P<section_id>[0-9]+).html$', views.SectionDetailView.as_view(), name='section_detail'),
-    url(r'^(?P<section_id>[0-9]+)/attendance.html$', views.OrganizationTurnoverView.as_view(),
+    url(r'^(?P<section_id>[0-9]+)/attendance/(?P<year>[0-9]{4})/(?P<month>[0-9]{2})\.html$',
+        views.OrganizationTurnoverView.as_view(),
         name='organization_turnover'),
 ]
 
@@ -59,6 +60,9 @@ download_patterns = [
         views.DownloadSubcontractorRequestView.as_view(), name='download_subcontractor_request'),
     url(r'^subcontractor_pay_notify/(?P<subcontractor_request_id>[0-9]+).html$',
         views.DownloadSubcontractorPayNotifyView.as_view(), name='download_subcontractor_pay_notify'),
+]
+
+upload_patterns = [
 ]
 
 image_patterns = [
