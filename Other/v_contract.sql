@@ -1,4 +1,3 @@
-﻿USE eb_sales;
 CREATE OR REPLACE VIEW v_contract AS
     SELECT 
         c.id AS id,
@@ -85,7 +84,7 @@ CREATE OR REPLACE VIEW v_contract AS
         c.join_date AS join_date,
         c.retired_date AS retired_date,
         CASE c.member_type
-            WHEN 1 THEN CAST((c.allowance_base + 
+            WHEN 1 THEN truncate((c.allowance_base + 
                               c.allowance_base_other + 
                               c.allowance_work + 
                               c.allowance_director + 
@@ -93,8 +92,8 @@ CREATE OR REPLACE VIEW v_contract AS
                               c.allowance_diligence +
                               c.allowance_security +
                               c.allowance_qualification +
-                              c.allowance_other) * 14 / 12 AS UNSIGNED)
-            ELSE CAST((c.allowance_base + 
+                              c.allowance_other) * 14 / 12, 0)
+            ELSE truncate((c.allowance_base + 
                        c.allowance_base_other + 
                        c.allowance_work + 
                        c.allowance_director + 
@@ -102,7 +101,7 @@ CREATE OR REPLACE VIEW v_contract AS
                        c.allowance_diligence +
                        c.allowance_security +
                        c.allowance_qualification +
-                       c.allowance_other) AS UNSIGNED)
+                       c.allowance_other), 0)
         END AS cost, 
         c.created_date AS created_date,
         c.updated_date AS updated_date,
