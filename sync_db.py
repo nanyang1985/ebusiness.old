@@ -17,7 +17,7 @@ django.setup()
 if sys.platform == 'win32' and getpass.getuser() == 'EB097':
     user = 'root'
     password = 'root'
-    host = '192.168.11.78'
+    host = 'localhost'
 else:
     user = 'root'
     password = 'root'

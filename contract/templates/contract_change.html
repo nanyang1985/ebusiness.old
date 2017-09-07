@@ -280,10 +280,14 @@ var timeline;
                     <td colspan="3">
                         <table class="inner">
                             <tr>
-                                <td style="text-align: right;">￥:</td>
+                                <td style="text-align: right;">税抜:</td>
                                 <td>{{ form.allowance_base.errors }}{{ form.allowance_base }}</td>
                                 <td style="width: 55px;" class="center">円/月</td>
                                 <td style="width: 300px;">{{ form.allowance_base_memo }}</td>
+                            </tr>
+                            <tr>
+                                <td style="text-align: right;">税:</td>
+                                <td>{{ form.allowance_base_tax.errors }}{{ form.allowance_base_tax }}</td>
                             </tr>
                             <tr>
                                 <td>その他:</td>

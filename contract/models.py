@@ -75,8 +75,9 @@ class Contract(BaseModel):
     business_time = models.TextField(blank=True, null=True, default=Config.get_business_time(),
                                      verbose_name=u"就業時間")
     is_hourly_pay = models.BooleanField(default=False, verbose_name=u"時給")
-    allowance_base = models.IntegerField(verbose_name=u"基本給")
+    allowance_base = models.IntegerField(verbose_name=u"基本給（税抜）")
     allowance_base_memo = models.CharField(max_length=255, blank=True, null=True, verbose_name=u"基本給メモ")
+    allowance_base_tax = models.IntegerField(default=0, verbose_name=u"基本給（税金）")
     allowance_base_other = models.IntegerField(default=0, verbose_name=u"基本給その他")
     allowance_base_other_memo = models.CharField(max_length=255, blank=True, null=True,
                                                  verbose_name=u"基本給その他メモ")
@@ -425,6 +426,7 @@ class ViewContract(models.Model):
     allowance_base = models.IntegerField(db_column='allowance_base', verbose_name=u"基本給")
     allowance_base_memo = models.CharField(db_column='allowance_base_memo', max_length=255, blank=True, null=True,
                                            verbose_name=u"基本給メモ")
+    allowance_base_tax = models.IntegerField(default=0, verbose_name=u"基本給（税金）")
     allowance_base_other = models.IntegerField(db_column='allowance_base_other', default=0, verbose_name=u"基本給その他")
     allowance_base_other_memo = models.CharField(db_column='allowance_base_other_memo', max_length=255, blank=True,
                                                  null=True,
