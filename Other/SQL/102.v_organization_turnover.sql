@@ -1,6 +1,5 @@
 CREATE OR REPLACE VIEW v_organization_turnover AS
-select d.ym
-     , m.id as member_id
+select m.id as member_id
 	 , m.employee_id
 	 , m.first_name
 	 , m.last_name
@@ -24,6 +23,7 @@ select d.ym
 	 , p.is_lump
 	 , c1.id as client_id
 	 , c1.name as client_name
+     , c.company_id
 	 , case c.content_type_id
 		   when 7 then (select name from eb_company where id = c.company_id)
 		   else (select name from eb_subcontractor where id = c.company_id)
@@ -40,27 +40,39 @@ select d.ym
 		   when 7 then '正社員（試用期間）'
 		   else c.member_type
 	   end as member_type_name
+	 , c.cost
+     , c.is_hourly_pay
+     , c.is_fixed_cost
+     , c.allowance_time_min as min_hours
+     , c.allowance_time_max as max_hours
+     , c.allowance_absenteeism as minus_per_hour
+     , c.allowance_overtime as plus_per_hour
 	 , c.is_loan
-	 , IF(p.is_lump = 1 and prd.id is null, (select min(t1.id) from eb_projectrequest t1 where t1.project_id = p.id and concat(t1.year, t1.month) = d.ym), IFNULL(prd.id, 0)) as projectrequestdetail_id
+	 , IF(p.is_lump = 1 and prd.id is null, (select min(t1.id) from eb_projectrequest t1 where t1.project_id = p.id and concat(t1.year, t1.month) = get_ym()), IFNULL(prd.id, 0)) as projectrequestdetail_id
 	 , IF(ma.id is null, IFNULL(prev_ma.traffic_cost, 0), 0) as prev_traffic_cost			-- 先月の勤務交通費
 	 , IF(ma.id is null, IFNULL(prev_ma.allowance, 0), 0) as prev_allowance					-- 先月の手当
 	 , ma.id as memberattendance_id
 	 , IFNULL(ma.total_hours, 0) as total_hours
+     , case
+           when c.is_hourly_pay or c.is_fixed_cost then 0
+           when ma.id is null then 0
+           else get_overtime(ma.total_hours, c.allowance_time_min, c.allowance_time_max, c.is_hourly_pay, c.is_fixed_cost, p.is_reserve)
+	   end as extra_hours
 	 , IFNULL(ma.total_days, 0) as total_days
 	 , IFNULL(ma.night_days, 0) as night_days
 	 , IFNULL(ma.advances_paid_client, 0) as advances_paid_client
 	 , IFNULL(ma.advances_paid, 0) as advances_paid
 	 , IFNULL(ma.traffic_cost, 0) as traffic_cost
 	 , case 
-		   when p.is_lump = 1 and prd.id is null then (select t1.amount from eb_projectrequest t1 where t1.project_id = p.id and concat(t1.year, t1.month) = d.ym)
+		   when p.is_lump = 1 and prd.id is null then (select t1.amount from eb_projectrequest t1 where t1.project_id = p.id and concat(t1.year, t1.month) = get_ym())
 		   else IFNULL(prd.total_price + prd.expenses_price + prd.total_price * prh.tax_rate, 0) 
 	   end as all_price
 	 , case
-		   when p.is_lump = 1 and prd.id is null then (select t1.turnover_amount from eb_projectrequest t1 where t1.project_id = p.id and concat(t1.year, t1.month) = d.ym)
+		   when p.is_lump = 1 and prd.id is null then (select t1.turnover_amount from eb_projectrequest t1 where t1.project_id = p.id and concat(t1.year, t1.month) = get_ym())
 		   else IFNULL(prd.total_price, 0) 
 	   end as total_price
 	 , case
-		   when p.is_lump = 1 and prd.id is null then (select t1.expenses_amount from eb_projectrequest t1 where t1.project_id = p.id and concat(t1.year, t1.month) = d.ym)
+		   when p.is_lump = 1 and prd.id is null then (select t1.expenses_amount from eb_projectrequest t1 where t1.project_id = p.id and concat(t1.year, t1.month) = get_ym())
 		   else IFNULL(prd.expenses_price, 0) 
 	   end as expenses_price
 	 , IFNULL(IF(c.is_hourly_pay = 0, c.cost, c.cost * get_attendance_total_hours(ma.total_hours)), 0) as salary
@@ -84,38 +96,29 @@ select d.ym
 		   get_overtime_cost(ma.total_hours, c.allowance_time_min, c.allowance_time_max, c.is_hourly_pay, c.is_fixed_cost, p.is_reserve, c.allowance_absenteeism, c.allowance_overtime),
 		   IFNULL(ma.traffic_cost, 0)
 	   ) as health_insurance 
-  from (select distinct DATE_FORMAT(selected_date, '%Y%m') as ym from 
-		(select adddate('2010-01-01', INTERVAL t2.i*20 + t1.i*10 + t0.i MONTH) selected_date from
-		 (select 0 i union select 1 union select 2 union select 3 union select 4 union select 5 union select 6 union select 7 union select 8 union select 9) t0,
-		 (select 0 i union select 1 union select 2 union select 3 union select 4 union select 5 union select 6 union select 7 union select 8 union select 9) t1,
-		 (select 0 i union select 1 union select 2 union select 3 union select 4 union select 5 union select 6 union select 7 union select 8 union select 9) t2) v
-		where selected_date between (select min(STR_TO_DATE(concat(ma1.year, ma1.month, '01'), '%Y%m%d')) from eb_memberattendance ma1) 
-								and (select max(STR_TO_DATE(concat(ma1.year, ma1.month, '01'), '%Y%m%d')) from eb_memberattendance ma1)
-	   ) as d
-  join eb_member m
+  from eb_member m
   left join eb_membersectionperiod msp1 on msp1.member_id = m.id 
 									   and msp1.is_deleted = 0 
-									   and extract(year_month from(msp1.start_date)) <= d.ym
-									   and (extract(year_month from(msp1.end_date)) >= d.ym or msp1.end_date is null)
+									   and extract(year_month from(msp1.start_date)) <= get_ym()
+									   and (extract(year_month from(msp1.end_date)) >= get_ym() or msp1.end_date is null)
   join eb_projectmember pm on pm.member_id = m.id and pm.is_deleted = 0 
 						  and pm.status = 2 
-						  and extract(year_month from(pm.start_date)) <= d.ym
-						  and (extract(year_month from(pm.end_date)) >= d.ym or pm.end_date is null)
+						  and extract(year_month from(pm.start_date)) <= get_ym()
+						  and (extract(year_month from(pm.end_date)) >= get_ym() or pm.end_date is null)
   join eb_project p on p.id = pm.project_id
   join eb_client c1 on c1.id = p.client_id
-  left join eb_memberattendance ma on ma.project_member_id = pm.id and concat(ma.year, ma.month) = d.ym
+  left join eb_memberattendance ma on ma.project_member_id = pm.id and concat(ma.year, ma.month) = get_ym()
   left join eb_memberattendance prev_ma on prev_ma.project_member_id = pm.id 
-									   and concat(prev_ma.year, prev_ma.month) = DATE_FORMAT(STR_TO_DATE(concat(d.ym, '01'), '%Y%m%d') - INTERVAL 1 MONTH, '%Y%m')
-  left join eb_projectrequestdetail prd on prd.project_member_id = pm.id and concat(prd.year, prd.month) = d.ym
-  left join eb_projectrequest pr on pr.id = prd.project_request_id and concat(pr.year, pr.month) = d.ym
+									   and concat(prev_ma.year, prev_ma.month) = DATE_FORMAT(STR_TO_DATE(concat(get_ym(), '01'), '%Y%m%d') - INTERVAL 1 MONTH, '%Y%m')
+  left join eb_projectrequestdetail prd on prd.project_member_id = pm.id and concat(prd.year, prd.month) = get_ym()
+  left join eb_projectrequest pr on pr.id = prd.project_request_id and concat(pr.year, pr.month) = get_ym()
   left join eb_projectrequestheading prh on prh.project_request_id = pr.id
   left join v_contract c on c.member_id = m.id 
-						and c.is_old = 0 and extract(year_month from(c.start_date)) <= d.ym
-						and (extract(year_month from(c.end_date)) >= d.ym or c.end_date is null)
+						and c.is_old = 0 and extract(year_month from(c.start_date)) <= get_ym()
+						and (extract(year_month from(c.end_date)) >= get_ym() or c.end_date is null)
  where m.is_deleted = 0
 union all
-select d.ym
-     , null as member_id
+select null as member_id
 	 , null as employee_id
 	 , null as first_name
 	 , null as last_name
@@ -133,16 +136,25 @@ select d.ym
 	 , p.is_lump
 	 , c1.id as client_id
 	 , c1.name as client_name
+     , null as company_id
 	 , null as company_name
 	 , null as endowment_insurance
 	 , null as member_type
 	 , null as member_type_name
+	 , 0 as cost
+     , 0 as is_hourly_pay
+     , 0 as is_fixed_cost
+     , 0 as min_hours
+     , 0 as max_hours
+     , 0 as minus_per_hour
+     , 0 as plus_per_hour
 	 , 0 as is_loan
 	 , pr.id as projectrequestdetail_id
 	 , 0 as prev_traffic_cost
 	 , 0 as prev_allowance
 	 , null as memberattendance_id
 	 , 0 as total_hours
+     , 0 as extra_hours
 	 , 0 as total_days
 	 , 0 as night_days
 	 , 0 as advances_paid_client
@@ -158,19 +170,11 @@ select d.ym
 	 , 0 as expenses
 	 , 0 as employment_insurance
 	 , 0 as health_insurance 
-  from (select distinct DATE_FORMAT(selected_date, '%Y%m') as ym from 
-		(select adddate('2010-01-01', INTERVAL t2.i*20 + t1.i*10 + t0.i MONTH) selected_date from
-		 (select 0 i union select 1 union select 2 union select 3 union select 4 union select 5 union select 6 union select 7 union select 8 union select 9) t0,
-		 (select 0 i union select 1 union select 2 union select 3 union select 4 union select 5 union select 6 union select 7 union select 8 union select 9) t1,
-		 (select 0 i union select 1 union select 2 union select 3 union select 4 union select 5 union select 6 union select 7 union select 8 union select 9) t2) v
-		where selected_date between (select min(STR_TO_DATE(concat(ma1.year, ma1.month, '01'), '%Y%m%d')) from eb_memberattendance ma1) 
-								and (select max(STR_TO_DATE(concat(ma1.year, ma1.month, '01'), '%Y%m%d')) from eb_memberattendance ma1)
-	   ) as d
-  join eb_project p
+  from eb_project p
   join eb_section s on p.department_id = s.id
   join eb_client c1 on c1.id = p.client_id
   join eb_projectrequest pr on pr.project_id = p.id
  where p.is_lump = 1
    and p.is_deleted = 0
-   and concat(pr.year, pr.month) = d.ym
+   and concat(pr.year, pr.month) = get_ym()
    and not exists(select 1 from eb_projectmember pm where pm.project_id = p.id and pm.is_deleted = 0)
