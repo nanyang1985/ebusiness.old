@@ -247,40 +247,64 @@ def get_business_partner_members_with_contract():
     )
 
 
-def get_organization_turnover(year, month, section, order_list=None):
-    """指定年月の部署の経営データを取得する。
+def get_organization_turnover(year, month, section=None, param_dict=None, order_list=None):
+    """指定年月の経営データを取得する。
 
     :param year:
     :param month:
     :param section:
+    :param param_dict:
+    :param order_list:
     :return:
     """
-    df = pd.read_sql("call proc_organization_turnover('%s%s')" % (year, month), connection)
+    df = get_turnover_by_month(year, month, param_dict, order_list)
     if section:
         all_children = section.get_children()
         org_pk_list = [org.pk for org in all_children]
         org_pk_list.append(section.pk)
         df = df[(df.division_id.isin(org_pk_list)) | (df.section_id.isin(org_pk_list)) | (df.subsection_id.isin(org_pk_list))]
-    # 出向
-    loan_df = df[df.is_loan==1]
+    # 出向の契約を洗い出す
+    loan_df = df[df.is_loan == 1]
     for index, row in loan_df.iterrows():
         related_row = df.loc[(df.projectmember_id == row.projectmember_id) & (df.is_loan == 0)]
         if related_row.empty:
+            # 完全出向の場合は何もしない。
             continue
-        df.set_value(index, 'salary', df.loc[index]['salary'] + related_row.iloc[0].salary)
-        # df.set_value(index, 'allowance', df.loc[index]['allowance'] + related_row.iloc[0].allowance)
-        # df.set_value(index, 'night_allowance', df.loc[index]['night_allowance'] + related_row.iloc[0].night_allowance)
-        # df.set_value(index, 'expenses', df.loc[index]['expenses'] + related_row.iloc[0].expenses)
-        # df.set_value(index, 'employment_insurance', df.loc[index]['employment_insurance'] + related_row.iloc[0].employment_insurance)
-        # df.set_value(index, 'health_insurance', df.loc[index]['health_insurance'] + related_row.iloc[0].health_insurance)
-        # df.drop(related_row.index[0])
-        df = df.iloc[df.index!=related_row.index[0]]
+        # # ＥＢ契約の月給を再設定する。
+        # df.set_value(index, 'salary', df.loc[index]['salary'] + related_row.iloc[0].salary)
+        # ＢＰ契約に値を再設定する。
+        df.set_value(related_row.index[0], 'is_loan', row.is_loan)
+        df.set_value(related_row.index[0], 'salary', df.loc[index]['salary'] + related_row.iloc[0].salary)
+        df.set_value(related_row.index[0], 'allowance', df.loc[index]['allowance'] + related_row.iloc[0].allowance)
+        df.set_value(related_row.index[0], 'night_allowance', df.loc[index]['night_allowance'] + related_row.iloc[0].night_allowance)
+        df.set_value(related_row.index[0], 'expenses', df.loc[index]['expenses'] + related_row.iloc[0].expenses)
+        df.set_value(related_row.index[0], 'employment_insurance', df.loc[index]['employment_insurance'] + related_row.iloc[0].employment_insurance)
+        df.set_value(related_row.index[0], 'health_insurance', df.loc[index]['health_insurance'] + related_row.iloc[0].health_insurance)
+        # ＥＢの出向契約は非表示
+        df = df.iloc[df.index!=index]
+    return df
+
+
+def get_turnover_by_month(year, month, param_dict=None, order_list=None):
+    """指定年月の経営データを取得する。
+
+    :param year:
+    :param month:
+    :param section:
+    :param param_dict:
+    :param order_list:
+    :return:
+    """
+    df = pd.read_sql("call sp_organization_turnover('%s%s')" % (year, month), connection)
 
     # 原価合計を計算する。
     df['total_cost'] = df['salary'] + df['allowance'] + df['night_allowance'] + df['overtime_cost'] + df[
         'traffic_cost'] + df['expenses'] + df['employment_insurance'] + df['health_insurance']
     # 利益
     df['profit'] = df['total_price'] - df['total_cost']
+    if param_dict and isinstance(param_dict, dict):
+        for k, v in param_dict.items():
+            df = df[df[k].str.contains(v, na=False)]
     if order_list:
         name = order_list[0].strip('-')
         ascending = not order_list[0].startswith('-')

@@ -490,8 +490,10 @@ section .project_requested {
 }
 
 section div.example {
+    margin-right: 12px;
     padding-left: 10px;
     padding-top: 5px;
+    font-size: 12px;
 }
 
 section div.example span {
@@ -503,6 +505,17 @@ section div.example div {
     border: 1px solid black;
     font-size: 11px;
     margin-left: 10px;
+    padding: 0px 5px;
+}
+
+div.example div.error {
+    background: red;
+    color: white;
+}
+
+tr.is_loan,
+div.example div.is_loan {
+    background: #aacce6;
 }
 
 section .hierarchy {

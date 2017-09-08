@@ -6,10 +6,10 @@
 {% block header %}
     <script type="text/javascript">
         window.onload = function() {
-            init_select("project_member__member__first_name__icontains");
-            init_select("project_member__member__last_name__icontains");
-            init_select("project_member__member__subcontractor__name__icontains");
-            init_select("project_member__project__name__icontains");
+            init_select("first_name");
+            init_select("last_name");
+            init_select("company_name");
+            init_select("project_name");
         };
 
         function generate_request(obj, url, is_overwrite) {
@@ -48,12 +48,17 @@
     <div class="dashboard">
         <div class="dashboard-title">{{ title }}</div>
         <form action="" method="get">
-            <label for="project_member__member__first_name__icontains">姓: </label><input type="text" id="project_member__member__first_name__icontains" name="project_member__member__first_name__icontains" style="width: 50px;"/>
-            <label for="project_member__member__last_name__icontains">名: </label><input type="text" id="project_member__member__last_name__icontains" name="project_member__member__last_name__icontains" style="width: 50px;"/>
-            <label for="project_member__member__subcontractor__name__icontains">協力会社: </label><input type="text" id="project_member__member__subcontractor__name__icontains" name="project_member__member__subcontractor__name__icontains" style="width: 150px;"/>
-            <label for="project_member__project__name__icontains">案件名: </label><input type="text" id="project_member__project__name__icontains" name="project_member__project__name__icontains" style="width: 150px;"/>
+            <label for="first_name">姓: </label><input type="text" id="first_name" name="first_name" style="width: 50px;"/>
+            <label for="last_name">名: </label><input type="text" id="last_name" name="last_name" style="width: 50px;"/>
+            <label for="company_name">協力会社: </label><input type="text" id="company_name" name="company_name" style="width: 150px;"/>
+            <label for="project_name">案件名: </label><input type="text" id="project_name" name="project_name" style="width: 150px;"/>
             <input type="submit" value="Filter" />
             <a href="{{ request.path }}">クリア</a>
+            <div class="example" style="float: right;">
+                <span>凡例:</span>
+                <div class="is_loan">出向社員</div>
+            </div>
+            <div class="clear"></div>
         </form>
     </div>
     {% if subcontractor %}
@@ -85,9 +90,9 @@
     <table class="list" cellpadding="0" cellspacing="0">
         <thead>
             <tr>
-                <th>{% create_order_display "名前" "project_member__member__first_name" %}</th>
-                <th style="width: 200px;">{% create_order_display "協力会社" "project_member__member__subcontractor__name" %}</th>
-                <th style="width: 250px;">{% create_order_display "案件" "project_member__project__name" %}</th>
+                <th>{% create_single_order_display "名前" "first_name" %}</th>
+                <th style="width: 200px;">{% create_single_order_display "協力会社" "company_name" %}</th>
+                <th style="width: 250px;">{% create_single_order_display "案件" "project_name" %}</th>
                 <th>基本給</th>
                 <th>基準時間</th>
                 <th>増</th>
@@ -100,43 +105,38 @@
         </thead>
         <tbody>
             {% if object_list %}
-                {% for member_attendance in object_list %}
-                {% with contract=member_attendance.get_contract %}
-                    <tr class="{% cycle 'row1' 'row2' %}">
-                        <td><a href="{% url 'member_detail' member_attendance.project_member.member.employee_id %}">{{ member_attendance.project_member }}</a></td>
-                        <td>
-                            <div style="width: 200px; overflow: hidden; white-space: nowrap;">
-                            {{ member_attendance.project_member.member.subcontractor }}
-                            </div>
-                        </td>
-                        <td>
-                            <div style="width: 250px; overflow: hidden; white-space: nowrap;">
-                                <a href="{% url 'project_detail' member_attendance.project_member.project.pk %}">{{ member_attendance.project_member.project }}</a>
-                            </div>
-                        </td>
-                        <td class="num">{{ contract.allowance_base|intcomma }}</td>
-
-                        {% if contract.is_hourly_pay %}
-                            <td class="center" colspan="3">時給</td>
-                        {% elif contract.is_fixed_cost %}
-                            <td class="center" colspan="3">固定</td>
-                        {% else %}
-                            <td>
-                                {{ contract.allowance_time_min }}～{{ contract.allowance_time_max }}
-                            </td>
-                            <td class="num">
-                                {{ contract.allowance_overtime|intcomma }}
-                            </td>
-                            <td class="num">
-                                {{ contract.allowance_absenteeism|intcomma }}
-                            </td>
-                        {% endif %}
-                        <td class="num">{{ member_attendance.get_total_hours_cost|floatformat:2 }}</td>
-                        <td class="num {% if member_attendance.get_overtime < 0 %}red{% endif %}">{{ member_attendance.get_overtime }}</td>
-                        <td class="num">{{ member_attendance.traffic_cost|default:'0'|intcomma }}</td>
-                        <td class="num">{{ member_attendance.get_all_cost|intcomma }}</td>
-                    </tr>
-                {% endwith %}
+                {% for idx, data_row in object_list %}
+                <tr class="{% cycle 'row1' 'row2' %} {% if data_row.is_loan %}is_loan{% endif %}">
+                    <td>
+                        <a href="{% url 'member_detail' data_row.employee_id %}">
+                            {{ data_row.first_name }} {{ data_row.last_name }}
+                        </a>
+                    </td>
+                    <td>
+                        <div style="width: 200px; overflow: hidden; white-space: nowrap;">
+                            {{ data_row.company_name }}
+                        </div>
+                    </td>
+                    <td>
+                        <div style="width: 250px; overflow: hidden; white-space: nowrap;">
+                            <a href="{% url 'project_detail' data_row.project_id %}">{{ data_row.project_name }}</a>
+                        </div>
+                    </td>
+                    <td class="num">{{ data_row.cost|floatformat:0|intcomma }}</td>
+                    {% if data_row.is_hourly_pay %}
+                        <td class="center" colspan="3">時給</td>
+                    {% elif data_row.is_fixed_cost %}
+                        <td class="center" colspan="3">固定</td>
+                    {% else %}
+                        <td>{{ data_row.min_hours|floatformat:2 }}～{{ data_row.max_hours|floatformat:2 }}</td>
+                        <td class="num">{{ data_row.plus_per_hour|floatformat:0|intcomma }}</td>
+                        <td class="num">{{ data_row.minus_per_hour|floatformat:0|intcomma }}</td>
+                    {% endif %}
+                    <td class="num">{{ data_row.total_hours|floatformat:2|intcomma }}</td>
+                    <td class="num {% if data_row.extra_hours < 0 %}red{% endif %}">{{ data_row.extra_hours|floatformat:2 }}</td>
+                    <td class="num">{{ data_row.traffic_cost|floatformat:0|intcomma }}</td>
+                    <td class="num">{{ data_row.total_cost|floatformat:0|intcomma }}</td>
+                </tr>
                 {% endfor %}
             {% else %}
                 <tr class="row1"><td class="center red" colspan="11">協力会社がありません。</td></tr>
@@ -144,9 +144,17 @@
         </tbody>
         <tfoot>
             <tr>
-                <td colspan="11">
+                <td colspan="3">
                     {% paging object_list %}
                 </td>
+                <td class="num">{{ summary.cost|floatformat:0|intcomma }}</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td class="num">{{ summary.total_hours|floatformat:2|intcomma }}</td>
+                <td class="num">{{ summary.extra_hours|floatformat:2|intcomma }}</td>
+                <td class="num">{{ summary.traffic_cost|floatformat:0|intcomma }}</td>
+                <td class="num">{{ summary.total_cost|floatformat:0|intcomma }}</td>
             </tr>
         </tfoot>
     </table>

@@ -2623,24 +2623,6 @@ class SubcontractorRequestDetail(models.Model):
         return int(self.total_price) + self.get_tax_price() + int(self.expenses_price)
 
 
-# class ProjectMemberPrice(BaseModel):
-#     project_member = models.ForeignKey(ProjectMember, verbose_name=u"案件メンバー")
-#     start_date = models.DateField(verbose_name=u"開始日")
-#     end_date = models.DateField(blank=True, null=True, verbose_name=u"終了日")
-#     is_hourly_pay = models.BooleanField(default=False, verbose_name=u"時給")
-#     price = models.IntegerField(default=0, verbose_name=u"単価")
-#     min_hours = models.DecimalField(max_digits=5, decimal_places=2, default=160, verbose_name=u"基準時間")
-#     max_hours = models.DecimalField(max_digits=5, decimal_places=2, default=180, verbose_name=u"最大時間")
-#     plus_per_hour = models.IntegerField(default=0, verbose_name=u"増（円）")
-#     minus_per_hour = models.IntegerField(default=0, verbose_name=u"減（円）")
-#
-#     class Meta:
-#         verbose_name = verbose_name_plural = u"案件メンバー単価"
-#
-#     def __unicode__(self):
-#         return u"%s(%s)" % (unicode(self.project_member), self.start_date)
-
-
 class ExpensesCategory(BaseModel):
     name = models.CharField(max_length=50, unique=True, verbose_name=u"名称")
 
@@ -3547,6 +3529,63 @@ class EmailMultiAlternativesWithEncoding(EmailMultiAlternatives):
                 filename = Header(filename, 'utf-8').encode()
             attachment.add_header('Content-Disposition', 'attachment', filename=filename)
         return attachment
+
+
+# class ViewOrganizationTurnover(models.Model):
+#     member_id = models.IntegerField(db_column='member_id', blank=True, null=True, verbose_name=u"社員")
+#     employee_id = models.CharField(db_column='employee_id', blank=True, null=True, max_length=30, verbose_name=u"社員ID")
+#     first_name = models.CharField(db_column='first_name', blank=True, null=True, max_length=30, verbose_name=u"姓")
+#     last_name = models.CharField(db_column='last_name', blank=True, null=True, max_length=30, verbose_name=u"名")
+#     membersectionperiod_id = models.IntegerField(db_column='membersectionperiod_id', blank=True, null=True, verbose_name=u"部署期間")
+#     division_id = models.IntegerField(db_column='division_id', blank=True, null=True, verbose_name=u"事業部")
+#     division_name = models.CharField(db_column='division_name', blank=True, null=True, max_length=30, verbose_name=u"事業部名")
+#     section_id = models.IntegerField(db_column='section_id', blank=True, null=True, verbose_name=u"部署")
+#     section_name = models.CharField(db_column='section_name', blank=True, null=True, max_length=30, verbose_name=u"部署名")
+#     subsection_id = models.IntegerField(db_column='subsection_id', blank=True, null=True, verbose_name=u"課")
+#     subsection_name = models.CharField(db_column='subsection_name', blank=True, null=True, max_length=30, verbose_name=u"課名")
+#     projectmember_id = models.IntegerField(db_column='projectmember_id', blank=True, null=True, verbose_name=u"案件メンバー")
+#     project_id = models.IntegerField(db_column='project_id', blank=True, null=True, verbose_name=u"案件")
+#     project_name = models.CharField(db_column='project_name', blank=True, null=True, max_length=50, verbose_name=u"案件名称")
+#     is_reserve = models.BooleanField(db_column='is_reserve', default=False, verbose_name=u"待機案件フラグ")
+#     is_lump = models.BooleanField(db_column='is_lump', default=False, verbose_name=u"一括フラグ")
+#     client_id = models.IntegerField(db_column='client_id', blank=True, null=True, verbose_name=u"取引先")
+#     client_name = models.CharField(db_column='client_name', blank=True, null=True, max_length=30, verbose_name=u"取引先名")
+#     company_name = models.CharField(db_column='company_name', blank=True, null=True, max_length=30, verbose_name=u"会社名")
+#     endowment_insurance = models.CharField(db_column='endowment_insurance', max_length=1, blank=True, null=True, default='0',
+#                                            choices=constants.CHOICE_ENDOWMENT_INSURANCE,
+#                                            verbose_name=u"社会保険加入有無")
+#     member_type = models.IntegerField(db_column='member_type', blank=True, null=True, choices=constants.CHOICE_MEMBER_TYPE,verbose_name=u"雇用形態コード")
+#     member_type_name = models.CharField(db_column='member_type_name', blank=True, null=True, max_length=30, verbose_name=u"雇用形態")
+#     is_loan = models.BooleanField(db_column='is_loan', default=False, verbose_name=u"出向")
+#     projectrequestdetail_id = models.IntegerField(db_column='projectrequestdetail_id', blank=True, null=True, verbose_name=u"請求ＩＤ")
+#     prev_traffic_cost = models.IntegerField(db_column='prev_traffic_cost', default=0, verbose_name=u"先月勤務交通費")
+#     prev_allowance = models.IntegerField(db_column='prev_allowance', default=0, verbose_name=u"先月手当")
+#     memberattendance_id = models.IntegerField(db_column='memberattendance_id', blank=True, null=True, verbose_name=u"出勤情報")
+#     total_hours = models.DecimalField(db_column='total_hours', default=0, max_digits=5, decimal_places=2, verbose_name=u"合計時間")
+#     total_days = models.IntegerField(db_column='total_days', default=0, verbose_name=u"勤務日数")
+#     night_days = models.IntegerField(db_column='night_days', default=0, verbose_name=u"深夜日数")
+#     advances_paid_client = models.IntegerField(db_column='advances_paid_client', default=0, verbose_name=u"客先立替金")
+#     advances_paid = models.IntegerField(db_column='advances_paid', default=0, verbose_name=u"立替金")
+#     traffic_cost = models.IntegerField(db_column='traffic_cost', default=0, verbose_name=u"勤務交通費")
+#     all_price = models.IntegerField(db_column='all_price', default=0, verbose_name=u"売上（税込）")
+#     total_price = models.IntegerField(db_column='total_price', default=0, verbose_name=u"売上（税抜）")
+#     expenses_price = models.IntegerField(db_column='expenses_price', default=0, verbose_name=u"売上（経費）")
+#     salary = models.IntegerField(db_column='salary', default=0, verbose_name=u"月給")
+#     allowance = models.IntegerField(db_column='allowance', default=0, verbose_name=u"手当")
+#     night_allowance = models.IntegerField(db_column='night_allowance', default=0, verbose_name=u"深夜手当")
+#     overtime_cost = models.IntegerField(db_column='overtime_cost', default=0, verbose_name=u"残業／控除")
+#     expenses = models.IntegerField(db_column='expenses', default=0, verbose_name=u"経費")
+#     employment_insurance = models.IntegerField(db_column='employment_insurance', default=0, verbose_name=u"雇用／労災")
+#     health_insurance = models.IntegerField(db_column='health_insurance', default=0, verbose_name=u"健康／厚生")
+#
+#     class Meta:
+#         managed = False
+#         db_table = 'v_organization_turnover'
+#         verbose_name = verbose_name_plural = u"売上情報明細"
+#         default_permissions = ()
+#
+#     def __unicode__(self):
+#         return unicode(self.member) if self.member else unicode(self.project)
 
 
 def get_all_members(date=None):

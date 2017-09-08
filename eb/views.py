@@ -917,7 +917,7 @@ class OrganizationTurnoverView(BaseTemplateView):
                                                   'client_name', 'member_type'])
         order_list = common.get_ordering_list(o)
 
-        data_frame = biz.get_organization_turnover(year, month, section, order_list)
+        data_frame = biz.get_organization_turnover(year, month, section, order_list=order_list)
         summary_subcontractor = data_frame.loc[data_frame.member_type == 4].sum()
         summary_self = data_frame.loc[data_frame.member_type != 4].sum()
 
@@ -1501,23 +1501,18 @@ class CostSubcontractorMembersByMonthView(BaseTemplateView):
         subcontractor_id = kwargs.get('subcontractor_id', None)
         param_dict, params = common.get_request_params(request.GET)
         o = request.GET.get('o', None)
-        dict_order = common.get_ordering_dict(o, ['project_member__member__first_name',
-                                                  'project_member__member__subcontractor__name',
-                                                  'project_member__project__name'])
+        dict_order = common.get_ordering_dict(o, ['first_name', 'company_name', 'project_name'])
         order_list = common.get_ordering_list(o)
 
-        object_list = biz_turnover.cost_subcontractor_members_by_month(year, month)
+        data_frame = biz_turnover.get_bp_members_cost(year, month, subcontractor_id, param_dict, order_list)
+        summary = data_frame.sum()
+        object_list = list(data_frame.iterrows())
 
         subcontractor = None
         sections = []
-        if param_dict:
-            object_list = object_list.filter(**param_dict)
         if subcontractor_id:
             subcontractor = get_object_or_404(models.Subcontractor, pk=subcontractor_id)
-            object_list = object_list.filter(project_member__member__subcontractor__pk=subcontractor_id)
             sections = subcontractor.get_request_sections(year, month)
-        if order_list:
-            object_list = object_list.order_by(*order_list)
 
         paginator = Paginator(object_list, biz_config.get_page_size())
         page = request.GET.get('page')
@@ -1534,6 +1529,7 @@ class CostSubcontractorMembersByMonthView(BaseTemplateView):
                 '「' + unicode(subcontractor) + '」' if subcontractor else "ＢＰメンバー"
             ),
             'object_list': object_list,
+            'summary': summary,
             'subcontractor': subcontractor,
             'sections': sections,
             'paginator': paginator,
@@ -1554,14 +1550,13 @@ class CostSubcontractorsByMonthView(BaseTemplateView):
         year = kwargs.get('year')
         month = kwargs.get('month')
 
-        object_list = biz_turnover.cost_subcontractors_by_month(year, month)
-        summary = {'total_cost': sum([cost for obj, cost in object_list])}
+        data_frame = biz_turnover.get_bp_cost_by_subcontractor(year, month)
 
         context.update({
-            'object_list': object_list,
+            'title': u"%s年%s月の協力会社別コスト" % (year, month),
+            'data_frame': data_frame,
             'year': year,
             'month': month,
-            'summary': summary,
         })
         return context
 

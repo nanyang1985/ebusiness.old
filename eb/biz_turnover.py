@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 from matplotlib.ticker import FuncFormatter
 import pandas as pd
 
-from eb import models
+from eb import models, biz
 from utils import common
 
 from django.db.models import Sum, Count, Q, Value
@@ -461,3 +461,48 @@ def cost_subcontractors_by_month(year, month):
         else:
             subcontractors[member_attendance.project_member.member.subcontractor] = cost
     return subcontractors.items()
+
+
+def get_bp_members_cost(year, month, company_id=None, param_dict=None, order_list=None):
+    """協力会社社員ごとのコスト明細
+
+    :param year:
+    :param month:
+    :param company_id:
+    :param param_dict:
+    :param order_list:
+    :return:
+    """
+    df = biz.get_turnover_by_month(year, month, param_dict=param_dict, order_list=order_list)
+    # 出向の契約を洗い出す
+    loan_df = df[df.is_loan == 1]
+    for index, row in loan_df.iterrows():
+        related_row = df.loc[(df.projectmember_id == row.projectmember_id) & (df.is_loan == 0)]
+        if related_row.empty:
+            # 完全出向の場合は何もしない。
+            continue
+        # # ＥＢ契約の月給を再設定する。
+        # df.set_value(index, 'salary', df.loc[index]['salary'] + related_row.iloc[0].salary)
+        # ＢＰ契約に値を再設定する。
+        df.set_value(related_row.index[0], 'is_loan', row.is_loan)
+        # df.set_value(related_row.index[0], 'salary', df.loc[index]['salary'] + related_row.iloc[0].salary)
+        # df.set_value(related_row.index[0], 'allowance', df.loc[index]['allowance'] + related_row.iloc[0].allowance)
+        # df.set_value(related_row.index[0], 'night_allowance', df.loc[index]['night_allowance'] + related_row.iloc[0].night_allowance)
+        # df.set_value(related_row.index[0], 'expenses', df.loc[index]['expenses'] + related_row.iloc[0].expenses)
+        df.set_value(related_row.index[0], 'employment_insurance', df.loc[index]['employment_insurance'] + related_row.iloc[0].employment_insurance)
+        df.set_value(related_row.index[0], 'health_insurance', df.loc[index]['health_insurance'] + related_row.iloc[0].health_insurance)
+        # ＥＢの出向契約は非表示
+        df = df.iloc[df.index!=index]
+    df = df.loc[df.member_type==4]
+    if company_id:
+        df = df.loc[df.company_id==int(company_id)]
+    return df
+
+
+def get_bp_cost_by_subcontractor(year, month):
+    df = get_bp_members_cost(year, month)
+    s = df.groupby(['company_id', 'company_name'])['total_cost'].sum()
+    df = pd.DataFrame(s.values, index=s.index, columns=['total_cost'])
+    df.reset_index(inplace=True)
+    df.company_id = df.company_id.astype(int)
+    return df
