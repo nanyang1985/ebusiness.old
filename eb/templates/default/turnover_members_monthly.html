@@ -89,7 +89,7 @@
                         <td class="num">{{ data_row.tax_price|floatformat:1|intcomma }}</td>
                         <td class="num">{{ data_row.expenses_price|floatformat:0|intcomma }}</td>
                         <td class="num {% if data_row.profit < 0 %}red{% endif %}">{{ data_row.profit|floatformat:1|intcomma }}</td>
-                        <td class="num {% if data_row.profit_rate < 0 %}red{% endif %}">{{ data_row.profit_rate|floatformat:2|intcomma }}%</td>
+                        <td class="num {% if data_row.profit_rate < 0 %}red{% endif %}">{{ data_row.profit_rate|floatformat:1|intcomma }}%</td>
                     </tr>
                 {% endfor %}
             {% else %}
@@ -106,7 +106,7 @@
                 <td class="num"> {{ summary.tax_price|floatformat:0|intcomma }}</td>
                 <td class="num"> {{ summary.expenses_price|floatformat:0|intcomma }}</td>
                 <td class="num"> {{ summary.profit|floatformat:0|intcomma }}</td>
-                <td class="num"> {{ summary.profit_rate|floatformat:2|intcomma }}%</td>
+                <td class="num"> {{ summary.profit_rate|floatformat:1|intcomma }}%</td>
             </tr>
         </tfoot>
     </table>

@@ -1147,7 +1147,7 @@ class TurnoverMembersMonthlyView(BaseTemplateView):
         sections = biz_turnover.get_turnover_sections(ym)
         data_frame = biz_turnover.get_members_turnover(year, month, param_dict=param_dict, order_list=order_list)
         summary = data_frame.sum()
-        summary['profit_rate'] = round(summary.profit / summary.total_price, 2) if summary.total_price else 0
+        summary['profit_rate'] = round(summary.profit / summary.total_price, 2) * 100 if summary.total_price else 0
 
         paginator = Paginator(list(data_frame.iterrows()), biz_config.get_page_size())
         page = request.GET.get('page')
@@ -1217,7 +1217,7 @@ class TurnoverClientsMonthlyView(BaseTemplateView):
         month = kwargs.get('month', None)
         data_frame = biz_turnover.get_clients_turnover(year, month)
         summary = data_frame.sum()
-        summary['profit_rate'] = round(summary.profit / summary.total_price, 2) if summary.total_price else 0
+        summary['profit_rate'] = round(summary.profit / summary.total_price, 2) * 100 if summary.total_price else 0
 
         context = self.get_context_data()
         context.update({
@@ -1243,7 +1243,7 @@ class TurnoverClientMonthlyView(BaseTemplateView):
         client = get_object_or_404(models.Client, pk=client_id)
         data_frame = biz_turnover.get_client_turnover(year, month, client)
         summary = data_frame.sum()
-        summary['profit_rate'] = round(summary.profit / summary.total_price, 2) if summary.total_price else 0
+        summary['profit_rate'] = round(summary.profit / summary.total_price, 2) * 100 if summary.total_price else 0
 
         context = self.get_context_data()
         context.update({

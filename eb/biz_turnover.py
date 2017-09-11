@@ -551,7 +551,7 @@ def get_members_turnover(year, month, param_dict=None, order_list=None):
         'traffic_cost'] + df['expenses'] + df['employment_insurance'] + df['health_insurance']
     # 利益
     df['profit'] = df['total_price'] - df['total_cost']
-    df['profit_rate'] = df['profit'] / df['total_price']
+    df['profit_rate'] = df['profit'] / df['total_price'] * 100
     # 税込
     df['all_price'] = df['total_price'] + df['expenses_price'] + df['tax_price']
     if param_dict and isinstance(param_dict, dict):
@@ -576,6 +576,7 @@ def get_clients_turnover(year, month):
     df = get_members_turnover(year, month)
     df = df.groupby(['client_id', 'client_name']).sum()
     df.reset_index(inplace=True)
+    df['profit_rate'] = df['profit'] / df['total_price'] * 100
     df['per'] = df.total_price / df.total_price.max() * 100
     df = df.sort_values(by='client_name', ascending=True)
     return df
@@ -586,5 +587,6 @@ def get_client_turnover(year, month, client):
     df = df.loc[df.client_id == client.pk]
     df = df.groupby(['project_id', 'project_name']).sum()
     df.reset_index(inplace=True)
+    df['profit_rate'] = df['profit'] / df['total_price'] * 100
     df = df.sort_values(by='project_name', ascending=True)
     return df
