@@ -28,40 +28,52 @@
             <tr>
                 <th>{% create_order_display "お客様名称" "" %}</th>
                 <th>{% create_order_display "履歴" "" %}</th>
+                <th>{% create_order_display "コスト" "" %}</th>
                 <th>{% create_order_display "売上（税抜）" "" %}</th>
                 <th>{% create_order_display "税金" "" %}</th>
                 <th>{% create_order_display "精算" "" %}</th>
-                <th>{% create_order_display "合計" "" %}</th>
+                <th>{% create_order_display "粗利" "" %}</th>
+                <th>{% create_order_display "利率" "" %}</th>
             </tr>
         </thead>
         <tbody>
-            {% if clients_turnover %}
-                {% for client_turnover in clients_turnover %}
+            {% if data_frame is None %}
+                <tr class="row1"><td class="center red" colspan="8">売上情報がありません。</td></tr>
+            {% else %}
+                {% for idx, data_row in data_frame.iterrows %}
                     <tr class="{% cycle 'row1' 'row2' %}">
                         <td>
-                            <a href="{% url 'turnover_client_monthly' client_turnover.client.pk ym %}">{{ client_turnover.client.name }}</a>
+                            {% if data_row.client_id %}
+                            <a href="{% url 'turnover_client_monthly' data_row.client_id ym %}">{{ data_row.client_name }}</a>
+                            {% endif %}
                         </td>
-                        <td class="center"><a href="{% url 'turnover_client_yearly' client_turnover.client.pk %}"><i class="fa fa-history" aria-hidden="true"></i></a></td>
-                        <td style="text-align: right; background: linear-gradient(90deg, transparent 0%, transparent 0.0%, #9adaaf 0.0%, #9adaaf {{ client_turnover.per }}, transparent {{ client_turnover.per }})">
-                            {{ client_turnover.attendance_amount|intcomma }}
+                        <td class="center">
+                            {% if data_row.client_id %}
+                            <a href="{% url 'turnover_client_yearly' data_row.client_id %}"><i class="fa fa-history" aria-hidden="true"></i></a>
+                            {% endif %}
                         </td>
-                        <td style="text-align: right">{{ client_turnover.attendance_tex|intcomma }}</td>
-                        <td style="text-align: right">{{ client_turnover.expenses_amount|intcomma }}</td>
-                        <td style="text-align: right">{{ client_turnover.all_amount|intcomma }}</td>
+                        <td class="num">{{ data_row.total_cost|floatformat:0|intcomma }}</td>
+                        <td style="text-align: right; background: linear-gradient(90deg, transparent 0%, transparent 0.0%, #9adaaf 0.0%, #9adaaf {{ data_row.per|floatformat:1 }}%, transparent {{ data_row.per|floatformat:1 }}%)">
+                            {{ data_row.total_price|floatformat:0|intcomma }}
+                        </td>
+                        <td class="num">{{ data_row.tax_price|floatformat:0|intcomma }}</td>
+                        <td class="num">{{ data_row.expenses_price|floatformat:0|intcomma }}</td>
+                        <td class="num {% if data_row.profit < 0 %}red{% endif %}">{{ data_row.profit|floatformat:0|intcomma }}</td>
+                        <td class="num {% if data_row.profit_rate < 0 %}red{% endif %}">{{ data_row.profit_rate|floatformat:2|intcomma }}%</td>
                     </tr>
                 {% endfor %}
-            {% else %}
-                <tr class="row1"><td class="center red" colspan="5">売上情報がありません。</td></tr>
             {% endif %}
         </tbody>
         <tfoot>
             <tr>
-                <td>{{ clients_turnover|length }} 件</td>
+                <td>{{ data_frame|length }} 件</td>
                 <td></td>
-                <td style="text-align: right"> {{ summary.attendance_amount|intcomma }}</td>
-                <td style="text-align: right"> {{ summary.attendance_tex|intcomma }}</td>
-                <td style="text-align: right"> {{ summary.expenses_amount|intcomma }}</td>
-                <td style="text-align: right"> {{ summary.all_amount|intcomma }}</td>
+                <td class="num">{{ summary.total_cost|floatformat:0|intcomma }}</td>
+                <td class="num"> {{ summary.total_price|floatformat:0|intcomma }}</td>
+                <td class="num"> {{ summary.tax_price|floatformat:0|intcomma }}</td>
+                <td class="num"> {{ summary.expenses_price|floatformat:0|intcomma }}</td>
+                <td class="num"> {{ summary.profit|floatformat:0|intcomma }}</td>
+                <td class="num"> {{ summary.profit_rate|floatformat:2|intcomma }}%</td>
             </tr>
         </tfoot>
     </table>

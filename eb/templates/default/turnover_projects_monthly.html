@@ -12,36 +12,40 @@
         <thead>
             <tr>
                 <th>案件名称</th>
+                <th>コスト</th>
                 <th>売上（税別）</th>
                 <th>税金</th>
                 <th>精算</th>
-                <th>合計</th>
+                <th>粗利</th>
+                <th>利率</th>
             </tr>
         </thead>
         <tbody>
-            {% if turnover_details %}
-                {% for turnover in turnover_details %}
+            {% if data_frame is None %}
+                <tr class="row1"><td class="center red" colspan="5">売上情報がありません。</td></tr>
+            {% else %}
+                {% for idx, data_row in data_frame.iterrows %}
                     <tr class="{% cycle 'row1' 'row2' %}">
-                        <td>
-                            <a href="{% url 'turnover_members_monthly' ym %}?project_request__project__name__exact={{ turnover.project.name|urlencode }}">{{ turnover.project }}</a>
-                        </td>
-                        <td style="text-align: right">{{ turnover.attendance_amount|intcomma }}</td>
-                        <td style="text-align: right">{{ turnover.tax_amount|intcomma }}</td>
-                        <td style="text-align: right">{{ turnover.expenses_amount|intcomma }}</td>
-                        <td style="text-align: right">{{ turnover.all_amount|intcomma }}</td>
+                        <td><a href="{% url 'turnover_members_monthly' ym %}?project_id={{ data_row.project_id }}">{{ data_row.project_name }}</a></td>
+                        <td class="num">{{ data_row.total_cost|floatformat:0|intcomma }}</td>
+                        <td style="text-align: right">{{ data_row.total_price|floatformat:0|intcomma }}</td>
+                        <td style="text-align: right">{{ data_row.tax_price|floatformat:0|intcomma }}</td>
+                        <td style="text-align: right">{{ data_row.expenses_price|floatformat:0|intcomma }}</td>
+                        <td class="num {% if data_row.profit < 0 %}red{% endif %}">{{ data_row.profit|floatformat:0|intcomma }}</td>
+                        <td class="num {% if data_row.profit_rate < 0 %}red{% endif %}">{{ data_row.profit_rate|floatformat:2|intcomma }}%</td>
                     </tr>
                 {% endfor %}
-            {% else %}
-                <tr class="row1"><td class="center red" colspan="5">売上情報がありません。</td></tr>
             {% endif %}
         </tbody>
         <tfoot>
             <tr>
-                <td>{{ turnover_details|length }} 件</td>
-                <td style="text-align: right"> {{ summary.attendance_amount|intcomma }}</td>
-                <td style="text-align: right"> {{ summary.tax_amount|intcomma }}</td>
-                <td style="text-align: right"> {{ summary.expenses_amount|intcomma }}</td>
-                <td style="text-align: right"> {{ summary.all_amount|intcomma }}</td>
+                <td>{{ data_frame|length }} 件</td>
+                <td class="num">{{ summary.total_cost|floatformat:0|intcomma }}</td>
+                <td class="num"> {{ summary.total_price|floatformat:0|intcomma }}</td>
+                <td class="num"> {{ summary.tax_price|floatformat:0|intcomma }}</td>
+                <td class="num"> {{ summary.expenses_price|floatformat:0|intcomma }}</td>
+                <td class="num"> {{ summary.profit|floatformat:0|intcomma }}</td>
+                <td class="num"> {{ summary.profit_rate|floatformat:2|intcomma }}%</td>
             </tr>
         </tfoot>
     </table>

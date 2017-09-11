@@ -1073,6 +1073,18 @@ def get_sales_logger():
     return logging.getLogger('eb_sales')
 
 
+def get_organization_children(organization):
+    """組織及び子組織のリストを取得する
+
+    :param organization:
+    :return:
+    """
+    all_children = organization.get_children()
+    org_pk_list = [org.pk for org in all_children]
+    org_pk_list.append(organization.pk)
+    return org_pk_list
+
+
 if __name__ == "__main__":
     for it in range(1, 10):
         print u'2016年%02d月' % (it,), get_business_days(2016, it)

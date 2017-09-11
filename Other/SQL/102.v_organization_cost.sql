@@ -1,4 +1,4 @@
-CREATE OR REPLACE VIEW v_organization_turnover AS
+CREATE OR REPLACE VIEW v_organization_cost AS
 select m.id as member_id
 	 , m.employee_id
 	 , m.first_name
@@ -16,6 +16,8 @@ select m.id as member_id
 	 , (select s1.name from eb_section s1 where s1.id = msp1.section_id) as section_name
 	 , (select s1.id from eb_section s1 where s1.id = msp1.subsection_id) as subsection_id
 	 , (select s1.name from eb_section s1 where s1.id = msp1.subsection_id) as subsection_name
+     , msp2.salesperson_id
+	 , (select concat(s1.first_name, ' ', s1.last_name) from eb_salesperson s1 where s1.id = msp2.salesperson_id) as salesperson_name
 	 , pm.id as projectmember_id
 	 , p.id as project_id
 	 , p.name as project_name
@@ -75,6 +77,10 @@ select m.id as member_id
 		   when p.is_lump = 1 and prd.id is null then (select t1.expenses_amount from eb_projectrequest t1 where t1.project_id = p.id and concat(t1.year, t1.month) = get_ym())
 		   else IFNULL(prd.expenses_price, 0) 
 	   end as expenses_price
+	 , case
+		   when p.is_lump = 1 and prd.id is null then (select t1.tax_amount from eb_projectrequest t1 where t1.project_id = p.id and concat(t1.year, t1.month) = get_ym())
+		   else IFNULL(prd.total_price * prh.tax_rate, 0) 
+	   end as tax_price
 	 , IFNULL(IF(c.is_hourly_pay = 0, c.cost, c.cost * get_attendance_total_hours(ma.total_hours)), 0) as salary
 	 , IFNULL(ma.allowance, 0) as allowance
 	 , get_night_allowance(ma.night_days) as night_allowance
@@ -101,6 +107,10 @@ select m.id as member_id
 									   and msp1.is_deleted = 0 
 									   and extract(year_month from(msp1.start_date)) <= get_ym()
 									   and (extract(year_month from(msp1.end_date)) >= get_ym() or msp1.end_date is null)
+  left join eb_membersalespersonperiod msp2 on msp2.member_id = m.id 
+									       and msp2.is_deleted = 0 
+									       and extract(year_month from(msp2.start_date)) <= get_ym()
+									       and (extract(year_month from(msp2.end_date)) >= get_ym() or msp2.end_date is null)
   join eb_projectmember pm on pm.member_id = m.id and pm.is_deleted = 0 
 						  and pm.status = 2 
 						  and extract(year_month from(pm.start_date)) <= get_ym()
@@ -129,6 +139,8 @@ select null as member_id
 	 , null as section_name
 	 , null as subsection_id
 	 , null as subsection_name
+     , null as salesperson_id
+	 , null as salesperson_name
 	 , null as projectmember_id
 	 , p.id as project_id
 	 , p.name as project_name
@@ -163,6 +175,7 @@ select null as member_id
 	 , pr.amount as all_price
 	 , pr.turnover_amount as total_price
 	 , pr.expenses_amount as expenses_price
+     , pr.tax_amount as tax_price
 	 , 0 as salary
 	 , 0 as allowance
 	 , 0 as night_allowance

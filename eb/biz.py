@@ -257,7 +257,7 @@ def get_organization_turnover(year, month, section=None, param_dict=None, order_
     :param order_list:
     :return:
     """
-    df = get_turnover_by_month(year, month, param_dict, order_list)
+    df = get_cost_by_month(year, month, param_dict, order_list)
     if section:
         all_children = section.get_children()
         org_pk_list = [org.pk for org in all_children]
@@ -285,7 +285,7 @@ def get_organization_turnover(year, month, section=None, param_dict=None, order_
     return df
 
 
-def get_turnover_by_month(year, month, param_dict=None, order_list=None):
+def get_cost_by_month(year, month, param_dict=None, order_list=None):
     """指定年月の経営データを取得する。
 
     :param year:
@@ -295,7 +295,7 @@ def get_turnover_by_month(year, month, param_dict=None, order_list=None):
     :param order_list:
     :return:
     """
-    df = pd.read_sql("call sp_organization_turnover('%s%s')" % (year, month), connection)
+    df = pd.read_sql("call sp_organization_cost('%s%s')" % (year, month), connection)
 
     # 原価合計を計算する。
     df['total_cost'] = df['salary'] + df['allowance'] + df['night_allowance'] + df['overtime_cost'] + df[

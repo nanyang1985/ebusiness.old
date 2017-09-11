@@ -6,18 +6,11 @@
 {% block header %}
     <script type="text/javascript">
         window.onload = function() {
-            init_select("project_member__member__first_name");
-            init_select("project_member__member__last_name__contains");
-            init_select("_member_section__pk");
-            init_select_name("_member_section__pk", "member_section__name");
-            init_select("project_request__project__name__icontains");
-            init_select("project_request__projectrequestheading__client__name__icontains");
-            init_select("salesperson__pk");
-
-            params = GetQueryString();
-            first_name = params["salesperson__first_name"];
-            last_name = params["salesperson__last_name"];
-            init_select_text("salesperson__pk", first_name + " " + last_name);
+            init_select("member_name");
+            init_select("organization_id");
+            init_select("project_name");
+            init_select("client_name");
+            init_select("salesperson_id");
         };
     </script>
 {% endblock %}
@@ -26,13 +19,12 @@
     <div class="dashboard print">
         <div class="dashboard-title">{{ title }}</div>
         <form action="{% url 'turnover_members_monthly' ym %}" method="get">
-            <span>姓: </span><input type="text" id="project_member__member__first_name__contains" name="project_member__member__first_name__contains" style="width: 50px;"/>
-            <span>名: </span><input type="text" id="project_member__member__last_name__contains" name="project_member__member__last_name__contains" style="width: 50px;"/>
-            {% organization_filter "_member_section__pk" %}
-            <span>案件: </span><input type="text" id="project_request__project__name__icontains" name="project_request__project__name__icontains" style="width: 150px;"/>
-            <span>関連会社: </span><input type="text" id="project_request__projectrequestheading__client__name__icontains" name="project_request__projectrequestheading__client__name__icontains" style="width: 150px;"/>
+            <span>名前: </span><input type="text" id="member_name" name="member_name" style="width: 80px;"/>
+            {% organization_filter "organization_id" %}
+            <span>案件: </span><input type="text" id="project_name" name="project_name" style="width: 150px;"/>
+            <span>関連会社: </span><input type="text" id="client_name" name="client_name" style="width: 150px;"/>
             <span>営業：</span>
-            <select id="salesperson__pk" name="salesperson__pk">
+            <select id="salesperson_id" name="salesperson_id">
                 <option value="">すべて</option>
                 {% for member in salesperson %}
                     <option value="{{ member.pk }}">{{ member }}</option>
@@ -40,71 +32,81 @@
             </select>
             <input type="submit" value="Filter" />
             <a href="{% url 'turnover_members_monthly' ym %}">クリア</a>
+            <div class="example" style="float: right;">
+                <span>凡例:</span>
+                <div class="is_loan">出向社員</div>
+            </div>
+            <div class="clear"></div>
         </form>
     </div>
     <table id="tbl_sections_monthly" class="list" cellpadding="0" cellspacing="0">
         <thead>
             <tr>
-                <th style="width: 75px;">{% create_order_display "名前" "project_member__member__first_name" %}</th>
-                <th>部署</th>
-                <th style="width: 220px;">{% create_order_display "案件名称" "project_request__project__name" %}</th>
-                <th style="width: 160px;">{% create_order_display "関連会社" "project_request__projectrequestheading__client__name" %}</th>
+                <th style="width: 75px;">{% create_single_order_display "名前" "member_name" %}</th>
+                <th>{% create_single_order_display "部署" "section_name" %}</th>
+                <th style="width: 220px;">{% create_single_order_display "案件名称" "project_name" %}</th>
+                <th style="width: 160px;">{% create_single_order_display "関連会社" "client_name" %}</th>
                 <th>営業</th>
-                <!--<th>コスト</th>-->
+                <th>コスト</th>
                 <th>売上（税別）</th>
                 <th>税金</th>
                 <th>精算</th>
-                <th>合計</th>
+                <th>粗利</th>
+                <th>利率</th>
             </tr>
         </thead>
         <tbody>
-            {% if turnover_details %}
-                {% for turnover_detail in turnover_details %}
-                    <tr class="{% cycle 'row1' 'row2' %}">
+            {% if object_list %}
+                {% for idx, data_row in object_list %}
+                    <tr class="{% cycle 'row1' 'row2' %} {% if data_row.is_loan %}is_loan{% endif %}">
                         <td>
-                            <a href="{% url 'member_detail' turnover_detail.project_member.member.employee_id %}">{{ turnover_detail.project_member.member }}</a>
+                            <a href="{% url 'member_detail' data_row.employee_id %}">{{ data_row.member_name|default:'' }}</a>
                         </td>
-                        <td>{{ turnover_detail.member_section }}</td>
+                        <td>
+                            {% if data_row.subsection_name %}
+                                {{ data_row.subsection_name }}
+                            {% elif data_row.section_name %}
+                                {{ data_row.section_name }}
+                            {% else %}
+                                {{ data_row.division_name|default:'' }}
+                            {% endif %}
+                        </td>
                         <td>
                             <div style="width: 220px; overflow: hidden; white-space: nowrap;">
-                            <a href="{% url 'project_detail' turnover_detail.project_member.project.pk %}" title="{{ turnover_detail.project_member.project }}">
-                            {{ turnover_detail.project_member.project }}
+                            <a href="{% url 'project_detail' data_row.project_id %}" title="{{ data_row.project_name }}">
+                                {{ data_row.project_name }}
                             </a>
                             </div>
                         </td>
                         <td>
-                            <div style="width: 160px; overflow: hidden; white-space: nowrap;" title="{{ turnover_detail.project_member.project.client }}">
-                                {{ turnover_detail.project_member.project.client }}
+                            <div style="width: 160px; overflow: hidden; white-space: nowrap;" title="{{ data_row.client_name }}">
+                                {{ data_row.client_name }}
                             </div>
                         </td>
-                        <td>{{ turnover_detail.salesperson }}</td>
-                        <!--<td class="num">{{ turnover_detail.cost|intcomma }}</td>-->
-                        <td class="num">{{ turnover_detail.total_price|intcomma }}</td>
-                        <td class="num">
-                            {{ turnover_detail.get_tax_price|intcomma }}
-                        </td>
-                        <td class="num">
-                            {{ turnover_detail.expenses_price|intcomma }}
-                        </td>
-                        <td class="num">
-                            {{ turnover_detail.get_all_price|intcomma }}
-                        </td>
+                        <td>{{ data_row.salesperson_name|default:'' }}</td>
+                        <td class="num">{{ data_row.total_cost|floatformat:0|intcomma }}</td>
+                        <td class="num">{{ data_row.total_price|floatformat:0|intcomma }}</td>
+                        <td class="num">{{ data_row.tax_price|floatformat:1|intcomma }}</td>
+                        <td class="num">{{ data_row.expenses_price|floatformat:0|intcomma }}</td>
+                        <td class="num {% if data_row.profit < 0 %}red{% endif %}">{{ data_row.profit|floatformat:1|intcomma }}</td>
+                        <td class="num {% if data_row.profit_rate < 0 %}red{% endif %}">{{ data_row.profit_rate|floatformat:2|intcomma }}%</td>
                     </tr>
                 {% endfor %}
             {% else %}
-                <tr class="row1"><td class="center red" colspan="10">メンバーがいません。</td></tr>
+                <tr class="row1"><td class="center red" colspan="11">メンバーがいません。</td></tr>
             {% endif %}
         </tbody>
         <tfoot>
             <tr>
                 <td colspan="5">
-                    {% paging turnover_details %}
+                    {% paging object_list %}
                 </td>
-                <!--<td class="num">{{ summary.cost_amount|intcomma }}</td>-->
-                <td class="num"> {{ summary.attendance_amount|intcomma }}</td>
-                <td class="num"> {{ summary.attendance_tex|intcomma }}</td>
-                <td class="num"> {{ summary.expenses_amount|intcomma }}</td>
-                <td class="num"> {{ summary.all_amount|intcomma }}</td>
+                <td class="num">{{ summary.total_cost|floatformat:0|intcomma }}</td>
+                <td class="num"> {{ summary.total_price|floatformat:0|intcomma }}</td>
+                <td class="num"> {{ summary.tax_price|floatformat:0|intcomma }}</td>
+                <td class="num"> {{ summary.expenses_price|floatformat:0|intcomma }}</td>
+                <td class="num"> {{ summary.profit|floatformat:0|intcomma }}</td>
+                <td class="num"> {{ summary.profit_rate|floatformat:2|intcomma }}%</td>
             </tr>
         </tfoot>
     </table>

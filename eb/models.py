@@ -1992,6 +1992,8 @@ class ProjectRequest(models.Model):
                 cost = project_member.member.get_cost(date)
                 detail = ProjectRequestDetail(project_request=self,
                                               project_member=project_member,
+                                              year=self.year,
+                                              month=self.month,
                                               member_section=project_member.member.get_section(date),
                                               member_type=project_member.member.member_type,
                                               salesperson=project_member.member.get_salesperson(date),

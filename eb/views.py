@@ -918,6 +918,7 @@ class OrganizationTurnoverView(BaseTemplateView):
         order_list = common.get_ordering_list(o)
 
         data_frame = biz.get_organization_turnover(year, month, section, order_list=order_list)
+        df = biz.get_organization_turnover(year, month, order_list=order_list)
         summary_subcontractor = data_frame.loc[data_frame.member_type == 4].sum()
         summary_self = data_frame.loc[data_frame.member_type != 4].sum()
 
@@ -1133,48 +1134,36 @@ class TurnoverMembersMonthlyView(BaseTemplateView):
 
     def get(self, request, *args, **kwargs):
         ym = kwargs.get('ym', None)
+        year = ym[:4]
+        month = ym[4:]
         param_dict, params = common.get_request_params(request.GET)
         o = request.GET.get('o', None)
-        dict_order = common.get_ordering_dict(o, ['project_member__member__first_name',
-                                                  'project_member__member__section__name',
-                                                  'project_request__project__name',
-                                                  'project_request__projectrequestheading__client__name'])
+        dict_order = common.get_ordering_dict(o, ['member_name',
+                                                  'section_name',
+                                                  'project_name',
+                                                  'client_name'])
         order_list = common.get_ordering_list(o)
 
         sections = biz_turnover.get_turnover_sections(ym)
-        all_turnover_details = biz_turnover.members_turnover_monthly(ym, param_dict, order_list)
-        if '_member_section__pk' in request.GET and request.GET.get('_member_section__pk'):
-            organization = get_object_or_404(models.Section, pk=request.GET.get('_member_section__pk'))
-            org_list = organization.get_children()
-            org_list.append(organization)
-            all_turnover_details = all_turnover_details.filter(member_section__in=org_list)
-        summary = {'attendance_amount': 0, 'expenses_amount': 0,
-                   'attendance_tex': 0, 'all_amount': 0,
-                   'cost_amount': 0}
-        for item in all_turnover_details:
-            summary['attendance_amount'] += item.total_price
-            summary['attendance_tex'] += item.get_tax_price()
-            summary['expenses_amount'] += item.expenses_price
-            summary['all_amount'] += item.total_price + item.get_tax_price() + item.expenses_price
-            summary['cost_amount'] += item.cost
-        summary['attendance_tex'] = int(round(summary['attendance_tex']))
-        summary['all_amount'] = int(round(summary['all_amount']))
+        data_frame = biz_turnover.get_members_turnover(year, month, param_dict=param_dict, order_list=order_list)
+        summary = data_frame.sum()
+        summary['profit_rate'] = round(summary.profit / summary.total_price, 2) if summary.total_price else 0
 
-        paginator = Paginator(all_turnover_details, biz_config.get_page_size())
+        paginator = Paginator(list(data_frame.iterrows()), biz_config.get_page_size())
         page = request.GET.get('page')
         try:
-            turnover_details = paginator.page(page)
+            object_list = paginator.page(page)
         except PageNotAnInteger:
-            turnover_details = paginator.page(1)
+            object_list = paginator.page(1)
         except EmptyPage:
-            turnover_details = paginator.page(paginator.num_pages)
+            object_list = paginator.page(paginator.num_pages)
 
         context = self.get_context_data()
         context.update({
-            'title': u'%s年%s月の売上詳細情報' % (ym[:4], ym[4:]),
+            'title': u'%s年%s月の売上詳細情報' % (year, month),
             'sections': sections,
             'salesperson': models.Salesperson.objects.public_all(),
-            'turnover_details': turnover_details,
+            'object_list': object_list,
             'summary': summary,
             'paginator': paginator,
             'dict_order': dict_order,
@@ -1226,22 +1215,14 @@ class TurnoverClientsMonthlyView(BaseTemplateView):
     def get(self, request, *args, **kwargs):
         year = kwargs.get('year', None)
         month = kwargs.get('month', None)
-        clients_turnover = biz_turnover.clients_turnover_monthly(year, month)
-        summary = {'attendance_amount': 0, 'expenses_amount': 0,
-                   'attendance_tex': 0, 'all_amount': 0}
-        for item in clients_turnover:
-            summary['attendance_amount'] += item['attendance_amount']
-            summary['attendance_tex'] += item['attendance_tex']
-            summary['expenses_amount'] += item['expenses_amount']
-            summary['all_amount'] += item['attendance_amount'] + item['attendance_tex'] + item['expenses_amount']
-        max_attendance_amount = max([d['attendance_amount'] for d in clients_turnover])
-        for item in clients_turnover:
-            item['per'] = '%.1f%%' % ((item['attendance_amount'] / float(max_attendance_amount)) * 100)
+        data_frame = biz_turnover.get_clients_turnover(year, month)
+        summary = data_frame.sum()
+        summary['profit_rate'] = round(summary.profit / summary.total_price, 2) if summary.total_price else 0
 
         context = self.get_context_data()
         context.update({
             'title': u'%s年%s月のお客様別売上情報 | %s' % (year, month, constants.NAME_SYSTEM),
-            'clients_turnover': clients_turnover,
+            'data_frame': data_frame,
             'summary': summary,
             'year': year,
             'month': month,
@@ -1257,24 +1238,20 @@ class TurnoverClientMonthlyView(BaseTemplateView):
     def get(self, request, *args, **kwargs):
         client_id = kwargs.get('client_id', 0)
         ym = kwargs.get('ym', None)
+        year = ym[:4]
+        month = ym[4:]
         client = get_object_or_404(models.Client, pk=client_id)
-        turnover_details = biz_turnover.turnover_client_monthly(client_id, ym)
-
-        summary = {'attendance_amount': 0, 'expenses_amount': 0,
-                   'tax_amount': 0, 'all_amount': 0}
-        for item in turnover_details:
-            summary['attendance_amount'] += item['attendance_amount']
-            summary['tax_amount'] += item['tax_amount']
-            summary['expenses_amount'] += item['expenses_amount']
-            summary['all_amount'] += item['all_amount']
+        data_frame = biz_turnover.get_client_turnover(year, month, client)
+        summary = data_frame.sum()
+        summary['profit_rate'] = round(summary.profit / summary.total_price, 2) if summary.total_price else 0
 
         context = self.get_context_data()
         context.update({
-            'title': u'%s年%s月　%sの案件別売上情報 | %s' % (ym[:4], ym[4:], client.__unicode__(), constants.NAME_SYSTEM),
+            'title': u'%s年%s月　%sの案件別売上情報 | %s' % (year, month, unicode(client), constants.NAME_SYSTEM),
             'client': client,
-            'turnover_details': turnover_details,
-            'ym': ym,
+            'data_frame': data_frame,
             'summary': summary,
+            'ym': ym,
         })
         return self.render_to_response(context)
 

@@ -473,7 +473,7 @@ def get_bp_members_cost(year, month, company_id=None, param_dict=None, order_lis
     :param order_list:
     :return:
     """
-    df = biz.get_turnover_by_month(year, month, param_dict=param_dict, order_list=order_list)
+    df = biz.get_cost_by_month(year, month, param_dict=param_dict, order_list=order_list)
     # 出向の契約を洗い出す
     loan_df = df[df.is_loan == 1]
     for index, row in loan_df.iterrows():
@@ -500,9 +500,91 @@ def get_bp_members_cost(year, month, company_id=None, param_dict=None, order_lis
 
 
 def get_bp_cost_by_subcontractor(year, month):
+    """協力会社ごとのコスト合計
+
+    :param year:
+    :param month:
+    :return:
+    """
     df = get_bp_members_cost(year, month)
     s = df.groupby(['company_id', 'company_name'])['total_cost'].sum()
     df = pd.DataFrame(s.values, index=s.index, columns=['total_cost'])
     df.reset_index(inplace=True)
     df.company_id = df.company_id.astype(int)
+    return df
+
+
+def get_members_turnover(year, month, param_dict=None, order_list=None):
+    """指定年月の請求売上を取得する。
+
+    :param year:
+    :param month:
+    :param param_dict:
+    :param order_list:
+    :return:
+    """
+    df = pd.read_sql("call sp_organization_turnover('%s%s')" % (year, month), connection)
+    # 出向の契約を洗い出す
+    loan_df = df[df.is_loan == 1]
+    for index, row in loan_df.iterrows():
+        related_row = df.loc[(df.projectmember_id == row.projectmember_id) & (df.is_loan == 0)]
+        if related_row.empty:
+            # 完全出向の場合は何もしない。
+            continue
+        # # ＥＢ契約の月給を再設定する。
+        # df.set_value(index, 'salary', df.loc[index]['salary'] + related_row.iloc[0].salary)
+        # ＢＰ契約に値を再設定する。
+        df.set_value(related_row.index[0], 'is_loan', row.is_loan)
+        df.set_value(related_row.index[0], 'salary', df.loc[index]['salary'] + related_row.iloc[0].salary)
+        df.set_value(related_row.index[0], 'allowance', df.loc[index]['allowance'] + related_row.iloc[0].allowance)
+        df.set_value(related_row.index[0], 'night_allowance', df.loc[index]['night_allowance'] + related_row.iloc[0].night_allowance)
+        df.set_value(related_row.index[0], 'expenses', df.loc[index]['expenses'] + related_row.iloc[0].expenses)
+        df.set_value(related_row.index[0], 'employment_insurance', df.loc[index]['employment_insurance'] + related_row.iloc[0].employment_insurance)
+        df.set_value(related_row.index[0], 'health_insurance', df.loc[index]['health_insurance'] + related_row.iloc[0].health_insurance)
+        # ＥＢの出向契約は非表示
+        df = df.iloc[df.index!=index]
+    # 重複した請求情報を削除
+    df = df.drop_duplicates(subset=['projectrequestdetail_id', 'projectrequest_id'])
+
+    # 原価合計を計算する。
+    df['total_cost'] = df['salary'] + df['allowance'] + df['night_allowance'] + df['overtime_cost'] + df[
+        'traffic_cost'] + df['expenses'] + df['employment_insurance'] + df['health_insurance']
+    # 利益
+    df['profit'] = df['total_price'] - df['total_cost']
+    df['profit_rate'] = df['profit'] / df['total_price']
+    # 税込
+    df['all_price'] = df['total_price'] + df['expenses_price'] + df['tax_price']
+    if param_dict and isinstance(param_dict, dict):
+        for k, v in param_dict.items():
+            if k == 'organization_id':
+                organization = models.Section.objects.get(pk=v)
+                org_pk_list = common.get_organization_children(organization)
+                df = df[(df.division_id.isin(org_pk_list)) | (df.section_id.isin(org_pk_list)) | (
+                df.subsection_id.isin(org_pk_list))]
+            elif k.endswith('_id'):
+                df = df[df[k] == int(v)]
+            else:
+                df = df[df[k].str.contains(v, na=False)]
+    if order_list:
+        name = order_list[0].strip('-')
+        ascending = not order_list[0].startswith('-')
+        df = df.sort_values(by=name, ascending=ascending)
+    return df
+
+
+def get_clients_turnover(year, month):
+    df = get_members_turnover(year, month)
+    df = df.groupby(['client_id', 'client_name']).sum()
+    df.reset_index(inplace=True)
+    df['per'] = df.total_price / df.total_price.max() * 100
+    df = df.sort_values(by='client_name', ascending=True)
+    return df
+
+
+def get_client_turnover(year, month, client):
+    df = get_members_turnover(year, month)
+    df = df.loc[df.client_id == client.pk]
+    df = df.groupby(['project_id', 'project_name']).sum()
+    df.reset_index(inplace=True)
+    df = df.sort_values(by='project_name', ascending=True)
     return df
