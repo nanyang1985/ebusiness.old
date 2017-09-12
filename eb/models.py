@@ -527,10 +527,18 @@ class Subcontractor(AbstractCompany):
         """
         first_day = common.get_first_day_by_month(date)
         last_day = common.get_last_day_by_month(first_day)
-        members = self.member_set.filter(
+        # members = self.member_set.filter(
+        #     projectmember__start_date__lte=last_day,
+        #     projectmember__end_date__gte=first_day
+        # ).distinct()
+        members = Member.objects.public_filter(
+            Q(viewcontract__end_date__gte=first_day) | Q(viewcontract__end_date__isnull=True),
+            viewcontract__start_date__lte=last_day,
             projectmember__start_date__lte=last_day,
-            projectmember__end_date__gte=first_day
-        ).distinct()
+            projectmember__end_date__gte=first_day,
+            viewcontract__company_id=self.pk,
+            viewcontract__is_old=False,
+        )
         return members
 
     def get_year_month_order_finished(self):

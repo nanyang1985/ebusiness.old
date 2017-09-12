@@ -195,10 +195,10 @@ class MemberForm(forms.ModelForm):
                 self.add_error('company', u"派遣社員以外の場合、会社を選択してください。")
 
         # ローマ名のチェック
-        if first_name_en and not re.match(REG_UPPER_CAMEL, first_name_en):
-            self.add_error('first_name_en', u"先頭文字は大文字にしてください（例：Zhang）")
-        if last_name_en and not re.match(REG_UPPER_CAMEL, last_name_en):
-            self.add_error('last_name_en', u"漢字ごとに先頭文字は大文字にしてください（例：XiaoWang）")
+        # if first_name_en and not re.match(REG_UPPER_CAMEL, first_name_en):
+        #     self.add_error('first_name_en', u"先頭文字は大文字にしてください（例：Zhang）")
+        # if last_name_en and not re.match(REG_UPPER_CAMEL, last_name_en):
+        #     self.add_error('last_name_en', u"漢字ごとに先頭文字は大文字にしてください（例：XiaoWang）")
 
         if company and subcontractor:
             self.add_error('company', u"会社と協力会社が同時に選択されてはいけません。")
