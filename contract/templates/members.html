@@ -64,7 +64,8 @@
                 {% with contract=member.latest_contract_set|first %}
                 <tr class="{% if member.is_retired %}expired{% endif %} {% if contract.status == '04' %}expired{% endif %}">
                     {% if contract %}
-                        <td class="center"><a href="{% url 'contract_change' member.id_from_api %}">{{ member.id_from_api|default:'' }}</a></td>
+                        <td class="center"><a {% if member.id_from_api %}href="{% url 'contract_change' member.id_from_api %}"{% endif %}>
+                            {{ member.id_from_api|default:'' }}</a></td>
                         <td><a href="{% url 'member_change' member.pk %}">{{ member }}</a></td>
                         <td>{{ member.get_sex_display|default:'' }}</td>
                         <td>{{ member.birthday|date:'Y/m/d'|default:'' }}</td>
@@ -81,7 +82,8 @@
                         <td>{{ contract.get_status_display }}</td>
                     {% else %}
                         {% if member.id_from_api %}
-                            <td class="center"><a href="{% url 'contract_change' member.id_from_api %}">{{ member.id_from_api|default:'' }}</a></td>
+                            <td class="center"><a {% if member.id_from_api %}href="{% url 'contract_change' member.id_from_api %}"{% endif %}>
+                                {{ member.id_from_api|default:'' }}</a></td>
                         {% else %}
                             <td class="center">
                                 {% if member.is_retired %}
