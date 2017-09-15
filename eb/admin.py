@@ -469,6 +469,8 @@ class MemberAdmin(BaseAdmin):
                 obj.save()
             except:
                 pass
+        elif 'is_retired' in form.changed_data:
+            biz.member_retired(obj, request.user)
 
     # def change_view(self, request, object_id, form_url='', extra_context=None):
     #     member = models.Member.objects.get(pk=object_id)

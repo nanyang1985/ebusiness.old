@@ -6,6 +6,7 @@ pip install pandas
 pip install pillow
 pip install matplotlib
 pip install requests
+pip install qrcode
 
 # Windowsでインストールエラーの場合：http://www.codegood.com/downloads
 pip install MySQL-python

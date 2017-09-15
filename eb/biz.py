@@ -16,6 +16,8 @@ from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
 from django.contrib.humanize.templatetags import humanize
 from django.utils import timezone
 from django.core.urlresolvers import reverse
+from django.contrib.admin.models import LogEntry, CHANGE
+from django.contrib.contenttypes.models import ContentType
 
 from utils import common, errors, constants
 from eb import models
@@ -1319,3 +1321,49 @@ def gen_qr_code(url_schema, domain):
     contents = output.getvalue().encode("base64")
     output.close()
     return contents
+
+
+def member_retired(member, user):
+    """退職フラグが変更時、契約も自動的に更新する。
+
+    このメソッドを呼び出す前に、Formで退職フラグが変わったかどうかの判断が必要です。
+
+    :param member: 退職する社員
+    :return:
+    """
+    v_contract_set = contract_models.ViewContract.objects.filter(
+        member=member, is_old=False, is_deleted=False
+    ).exclude(status='04')
+    if member.is_retired and member.retired_date:
+        # 退職した場合
+        query_set = v_contract_set.filter(
+            Q(end_date__gte=member.retired_date) | Q(end_date__isnull=True),
+            start_date__lte=member.retired_date
+        )
+        if query_set.count() > 0:
+            for v_contract in query_set:
+                if v_contract.member_type == 4:
+                    # ＢＰ社員の場合
+                    bp_contract = contract_models.BpContract.objects.get(pk=v_contract.id)
+                    bp_contract.end_date = member.retired_date
+                    bp_contract.save(update_fields=['end_date'])
+                    change_message = u"契約終了日（%s）は退職で自動変更しました。" % member.retired_date
+                    LogEntry.objects.log_action(user.id,
+                                                ContentType.objects.get_for_model(bp_contract).pk,
+                                                bp_contract.pk,
+                                                unicode(bp_contract),
+                                                CHANGE,
+                                                change_message=change_message)
+                else:
+                    # ＥＢ社員の場合
+                    contract = contract_models.Contract.objects.get(pk=v_contract.id)
+                    contract.end_date2 = member.retired_date
+                    contract.retired_date = member.retired_date
+                    contract.save(update_fields=['end_date2', 'retired_date'])
+                    change_message = u"契約終了日（%s）は退職で自動変更しました。" % member.retired_date
+                    LogEntry.objects.log_action(user.id,
+                                                ContentType.objects.get_for_model(contract).pk,
+                                                contract.pk,
+                                                unicode(contract),
+                                                CHANGE,
+                                                change_message=change_message)

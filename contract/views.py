@@ -19,6 +19,7 @@ from django.contrib.contenttypes.models import ContentType
 from . import biz, models, forms
 from eb import biz_config
 from eb import models as sales_models
+from eb.biz import member_retired
 from utils import constants, common
 import operator
 
@@ -302,6 +303,8 @@ class MemberChangeView(BaseTemplateView):
             else:
                 update_fields = None
             member.save(update_fields=update_fields)
+            if 'is_retired' in form.changed_data:
+                member_retired(member, request.user)
 
             change_message = []
             if form.changed_data:
