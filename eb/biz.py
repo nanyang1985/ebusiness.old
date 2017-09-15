@@ -180,7 +180,7 @@ def get_release_info():
         count=Count(1),
         bp_count=Count(Case(When(subcontractor_id__isnull=False, then=1), output_field=IntegerField)),
     ).order_by('release_ym')
-    return query_set
+    return list(query_set)
 
 
 def get_members_by_section(all_members, section_id):

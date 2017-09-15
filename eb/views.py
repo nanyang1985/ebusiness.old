@@ -114,7 +114,7 @@ class IndexView(BaseTemplateView):
         context.update({
             'title': 'Home | %s' % constants.NAME_SYSTEM,
             'filter_list': filter_list,
-            'status_monthly': status_monthly,
+            'status_monthly': list(status_monthly),
             'members_in_coming_count': member_in_coming.count(),
             'release_info': release_info,
             'activities': activities,
