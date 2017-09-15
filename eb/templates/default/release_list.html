@@ -8,7 +8,7 @@
             init_select("member__first_name__contains");
             init_select("member__last_name__contains");
             init_select("section");
-            init_select("member__subcontractor__name__contains");
+            init_select("subcontractor__name__contains");
             init_select("project__name__contains");
             init_select("salesperson");
         };
@@ -22,7 +22,7 @@
             <span>姓: </span><input type="text" id="member__first_name__contains" name="member__first_name__contains" style="width: 50px;"/>
             <span>名: </span><input type="text" id="member__last_name__contains" name="member__last_name__contains" style="width: 50px;"/>
             {% organization_filter "section" %}
-            <span>協力会社: </span><input type="text" id="member__subcontractor__name__contains" name="member__subcontractor__name__contains" style="width: 150px;"/>
+            <span>協力会社: </span><input type="text" id="subcontractor__name__contains" name="subcontractor__name__contains" style="width: 150px;"/>
             <span>案件: </span><input type="text" id="project__name__contains" name="project__name__contains" style="width: 150px;"/>
             <span>営業：</span>
             <select id="salesperson" name="salesperson">
@@ -39,61 +39,46 @@
         <thead>
             <tr>
                 <th style="width: 80px;">{% create_order_display "名前" "member__first_name" %}</th>
+                <th>{% create_order_display "事業部" "member__division__name" %}</th>
                 <th>{% create_order_display "部署" "member__section__name" %}</th>
+                <th>{% create_order_display "課" "member__subsection__name" %}</th>
                 <th style="width: 170px;">{% create_order_display "協力会社" "member__subcontractor__name" %}</th>
-                <th style="width: 260px;">{% create_order_display "案件名称" "project__name" %}</th>
-                <th style="width: 90px;">{% create_order_display "開始日" "start_date" %}</th>
-                <th style="width: 82px;">{% create_order_display "営業員" "member__salesperson" %}</th>
-                <th style="width: 50px;">営業状態</th>
-                <th></th>
+                <th style="width: 300px;">{% create_order_display "案件名称" "project__name" %}</th>
+                <th style="width: 120px;">{% create_order_display "案件開始日" "project_member__start_date" %}</th>
+                <th style="width: 100px;">{% create_order_display "営業員" "salesperson__first_name" %}</th>
             </tr>
         </thead>
         <tbody>
-            {% if project_members %}
-                {% for project_member in project_members %}
+            {% if members %}
+                {% for member in members %}
                     <tr class="{% cycle 'row1' 'row2' %}">
-                        <td><a href="{% url 'member_detail' project_member.member.employee_id %}">
-                            {{ project_member.member }}</a>
+                        <td><a href="{% url 'member_detail' member.member.employee_id %}">
+                            {{ member.member }}</a>
                         </td>
+                        <td>{{ member.division|default:'' }}</td>
+                        <td>{{ member.section|default:'' }}</td>
+                        <td>{{ member.subsection|default:'' }}</td>
+                        <td><div style="width: 170px; white-space: nowrap; overflow: hidden;">{{ member.subcontractor|default:"" }}</div></td>
                         <td>
-                            {{ project_member.section_name }}
+                            <div style="width: 300px; white-space: nowrap; overflow: hidden;">
+                            <a href="{% url 'project_detail' member.project.pk %}">
+                                {{ member.project.name }}
+                            </a></div>
                         </td>
-                        <td><div style="width: 170px; white-space: nowrap; overflow: hidden;">
-                            {{ project_member.member.subcontractor|default:"" }}</div></td>
+                        <td>{{ member.project_member.start_date|date:"Y-m-d" }}</td>
                         <td>
-                            <div style="width: 260px; white-space: nowrap; overflow: hidden;">
-                            <a href="{% url 'project_detail' project_member.project.pk %}">
-                                {{ project_member.project.name }}
-                            </a>
-                            </div>
-                        </td>
-                        <td>{{ project_member.start_date|date:"Y-m-d" }}</td>
-                        <td>
-                            {{ project_member.salesperson_name }}
-                        </td>
-                        <td class="center">
-                            {% ifequal project_member.business_status "営業中" %}
-                                <a href="{% url 'member_project_list' project_member.member.employee_id %}?status=1">営業中</a>
-                            {% else %}
-                                {{ project_member.business_status }}
-                            {% endifequal %}
-                        </td>
-                        <td class="center">
-                            {% ifequal project_member.business_status "未提案" %}
-                                <a href="{% url 'recommended_project' project_member.member.employee_id %}">推薦された案件</a>&nbsp;|
-                            {% endifequal %}
-                            <a href="{% url 'admin:eb_member_change' project_member.member.pk %}?from=portal&_popup=1" target="_blank">編集</a>
+                            {{ member.salesperson|default:'' }}
                         </td>
                     </tr>
                 {% endfor %}
             {% else %}
-                <tr class="row1"><td class="center red" colspan="8">リリース予定がありません。</td></tr>
+                <tr class="row1"><td class="center red" colspan="8">リリースメンバーがありません。</td></tr>
             {% endif %}
         </tbody>
         <tfoot>
             <tr>
                 <td colspan="8">
-                    {% paging project_members %}
+                    {% paging members %}
                 </td>
             </tr>
         </tfoot>

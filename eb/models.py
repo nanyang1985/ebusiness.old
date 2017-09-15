@@ -3513,6 +3513,76 @@ class PushNotification(BaseModel):
         verbose_name = verbose_name_plural = u"プッシュ通知"
 
 
+class ViewRelease(models.Model):
+    member = models.ForeignKey(Member, verbose_name=u"社員")
+    project_member = models.ForeignKey(ProjectMember, db_column='projectmember_id', verbose_name=u"案件メンバー")
+    release_ym = models.CharField(max_length=6, verbose_name=u"リリース月")
+    division = models.ForeignKey(Section, blank=True, null=True, related_name='division_set', verbose_name=u"事業部")
+    section = models.ForeignKey(Section, blank=True, null=True, related_name='section_set', verbose_name=u"部署")
+    subsection = models.ForeignKey(Section, blank=True, null=True, related_name='subsection_set', verbose_name=u"課")
+    salesperson = models.ForeignKey(Salesperson, blank=True, null=True, verbose_name=u"営業員")
+    project = models.ForeignKey(Project, verbose_name=u"案件")
+    member_type = models.IntegerField(choices=constants.CHOICE_MEMBER_TYPE, blank=True, null=True, verbose_name=u"社員区分")
+    subcontractor = models.ForeignKey(Subcontractor, blank=True, null=True, verbose_name=u"協力会社")
+
+    class Meta:
+        managed = False
+        db_table = 'v_release_list'
+        verbose_name = verbose_name_plural = u"リリース状況"
+        default_permissions = ()
+
+    def __unicode__(self):
+        return unicode(self.member)
+
+
+class ViewSalespersonStatus(models.Model):
+    salesperson = models.ForeignKey(Salesperson, verbose_name=u"営業員")
+    salesperson_name = models.CharField(max_length=30, verbose_name=u"営業員")
+    all_member_count = models.IntegerField(verbose_name=u"担当社員数")
+    sales_off_count = models.IntegerField(verbose_name=u"営業対象外員数")
+    working_member_count = models.IntegerField(verbose_name=u"稼働中社員数")
+    waiting_member_count = models.IntegerField(verbose_name=u"待機中社員数")
+    release_count = models.IntegerField(verbose_name=u"今月リリース数")
+    release_next_count = models.IntegerField(verbose_name=u"来月リリース数")
+    release_next2_count = models.IntegerField(verbose_name=u"再来月リリース数")
+
+    class Meta:
+        managed = False
+        db_table = 'v_salesperson_status'
+        ordering = ['salesperson_name']
+        verbose_name = verbose_name_plural = u"営業員担当状況"
+        default_permissions = ()
+
+    def __unicode__(self):
+        return self.salesperson_name
+
+
+class ViewStatusMonthly(models.Model):
+    ym = models.CharField(max_length=6, primary_key=True, verbose_name=u"対象年月")
+    year = models.CharField(max_length=4, verbose_name=u"対象年")
+    month = models.CharField(max_length=2, verbose_name=u"対象月")
+    all_member_count = models.IntegerField(verbose_name=u"担当社員数")
+    sales_on_count = models.IntegerField(verbose_name=u"営業対象内社員数")
+    sales_off_count = models.IntegerField(verbose_name=u"営業対象外社員数")
+    working_member_count = models.IntegerField(verbose_name=u"稼働中社員数")
+    waiting_member_count = models.IntegerField(verbose_name=u"待機中社員数")
+    bp_member_count = models.IntegerField(verbose_name=u"ＢＰ社員数")
+    bp_sales_on_count = models.IntegerField(verbose_name=u"ＢＰ営業対象内社員数")
+    bp_sales_off_count = models.IntegerField(verbose_name=u"ＢＰ営業対象外社員数")
+    bp_working_member_count = models.IntegerField(verbose_name=u"ＢＰ稼働中社員数")
+    bp_waiting_member_count = models.IntegerField(verbose_name=u"ＢＰ待機中社員数")
+
+    class Meta:
+        managed = False
+        db_table = 'v_status_monthly'
+        ordering = ['ym']
+        verbose_name = verbose_name_plural = u"月別稼働状況"
+        default_permissions = ()
+
+    def __unicode__(self):
+        return self.ym
+
+
 class EmailMultiAlternativesWithEncoding(EmailMultiAlternatives):
     def _create_attachment(self, filename, content, mimetype=None):
         """

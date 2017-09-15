@@ -1085,6 +1085,28 @@ def get_organization_children(organization):
     return org_pk_list
 
 
+def data_frame_filter(df, param_dict=None, order_list=None):
+    if param_dict and isinstance(param_dict, dict):
+        from eb import models
+        for k, v in param_dict.items():
+            if k == 'organization_id':
+                organization = models.Section.objects.get(pk=v)
+                org_pk_list = get_organization_children(organization)
+                df = df[(df.division_id.isin(org_pk_list)) | (df.section_id.isin(org_pk_list)) | (
+                df.subsection_id.isin(org_pk_list))]
+            elif k.endswith('_id'):
+                df = df[df[k] == int(v)]
+            elif k.startswith('is_'):
+                df = df[df[k] == int(v)]
+            else:
+                df = df[df[k].str.contains(v, na=False)]
+    if order_list:
+        name = order_list[0].strip('-')
+        ascending = not order_list[0].startswith('-')
+        df = df.sort_values(by=name, ascending=ascending)
+    return df
+
+
 if __name__ == "__main__":
     for it in range(1, 10):
         print u'2016年%02d月' % (it,), get_business_days(2016, it)

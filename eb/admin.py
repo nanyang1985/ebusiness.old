@@ -807,6 +807,11 @@ class ProjectRequestDetailAdmin(ReadonlyAdmin):
         return False
 
 
+class SubcontractorRequestAdmin(ReadonlyAdmin):
+    list_display = ['subcontractor', 'section', 'year', 'month', 'request_no', 'pay_notify_no', 'created_user', 'amount']
+    search_fields = ['subcontractor__name', 'request_no', 'pay_notify_no']
+
+
 class MemberAttendanceAdmin(ReadonlyAdmin):
     list_display = ('project_member', 'year', 'month', 'total_hours')
     search_fields = ('project_member__member__first_name', 'project_member__member__last_name')
@@ -1017,6 +1022,7 @@ admin.site.register(models.MemberAttendance, MemberAttendanceAdmin)
 admin.site.register(models.ProjectActivity, ProjectActivityAdmin)
 admin.site.register(models.Subcontractor, SubcontractorAdmin)
 admin.site.register(models.SubcontractorMember, SubcontractorMemberAdmin)
+admin.site.register(models.SubcontractorRequest, SubcontractorRequestAdmin)
 admin.site.register(models.PositionShip, PositionShipAdmin)
 admin.site.register(models.ProjectStage, ProjectStageAdmin)
 admin.site.register(models.OS)

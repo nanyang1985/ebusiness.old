@@ -10,7 +10,7 @@ import StringIO
 import pandas as pd
 
 from django.db import connection
-from django.db.models import Q, Max, Prefetch
+from django.db.models import Q, Max, Prefetch, Count, Case, When, IntegerField
 from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
 from django.contrib.humanize.templatetags import humanize
@@ -83,6 +83,104 @@ def get_year_list():
     start = biz_config.get_year_start()
     end = biz_config.get_year_end()
     return range(int(start), int(end))
+
+
+def get_sales_members(year, month, param_dict=None, order_list=None):
+    """作業メンバー一覧を取得する
+
+    :param year:
+    :param month:
+    :return:
+    """
+    df = pd.read_sql("call sp_sales_member('%s%s')" % (year, month), connection)
+    # 出向の契約を洗い出す
+    loan_df = df[df.is_loan == 1]
+    for index, row in loan_df.iterrows():
+        related_row = df.loc[(df.member_id == row.member_id) & (df.is_loan == 0)]
+        if related_row.empty:
+            # 完全出向の場合は何もしない。
+            continue
+        # # ＥＢ契約の月給を再設定する。
+        # df.set_value(index, 'salary', df.loc[index]['salary'] + related_row.iloc[0].salary)
+        # ＢＰ契約に値を再設定する。
+        df.set_value(related_row.index[0], 'is_loan', row.is_loan)
+        # df.set_value(related_row.index[0], 'salary', df.loc[index]['salary'] + related_row.iloc[0].salary)
+        # df.set_value(related_row.index[0], 'allowance', df.loc[index]['allowance'] + related_row.iloc[0].allowance)
+        # df.set_value(related_row.index[0], 'night_allowance', df.loc[index]['night_allowance'] + related_row.iloc[0].night_allowance)
+        # df.set_value(related_row.index[0], 'expenses', df.loc[index]['expenses'] + related_row.iloc[0].expenses)
+        # df.set_value(related_row.index[0], 'employment_insurance', df.loc[index]['employment_insurance'] + related_row.iloc[0].employment_insurance)
+        # df.set_value(related_row.index[0], 'health_insurance', df.loc[index]['health_insurance'] + related_row.iloc[0].health_insurance)
+        # ＥＢの出向契約は非表示
+        df = df.iloc[df.index!=index]
+    return common.data_frame_filter(df, param_dict, order_list)
+
+
+def get_sales_on_members(year, month, param_dict=None, order_list=None):
+    """指定年月の営業対象内社員を取得する。
+
+    :param year:
+    :param month:
+    :param param_dict:
+    :param order_list:
+    :return:
+    """
+    df = get_sales_members(year, month, param_dict, order_list)
+    df = df.loc[(df.is_retired == 0) & (df.is_sales_off == 0)]
+    return df
+
+
+def get_sales_off_members(year, month, param_dict=None, order_list=None):
+    """指定年月の営業対象外社員を取得する。
+
+    :param year:
+    :param month:
+    :param param_dict:
+    :param order_list:
+    :return:
+    """
+    df = get_sales_members(year, month, param_dict, order_list)
+    df = df.loc[(df.is_retired == 0) & (df.status_month == '03')]
+    return df
+
+
+def get_working_members(year, month, param_dict=None, order_list=None):
+    """指定年月の稼働社員を取得する。
+
+    :param year:
+    :param month:
+    :param param_dict:
+    :param order_list:
+    :return:
+    """
+    df = get_sales_members(year, month, param_dict, order_list)
+    df = df.loc[(df.is_retired == 0) & (df.status_month == '01')]
+    return df
+
+
+def get_waiting_members(year, month, param_dict=None, order_list=None):
+    """
+
+    :param year:
+    :param month:
+    :param param_dict:
+    :param order_list:
+    :return:
+    """
+    df = get_sales_members(year, month, param_dict, order_list)
+    df = df.loc[(df.is_retired == 0) & (df.status_month == '02') & (df.is_sales_off == 0)]
+    return df
+
+
+def get_release_info():
+    """リリース情報を取得する。
+
+    :return:
+    """
+    query_set = models.ViewRelease.objects.all().values('release_ym').annotate(
+        count=Count(1),
+        bp_count=Count(Case(When(subcontractor_id__isnull=False, then=1), output_field=IntegerField)),
+    ).order_by('release_ym')
+    return query_set
 
 
 def get_members_by_section(all_members, section_id):
@@ -302,14 +400,7 @@ def get_cost_by_month(year, month, param_dict=None, order_list=None):
         'traffic_cost'] + df['expenses'] + df['employment_insurance'] + df['health_insurance']
     # 利益
     df['profit'] = df['total_price'] - df['total_cost']
-    if param_dict and isinstance(param_dict, dict):
-        for k, v in param_dict.items():
-            df = df[df[k].str.contains(v, na=False)]
-    if order_list:
-        name = order_list[0].strip('-')
-        ascending = not order_list[0].startswith('-')
-        df = df.sort_values(by=name, ascending=ascending)
-    return df
+    return common.data_frame_filter(df, param_dict, order_list)
 
 
 def get_project_members_month_section(section, date, user=None):

@@ -16,7 +16,7 @@ from django.contrib import admin
 from django.contrib.auth import logout, authenticate, login
 from django.contrib.auth.decorators import login_required, permission_required
 from django.utils.decorators import method_decorator
-from django.core.exceptions import ObjectDoesNotExist
+from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.core.urlresolvers import reverse
 from django.forms.models import modelformset_factory
@@ -90,67 +90,37 @@ class IndexView(BaseTemplateView):
                        'next_ym': next_month.strftime('%Y%m'),
                        'next_2_ym': next_2_months.strftime('%Y%m')}
 
-        member_count = models.get_on_sales_members().count()
-        working_member_count = models.get_working_members().count()
-        waiting_member_count = models.get_waiting_members().count()
         member_in_coming = biz.get_members_in_coming()
-        off_sales_members_count = models.get_off_sales_members().count()
 
-        release_current_month = models.get_release_current_month()
-        release_next_month = models.get_release_next_month()
-        release_next_2_month = models.get_release_next_2_month()
-
-        subcontractor_sales_member_count = biz.get_subcontractor_sales_members().count()
-        subcontractor_working_member_count = biz.get_subcontractor_working_members().count()
-        subcontractor_waiting_member_count = subcontractor_sales_member_count - subcontractor_working_member_count
-        subcontractor_off_sales_member_count = biz.get_subcontractor_off_sales_members().count()
-
-        subcontractor_release_current_month = biz.get_subcontractor_release_current_month().count()
-        subcontractor_release_next_month = biz.get_subcontractor_release_next_month().count()
-        subcontractor_release_next_2_month = biz.get_subcontractor_release_next_2_month().count()
-
+        status_monthly = models.ViewStatusMonthly.objects.filter(
+            ym__in=[prev_month.strftime('%Y%m'), now.strftime('%Y%m'), next_month.strftime('%Y%m')]
+        ).order_by('ym')
+        release_info = biz.get_release_info()
+        salesperson_status_list = models.ViewSalespersonStatus.objects.all()
         activities = biz.get_activities_incoming()
 
-        show_own_member_status = False
+        own_member_status = False
         show_warning_projects = False
         if biz.is_salesperson_user(request.user):
             show_warning_projects = True
             if request.user.salesperson.member_type == 5:
                 # 営業担当の場合
-                show_own_member_status = True
-        salesperson_list = models.Salesperson.objects.public_filter(member_type=5)
+                try:
+                    own_member_status = salesperson_status_list.get(salesperson=request.user.salesperson)
+                except (ObjectDoesNotExist, MultipleObjectsReturned):
+                    own_member_status = None
 
         context = self.get_context_data()
         context.update({
             'title': 'Home | %s' % constants.NAME_SYSTEM,
             'filter_list': filter_list,
-            'member_count_prev_month': models.get_on_sales_members(prev_month).count(),
-            'working_member_count_prev_month': models.get_working_members(prev_month).count(),
-            'waiting_member_count_prev_month': models.get_waiting_members(prev_month).count(),
-            'off_sales_members_count_prev_month': models.get_off_sales_members(prev_month).count(),
-            'member_count': member_count,
-            'working_member_count': working_member_count,
-            'waiting_member_count': waiting_member_count,
+            'status_monthly': status_monthly,
             'members_in_coming_count': member_in_coming.count(),
-            'off_sales_members_count': off_sales_members_count,
-            'member_count_next_month': models.get_on_sales_members(next_month).count(),
-            'working_member_count_next_month': models.get_working_members(next_month).count(),
-            'waiting_member_count_next_month': models.get_waiting_members(next_month).count(),
-            'off_sales_members_count_next_month': models.get_off_sales_members(next_month).count(),
-            'release_current_month_count': release_current_month.count(),
-            'release_next_month_count': release_next_month.count(),
-            'release_next_2_month_count': release_next_2_month.count(),
-            'subcontractor_sales_member_count': subcontractor_sales_member_count,
-            'subcontractor_working_member_count': subcontractor_working_member_count,
-            'subcontractor_waiting_member_count': subcontractor_waiting_member_count,
-            'subcontractor_off_sales_member_count': subcontractor_off_sales_member_count,
-            'subcontractor_release_current_month': subcontractor_release_current_month,
-            'subcontractor_release_next_month': subcontractor_release_next_month,
-            'subcontractor_release_next_2_month': subcontractor_release_next_2_month,
+            'release_info': release_info,
             'activities': activities,
-            'show_own_member_status': show_own_member_status,
+            'own_member_status': own_member_status,
             'show_warning_projects': show_warning_projects,
-            'salesperson_list': salesperson_list,
+            'salesperson_status_list': salesperson_status_list,
         })
         return self.render_to_response(context)
 
@@ -159,66 +129,39 @@ class IndexView(BaseTemplateView):
 class MemberListView(BaseTemplateView):
     template_name = 'default/employee_list.html'
 
-    def get(self, request, *args, **kwargs):
-        date = datetime.date.today()
+    def get_context_data(self, **kwargs):
+        context = super(MemberListView, self).get_context_data(**kwargs)
+        request = kwargs.get('request')
         param_dict, params = common.get_request_params(request.GET)
-        status = request.GET.get('_status', None)
-        section_id = request.GET.get('_section', None)
-        salesperson_id = request.GET.get('_salesperson', None)
-        q = request.GET.get('q', None)
-        if status == "sales":
-            all_members = models.get_on_sales_members(date)
-        elif status == "working":
-            all_members = models.get_working_members(date)
-        elif status == "waiting":
-            all_members = models.get_waiting_members(date)
-        elif status == "off_sales":
-            all_members = models.get_off_sales_members(date)
-        else:
-            all_members = models.get_all_members()
-
-        if param_dict:
-            all_members = all_members.filter(**param_dict)
-        if q:
-            orm_lookups = ['first_name__icontains', 'last_name__icontains']
-            for bit in q.split():
-                or_queries = [models.Q(**{orm_lookup: bit}) for orm_lookup in orm_lookups]
-                all_members = all_members.filter(reduce(operator.or_, or_queries))
-
-        if section_id:
-            all_members = biz.get_members_by_section(all_members, section_id)
-        if salesperson_id:
-            all_members = biz.get_members_by_salesperson(all_members, salesperson_id)
         o = request.GET.get('o', None)
-        dict_order = common.get_ordering_dict(o, ['first_name', 'section', 'subcontractor__name',
-                                                  'salesperson__first_name'])
+        dict_order = common.get_ordering_dict(o, ['member_name', 'division_name', 'section_name', 'salesofreason_name',
+                                                  'subsection_name', 'subcontractor_name', 'salesperson_name'])
         order_list = common.get_ordering_list(o)
+        today = datetime.date.today()
+        year = str(today.year)
+        month = '%02d' % today.month
 
-        if order_list:
-            all_members = all_members.order_by(*order_list)
-
-        paginator = Paginator(all_members, biz_config.get_page_size())
+        data_frame = biz.get_sales_members(year, month, param_dict=param_dict, order_list=order_list)
+        paginator = Paginator(list(data_frame.iterrows()), biz_config.get_page_size())
         page = request.GET.get('page')
         try:
-            members = paginator.page(page)
+            object_list = paginator.page(page)
         except PageNotAnInteger:
-            members = paginator.page(1)
+            object_list = paginator.page(1)
         except EmptyPage:
-            members = paginator.page(paginator.num_pages)
+            object_list = paginator.page(paginator.num_pages)
 
-        context = self.get_context_data()
         context.update({
             'title': u'要員一覧 | %s' % constants.NAME_SYSTEM,
-            'members': members,
+            'object_list': object_list,
             'sections': biz.get_on_sales_top_org(),
             'salesperson': models.Salesperson.objects.public_all(),
             'paginator': paginator,
             'params': params,
             'dict_order': dict_order,
             'orders': "&o=%s" % (o,) if o else "",
-            'page_type': "off_sales" if status == "off_sales" else None,
         })
-        return self.render_to_response(context)
+        return context
 
 
 @method_decorator(permission_required('eb.view_member', raise_exception=True), name='get')
@@ -230,76 +173,52 @@ class MemberListMonthlyView(BaseTemplateView):
         request = kwargs.get('request')
         year = request.GET.get('_year', None)
         month = request.GET.get('_month', None)
-        if year and month:
-            date = datetime.date(int(year), int(month), 20)
-        else:
+        if not year or not month:
             date = datetime.date.today()
             year = str(date.year)
             month = '%02d' % date.month
         status = request.GET.get('_status', None)
-        section_id = request.GET.get('_section', None)
-        salesperson_id = request.GET.get('_salesperson', None)
-        q = request.GET.get('q', None)
-        if status == "sales":
-            all_members = models.get_on_sales_members(date)
-        elif status == "working":
-            all_members = models.get_working_members(date)
-        elif status == "waiting":
-            all_members = models.get_waiting_members(date)
-        elif status == "off_sales":
-            all_members = models.get_off_sales_members(date)
-        else:
-            all_members = models.get_all_members()
-
         param_dict, params = common.get_request_params(request.GET)
-        if param_dict:
-            all_members = all_members.filter(**param_dict)
-        if q:
-            orm_lookups = ['first_name__icontains', 'last_name__icontains']
-            for bit in q.split():
-                or_queries = [models.Q(**{orm_lookup: bit}) for orm_lookup in orm_lookups]
-                all_members = all_members.filter(reduce(operator.or_, or_queries))
-
-        if section_id:
-            all_members = biz.get_members_by_section(all_members, section_id)
-        if salesperson_id:
-            all_members = biz.get_members_by_salesperson(all_members, salesperson_id)
         o = request.GET.get('o', None)
-        dict_order = common.get_ordering_dict(o, ['employee_id', 'first_name', 'section', 'subcontractor__name',
-                                                  'salesperson__first_name'])
+        dict_order = common.get_ordering_dict(o, ['employee_id', 'member_name',
+                                                  'division_name', 'section_name', 'subsection_name',
+                                                  'subcontractor_name', 'salesperson_name'])
         order_list = common.get_ordering_list(o)
 
-        if order_list:
-            all_members = all_members.order_by(*order_list)
+        if status == "sales":
+            data_frame = biz.get_sales_on_members(year, month, param_dict=param_dict, order_list=order_list)
+        elif status == "working":
+            data_frame = biz.get_working_members(year, month, param_dict=param_dict)
+        elif status == "waiting":
+            data_frame = biz.get_waiting_members(year, month, param_dict=param_dict)
+        elif status == "off_sales":
+            data_frame = biz.get_sales_off_members(year, month, param_dict=param_dict)
+        else:
+            data_frame = biz.get_sales_members(year, month, param_dict=param_dict)
 
-        sales_member_count = models.get_on_sales_members(date).count()
-        working_member_count = models.get_working_members(date).count()
-        waiting_member_count = models.get_waiting_members(date).count()
+        status_monthly = models.ViewStatusMonthly.objects.filter(ym='%s%s' % (year, month))
 
-        paginator = Paginator(all_members, biz_config.get_page_size())
+        paginator = Paginator(list(data_frame.iterrows()), biz_config.get_page_size())
         page = request.GET.get('page')
         try:
-            members = paginator.page(page)
+            object_list = paginator.page(page)
         except PageNotAnInteger:
-            members = paginator.page(1)
+            object_list = paginator.page(1)
         except EmptyPage:
-            members = paginator.page(paginator.num_pages)
+            object_list = paginator.page(paginator.num_pages)
 
         context.update({
             'title': u'要員一覧 | %s' % constants.NAME_SYSTEM,
-            'members': members,
+            'object_list': object_list,
             'year': year,
             'month': month,
             'sections': biz.get_on_sales_top_org(),
             'salesperson': models.Salesperson.objects.public_all(),
             'paginator': paginator,
+            'status_monthly': status_monthly,
             'params': params,
             'dict_order': dict_order,
             'orders': "&o=%s" % (o,) if o else "",
-            'page_type': "off_sales" if status == "off_sales" else None,
-            'sales_member_count': sales_member_count,
-            'working_member_count': working_member_count,
-            'waiting_member_count': waiting_member_count,
         })
         return context
 
@@ -403,46 +322,43 @@ class MembersComingView(BaseTemplateView):
 class MembersSubcontractorView(BaseTemplateView):
     template_name = 'default/employee_list.html'
 
-    def get(self, request, *args, **kwargs):
-        status = request.GET.get('status', None)
-        if status == "sales":
-            all_members = biz.get_subcontractor_sales_members()
-        elif status == "working":
-            all_members = biz.get_subcontractor_working_members()
-        elif status == "waiting":
-            all_members = biz.get_subcontractor_waiting_members()
-        elif status == "off_sales":
-            all_members = biz.get_subcontractor_off_sales_members()
-        else:
-            all_members = biz.get_subcontractor_all_members()
-
+    def get_context_data(self, **kwargs):
+        context = super(MembersSubcontractorView, self).get_context_data(**kwargs)
+        request = kwargs.get('request')
+        status = request.GET.get('_status', None)
         param_dict, params = common.get_request_params(request.GET)
-        if 'status' in param_dict:
-            del param_dict['status']
-        if param_dict:
-            all_members = all_members.filter(**param_dict)
-
         o = request.GET.get('o', None)
-        dict_order = common.get_ordering_dict(o, ['first_name', 'section', 'subcontractor__name',
-                                                  'salesperson__first_name'])
+        dict_order = common.get_ordering_dict(o, ['member_name', 'division_name', 'section_name', 'salesofreason_name',
+                                                  'subsection_name', 'subcontractor_name', 'salesperson_name'])
         order_list = common.get_ordering_list(o)
+        today = datetime.date.today()
+        year = str(today.year)
+        month = '%02d' % today.month
 
-        if order_list:
-            all_members = all_members.order_by(*order_list)
+        if status == "sales":
+            data_frame = biz.get_sales_on_members(year, month, param_dict=param_dict, order_list=order_list)
+        elif status == "working":
+            data_frame = biz.get_working_members(year, month, param_dict=param_dict, order_list=order_list)
+        elif status == "waiting":
+            data_frame = biz.get_waiting_members(year, month, param_dict=param_dict, order_list=order_list)
+        elif status == "off_sales":
+            data_frame = biz.get_sales_off_members(year, month, param_dict=param_dict, order_list=order_list)
+        else:
+            data_frame = biz.get_sales_members(year, month, param_dict=param_dict, order_list=order_list)
 
-        paginator = Paginator(all_members, biz_config.get_page_size())
+        data_frame = data_frame.loc[data_frame.subcontactor_id.isnull() == False]
+        paginator = Paginator(list(data_frame.iterrows()), biz_config.get_page_size())
         page = request.GET.get('page')
         try:
-            members = paginator.page(page)
+            object_list = paginator.page(page)
         except PageNotAnInteger:
-            members = paginator.page(1)
+            object_list = paginator.page(1)
         except EmptyPage:
-            members = paginator.page(paginator.num_pages)
+            object_list = paginator.page(paginator.num_pages)
 
-        context = self.get_context_data()
         context.update({
             'title': u'協力社員一覧 | %s' % constants.NAME_SYSTEM,
-            'members': members,
+            'object_list': object_list,
             'sections': models.Section.objects.public_filter(is_on_sales=True),
             'salesperson': models.Salesperson.objects.public_all(),
             'paginator': paginator,
@@ -450,7 +366,7 @@ class MembersSubcontractorView(BaseTemplateView):
             'dict_order': dict_order,
             'page_type': "off_sales" if status == "off_sales" else None,
         })
-        return self.render_to_response(context)
+        return context
 
 
 @method_decorator(permission_required('eb.view_member', raise_exception=True), name='get')
@@ -1301,48 +1217,45 @@ class ReleaseListView(BaseTemplateView):
     def get(self, request, *args, **kwargs):
         ym = kwargs.get('ym', None)
         param_dict, params = common.get_request_params(request.GET)
-        section_id = request.GET.get('section', None)
-        salesperson_id = request.GET.get('salesperson', None)
         year = int(ym[0:4])
         month = int(ym[-2:])
-        start_date = datetime.datetime(year, month, 1)
+        section_id = request.GET.get('section', None)
 
         if 'section' in param_dict:
             del param_dict['section']
-        if 'salesperson' in param_dict:
-            del param_dict['salesperson']
 
-        all_project_members = models.get_release_members_by_month(start_date, param_dict)
-
+        members = models.ViewRelease.objects.filter(release_ym=ym)
+        if param_dict:
+            members = members.filter(**param_dict)
         if section_id:
-            all_project_members = biz.get_project_members_by_section(all_project_members, section_id, start_date)
-        if salesperson_id:
-            all_project_members = biz.get_project_members_by_salesperson(all_project_members, salesperson_id,
-                                                                         start_date)
+            organization = get_object_or_404(models.Section, pk=section_id)
+            org_pk_list = common.get_organization_children(organization)
+            members = members.filter(Q(division__in=org_pk_list) | Q(section__in=org_pk_list) | Q(subsection__in=org_pk_list))
 
         o = request.GET.get('o', None)
         dict_order = common.get_ordering_dict(o, ['member__first_name', 'member__subcontractor__name',
-                                                  'project__name', 'start_date'])
+                                                  'project__name', 'project_member__start_date',
+                                                  'salesperson__first_name'])
         order_list = common.get_ordering_list(o)
         if order_list:
-            all_project_members = all_project_members.order_by(*order_list)
+            members = members.order_by(*order_list)
 
         sections = models.Section.objects.public_filter(is_on_sales=True)
         salesperson = models.Salesperson.objects.public_all()
 
-        paginator = Paginator(all_project_members, biz_config.get_page_size())
+        paginator = Paginator(members, biz_config.get_page_size())
         page = request.GET.get('page')
         try:
-            project_members = paginator.page(page)
+            members = paginator.page(page)
         except PageNotAnInteger:
-            project_members = paginator.page(1)
+            members = paginator.page(1)
         except EmptyPage:
-            project_members = paginator.page(paginator.num_pages)
+            members = paginator.page(paginator.num_pages)
 
         context = self.get_context_data()
         context.update({
             'title': u'%s年%s月 | リリース状況一覧 | %s' % (year, month, constants.NAME_SYSTEM),
-            'project_members': project_members,
+            'members': members,
             'paginator': paginator,
             'params': params,
             'dict_order': dict_order,

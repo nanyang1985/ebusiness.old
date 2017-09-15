@@ -5,11 +5,12 @@
 {% block header %}
     <script type="text/javascript">
         window.onload = function() {
-            init_select("_status");
-            init_select("first_name__icontains");
-            init_select("last_name__icontains");
-            init_select("_salesperson");
-            init_select("_section");
+            init_select("member_name");
+            init_select("organization_id");
+            init_select("status_today");
+            init_select("is_sales_off");
+            init_select("salesperson_id");
+            init_select("is_retired");
         };
     </script>
 {% endblock %}
@@ -19,29 +20,39 @@
     <div class="dashboard">
         <div class="dashboard-title">{{ title }}</div>
         <form action="" method="get">
-            <span>姓: </span><input type="text" id="first_name__icontains" name="first_name__icontains" style="width: 50px;"/>
-            <span>名: </span><input type="text" id="last_name__icontains" name="last_name__icontains" style="width: 50px;"/>
-            {% organization_filter "_section" %}
-            <select id="_status" name="_status">
+            <span>名前: </span><input type="text" id="member_name" name="member_name" style="width: 80px;"/>
+            {% organization_filter "organization_id" %}
+            <select id="status_today" name="status_today">
                 <option value="">===稼働状態===</option>
-                <option value="sales">営業対象</option>
-                <option value="working">稼働中</option>
-                <option value="waiting">待機</option>
-                <option value="off_sales">営業対象外</option>
+                <option value="01">稼働中</option>
+                <option value="02">待機</option>
             </select>
-            <select id="_salesperson" name="_salesperson">
+            <select id="is_sales_off" name="is_sales_off">
+                <option value="">===営業対象===</option>
+                <option value="0">対象内</option>
+                <option value="1">対象外</option>
+            </select>
+            <select id="salesperson_id" name="salesperson_id">
                 <option value="">===営業員===</option>
                 {% for sales in salesperson %}
                     <option value="{{ sales.pk }}">{{ sales }}</option>
                 {% endfor %}
             </select>
+            <select id="is_retired" name="is_retired">
+                <option value="">========</option>
+                <option value="0">在職</option>
+                <option value="1">退職</option>
+            </select>
             <input type="submit" value="Filter" />
             <a href="{{ request.path }}">クリア</a>
+            <div class="example" style="float: right;">
+                <span>凡例:</span>
+                <div class="is_loan">出向社員</div>
+            </div>
+            <div class="clear"></div>
         </form>
         {% if page_type != "members_in_coming" %}
         <div class="dashboard-tail">
-            <!--<a href="?download=member_list{{ params }}" target="_blank">要員一覧ダウンロード</a>-->
-            <!--<a href="{% url 'upload_file' %}" target="_blank">履歴書をアップロード</a>-->
             <a href="{% url 'download_eboa_members' %}" target="_blank"><i class="fa fa-download" aria-hidden="true"></i> ＥＢＯＡ社員情報ダウンロード</a>
             <a href="{% url 'admin:eb_member_add' %}?from=portal&_popup=1" target="_blank">要員を追加</a>
         </div>
@@ -50,92 +61,54 @@
     <table class="list" cellpadding="0" cellspacing="0">
         <thead>
             <tr>
-                <th>{% create_order_display "名前" "first_name" %}</th>
-                <th>事業部</th>
-                <th>部署</th>
-                <th>課・グループ</th>
-                <th>{% create_order_display "協力会社" "subcontractor__name" %}</th>
+                <th>{% create_single_order_display "名前" "member_name" %}</th>
+                <th>{% create_single_order_display "事業部" "division_name" %}</th>
+                <th>{% create_single_order_display "部署" "section_name" %}</th>
+                <th>{% create_single_order_display "課" "subsection_name" %}</th>
+                <th>{% create_single_order_display "協力会社" "subcontractor_name" %}</th>
                 <th style="width: 50px;">稼働</th>
-                <th style="width: 120px;">
-                    {% if page_type == "members_in_coming" %}
-                        入社年月日
-                    {% else %}
-                        リリース予定日
-                    {% endif %}
-                </th>
-                <th style="width: 90px;">営業員</th>
-                <!--<th>営業状態</th>-->
-                <th style="width: 99px;">
-                    {% if page_type == "off_sales" %}
-                        営業対象外理由
-                    {% endif %}
-                </th>
+                <th style="width: 120px;">リリース予定日</th>
+                <th style="width: 90px;">{% create_single_order_display "営業員" "salesperson_name" %}</th>
+                <th>{% create_single_order_display "営業対象外" "salesofreason_name" %}</th>
                 <th></th>
             </tr>
         </thead>
         <tbody>
-            {% if members %}
-                {% for member in members %}
-                {% with salesoff_period=member.current_salesoff_period|first %}
-                    <tr class="{% cycle 'row1' 'row2' %} {% if member.is_retired %}expired{% endif %}">
+            {% if object_list %}
+                {% for idx, data_row in object_list %}
+                    <tr class="{% cycle 'row1' 'row2' %} {% if data_row.is_retired %}expired{% endif %} {% if data_row.is_loan %}is_loan{% endif %}">
                         <td>
-                            <a href="{% url 'member_detail' member.employee_id %}">
-                                {{ member.first_name }}&nbsp;{{ member.last_name }}
+                            <a href="{% url 'member_detail' data_row.employee_id %}">
+                                {{ data_row.member_name }}
                             </a>
                         </td>
-                        {% with section_period=member.current_section_period|first %}
-                        <td>{{ section_period.division|default:'' }}</td>
-                        <td>{{ section_period.section|default:'' }}</td>
-                        <td>{{ section_period.subsection|default:'' }}</td>
-                        {% endwith %}
-                        <td>{{ member.subcontractor|default:"" }}</td>
-                        {% if member.is_retired %}
-                            <td colspan="4">退職</td>
-                        {% else %}
-                            <td class="center">
-                                {% if member.is_working > 0 %}
-                                    <a href="?status=working{{ params }}"><img width="12px" src="/static/{{ theme }}/img/icon-normal.png"/></a>
-                                {% else %}
-                                    <a href="?status=waiting{{ params }}"><img width="12px" src="/static/{{ theme }}/img/icon-warn.png"/></a>
-                                {% endif %}
-                            </td>
-                            <td>
-                                {% if page_type == "members_in_coming" %}
-                                    {{ member.join_date }}
-                                {% else %}
-                                    {% if member.last_end_date|date:"Y-m-d" > ymd %}
-                                        {{ member.last_end_date|date:"Y-m-d" }}
-                                    {% endif %}
-                                {% endif %}
-                            </td>
-                            <td>
-                                {% for salesperson_period in member.current_salesperson_period %}
-                                    <a href="?salesperson={{ salesperson_period.salesperson.pk }}">
-                                        {{ salesperson_period.salesperson }}</a>
-                                {% endfor %}
-                            </td>
-                            <td class="center">
-                                {% if page_type == "off_sales" %}
-                                    {{ salesoff_period.sales_off_reason }}
-                                {% else %}
-                                    {% ifequal member.get_business_status "未提案" %}
-                                        <a href="{% url 'recommended_project' member.employee_id %}">推薦された案件</a>
-                                    {% endifequal %}
-                                {% endif %}
-                            </td>
-                        {% endif %}
-                        <td class="center"><a href="{% url 'admin:eb_member_change' member.pk %}?from=portal&_popup=1" target="_blank">編集</a></td>
+                        <td>{{ data_row.division_name|default:'' }}</td>
+                        <td>{{ data_row.section_name|default:'' }}</td>
+                        <td>{{ data_row.subsection_name|default:'' }}</td>
+                        <td>{{ data_row.subcontractor_name|default:"" }}</td>
+                        <td class="center">
+                            {% if data_row.is_retired %}
+                                退職
+                            {% elif data_row.status_today == '01' %}
+                                <img width="12px" src="/static/{{ theme }}/img/icon-normal.png"/>
+                            {% else %}
+                                <img width="12px" src="/static/{{ theme }}/img/icon-warn.png"/>
+                            {% endif %}
+                        </td>
+                        <td>{{ data_row.release_date|date:"Y-m-d" }}</td>
+                        <td>{{ data_row.salesperson_name|default:'' }}</td>
+                        <td>{% if data_row.is_retired == 0 %}{{ data_row.salesofreason_name|default:'' }}{% endif %}</td>
+                        <td class="center"><a href="{% url 'admin:eb_member_change' data_row.member_id %}?from=portal&_popup=1" target="_blank">編集</a></td>
                     </tr>
-                {% endwith %}
                 {% endfor %}
             {% else %}
-                <tr class="row2"><td class="center red" colspan="10">該当する要員がいません。</td></tr>
+                <tr class="row2"><td class="center red" colspan="10">該当する社員がいません。</td></tr>
             {% endif %}
         </tbody>
         <tfoot>
             <tr>
                 <td colspan="10">
-                    {% paging members %}
+                    {% paging object_list %}
                 </td>
             </tr>
         </tfoot>
