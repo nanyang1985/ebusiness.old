@@ -110,6 +110,7 @@ CREATE OR REPLACE VIEW v_contract AS
         c.deleted_date AS deleted_date
     FROM
         eb_contract c
+	WHERE c.status <> '04'
     UNION ALL SELECT
         c.id AS id,
         NULL AS contract_no,
@@ -185,3 +186,4 @@ CREATE OR REPLACE VIEW v_contract AS
         c.deleted_date AS deleted_date
     FROM
         eb_bp_contract c
+	WHERE c.status <> '04'

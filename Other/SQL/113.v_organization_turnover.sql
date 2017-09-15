@@ -56,7 +56,11 @@ select m.id as member_id
 	   ) as health_insurance 
 	 , prd.total_price
      , prd.expenses_price
-     , IFNULL(prh.tax_rate, 0) * prd.total_price as tax_price
+     , case prd.id
+           when (select max(s1.id) from eb_projectrequestdetail s1 where s1.project_request_id = pr.id) 
+               then (pr.tax_amount - IFNULL((select sum(truncate(IFNULL(prh.tax_rate, 0) * s2.total_price, 0)) from eb_projectrequestdetail s2 where s2.project_request_id = pr.id and s2.id <> prd.id), 0))
+           else truncate(IFNULL(prh.tax_rate, 0) * prd.total_price, 0)
+	   end as tax_price
   from eb_projectrequestdetail prd
   join eb_projectrequest pr on pr.id = prd.project_request_id
   join eb_projectrequestheading prh on prh.project_request_id = pr.id
