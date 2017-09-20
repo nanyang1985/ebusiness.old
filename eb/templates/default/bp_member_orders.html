@@ -1,6 +1,7 @@
 {% extends theme|add:"/base.html" %}
 {% load humanize %}
 {% load sales_templates %}
+{% load year_month_filter %}
 
 {% block header %}
 <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1/jquery-ui.min.js"></script>
@@ -141,20 +142,30 @@
                         {% if order %}
                             <td class="center">
                                 <a href="{% url 'download_bp_order' project_member.pk year month|stringformat:'02d' %}?overwrite=1" target="_blank">
-                                    ダウンロード</a>&nbsp;|&nbsp;
-                                <a href="{% url 'download_bp_order' project_member.pk year month|stringformat:'02d' %}" target="_blank"
+                                    ダウンロード</a>
+                                {% if order.month != month|stringformat:"02d" %}
+                                    <!--複数月の注文書は開始年月だけで作成できる。-->
+                                {% else %}
+                                &nbsp;|&nbsp;
+                                <a href="{% url 'download_bp_order' project_member.pk year month|stringformat:'02d' %}?end_year={{ order.end_year }}&end_month={{ order.end_month }}" target="_blank"
                                    onclick="return confirm('既に作成済みなので、上書きしてもよろしいですか？')">
                                     再作成</a>
+                                {% endif %}
                             </td>
                             <td class="center">
                                 {% if order.filename_request %}
                                     <a href="{% url 'download_bp_order_request' project_member.pk year month|stringformat:'02d' %}?overwrite=1" target="_blank">
-                                        ダウンロード</a>&nbsp;|&nbsp;
-                                    <a href="{% url 'download_bp_order_request' project_member.pk year month|stringformat:'02d' %}" target="_blank"
-                                       onclick="return confirm('既に作成済みなので、上書きしてもよろしいですか？')">
-                                        再作成</a>
+                                        ダウンロード</a>
+                                    {% if order.month != month|stringformat:"02d" %}
+                                        <!--複数月の注文書は開始年月だけで作成できる。-->
+                                    {% else %}
+                                        &nbsp;|&nbsp;
+                                        <a href="{% url 'download_bp_order_request' project_member.pk year month|stringformat:'02d' %}?end_year={{ order.end_year }}&end_month={{ order.end_month }}" target="_blank"
+                                           onclick="return confirm('既に作成済みなので、上書きしてもよろしいですか？')">
+                                            再作成</a>
+                                    {% endif %}
                                 {% else %}
-                                    <a href="{% url 'download_bp_order_request' project_member.pk year month|stringformat:'02d' %}" target="_blank">注文請書作成</a>
+                                    <a href="{% url 'download_bp_order_request' project_member.pk year month|stringformat:'02d' %}?end_year={{ order.end_year }}&end_month={{ order.end_month }}" target="_blank">注文請書作成</a>
                                 {% endif %}
                             </td>
                             {% else %}
@@ -166,11 +177,36 @@
                                 {% endif %}
                                 <div id="bp_order_gen_{{ project_member.pk }}_{{ year }}_{{ month|stringformat:'02d' }}" class="dialog" style="overflow-y: hidden;">
                                     <form method="get" action="{% url 'download_bp_order' project_member.pk year month|stringformat:'02d' %}" target="_blank">
-                                        <div>
+                                        <div style="padding: 5px 0px;">
                                             {% get_default_bp_order_no year month as default_date %}
-                                            <label for="id_publish_date_{{project_member.pk}}{{year}}{{month}}" style="float: left; width: 160px;">発行年月日</label>
-                                            <input name="publish_date" id="id_publish_date_{{project_member.pk}}{{year}}{{month}}" style="float: left;"
+                                            <label for="id_publish_date_{{project_member.pk}}{{year}}{{month}}" style="float: left; width: 120px;">発行年月日</label>
+                                            <input name="publish_date" id="id_publish_date_{{project_member.pk}}{{year}}{{month}}" style="float: left; width: 120px;"
                                                    value="{{ default_date }}"/>
+                                            <div style="clear: both;"></div>
+                                        </div>
+                                        <div style="padding: 5px 0px;">
+                                            <label for="start_month" style="float: left; width: 120px; ">開始年月</label>
+                                            <input id="start_year" name="start_year" value="{{ year }}" style="float: left; width: 50px;" readonly="readonly" />
+                                            <input id="start_month" name="start_month" value="{{ month }}" style="float: left; width: 50px;" readonly="readonly" />
+                                            <label for="end_month" style="float: left; width: 120px;">終了年月</label>
+                                            <select id="end_year" name="end_year" style="float: left; width: 60px;">
+                                                {% for y_val, y_txt in year_list %}
+                                                    {% if y_val == year|stringformat:"i" %}
+                                                        <option value="{{ y_val }}" selected>{{ y_txt }}</option>
+                                                    {% else %}
+                                                        <option value="{{ y_val }}">{{ y_txt }}</option>
+                                                    {% endif %}
+                                                {% endfor %}
+                                            </select>
+                                            <select id="end_month" name="end_month" style="float: left; width: 60px;">
+                                                {% for m_val, m_txt in month_list %}
+                                                    {% if m_val == month|stringformat:"02d" %}
+                                                        <option value="{{ m_val }}" selected>{{ m_txt }}</option>
+                                                    {% else %}
+                                                        <option value="{{ m_val }}">{{ m_txt }}</option>
+                                                    {% endif %}
+                                                {% endfor %}
+                                            </select>
                                         </div>
                                         <div style="padding: 2px 10px; clear: both;">
                                             <input type="submit" value="作成" style="float: right; padding: 0px 20px;"/>

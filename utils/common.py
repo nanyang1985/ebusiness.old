@@ -29,6 +29,10 @@ def get_tz_utc():
     return pytz.utc
 
 
+def add_days(source_date, days=1):
+    return source_date + datetime.timedelta(days=days)
+
+
 def add_months(source_date, months=1):
     month = source_date.month - 1 + months
     year = int(source_date.year + month / 12)
@@ -73,6 +77,17 @@ def get_last_day_current_month():
     from django.utils import timezone
 
     return get_last_day_by_month(timezone.now())
+
+
+def get_year_list():
+    from eb.models import Config
+    year_start = Config.get_year_list_start()
+    year_end = Config.get_year_list_end()
+    return [(str(year), str(year)) for year in range(int(year_start), int(year_end) + 1)]
+
+
+def get_month_list3():
+    return [('%02d' % month, u"%02d月" % month) for month in range(1, 13)]
 
 
 def get_month_list(start_index=0, end_index=2, start_ym=None):

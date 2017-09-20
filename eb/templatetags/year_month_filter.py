@@ -16,7 +16,12 @@ register = template.Library()
 @register.tag(name='year_month_filter')
 def year_month_filter(parser, token):
     try:
-        tag_name, context_year, context_month = token.split_contents()
+        if len(token.split_contents()) == 3:
+            tag_name, context_year, context_month = token.split_contents()
+            label_text = u"対象年月"
+        else:
+            tag_name, context_year, context_month, label_text = token.split_contents()
+            label_text = label_text[1:-1]
     except ValueError:
         raise template.TemplateSyntaxError("%r tag requires two arguments" % token.contents.split()[0])
     # if not (year_name[0] == year_name[-1] and year_name[0] in ('"', "'")) or \
@@ -25,13 +30,14 @@ def year_month_filter(parser, token):
     # if not re.match(r"[0-9]{4}", year_name) or not re.match(r"[0-9]{2}", month_name):
     #     raise template.TemplateSyntaxError("%s or %s is illegal year or month" % (year_name, month_name))
 
-    return GenerateFilterTag(context_year, context_month)
+    return GenerateFilterTag(context_year, context_month, label_text)
 
 
 class GenerateFilterTag(template.Node):
-    def __init__(self, context_year, context_month):
+    def __init__(self, context_year, context_month, label_text):
         self.context_year = context_year
         self.context_month = context_month
+        self.label_text = label_text
         self.year_name = "_year"
         self.month_name = "_month"
 
@@ -42,7 +48,7 @@ class GenerateFilterTag(template.Node):
         current_year = context.get(self.context_year, None)
         current_month = context.get(self.context_month, None)
         if year_list and current_year and current_month:
-            nodes.append(u"<span>対象年月：</span>")
+            nodes.append(u"<label for='{1}'>{0}：</label>".format(self.label_text, self.year_name))
             nodes.append(u'<select id="{0}" name="{0}">'.format(self.year_name))
             for y in year_list:
                 if "%04d" % y == current_year:

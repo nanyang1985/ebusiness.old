@@ -102,7 +102,7 @@ subcontractor_patterns = [
         name='subcontractor_detail'),
     url(r'^members/(?P<subcontractor_id>[0-9]+).html$', views.SubcontractorMembersView.as_view(),
         name='subcontractor_members'),
-    url(r'^members.html$', views.BusinessPartnerMembersView.as_view(), name='business_partner_members'),
+    url(r'^bp_contracts.html$', views.BpContractsView.as_view(), name='business_partner_members'),
     url(r'^(?P<member_id>[0-9]+)/order_info\.html$', views.BpMemberOrdersView.as_view(), name='bp_member_orders'),
     url(r'^(?P<project_member_id>[0-9]+)/order/(?P<year>[0-9]{4})/(?P<month>[0-9]{2})\.html$',
         views.BpMemberOrderDetailView.as_view(), {'preview': True}, name='bp_member_order_preview'),

@@ -100,7 +100,8 @@ class BpContractAdmin(BaseAdmin):
     list_display = ['member', 'company', 'start_date', 'end_date', 'is_hourly_pay', 'allowance_base']
     search_fields = ('member__first_name', 'member__last_name', 'company')
     fieldsets = (
-        (None, {'fields': (('member', 'company'),
+        (None, {'fields': ('contract_type',
+                           ('member', 'company'),
                            'start_date',
                            'end_date',
                            ('is_hourly_pay', 'is_fixed_cost', 'is_show_formula'),
@@ -118,19 +119,24 @@ class BpContractAdmin(BaseAdmin):
     class Media:
         css = {'all': ('/static/admin/css/custom_base.css',)
                }
-        js = ('/static/admin/js/calc_contract.js',)
+        js = ('/static/admin/js/calc_contract.js',
+              '/static/admin/js/filterlist.js',
+              '/static/admin/js/select_filter.js')
 
     def get_form(self, request, obj=None, **kwargs):
         form = super(BpContractAdmin, self).get_form(request, obj, **kwargs)
         member_id = request.GET.get('member_id')
         try:
-            if obj is None:
+            if obj is None and member_id:
                 member = sales_models.Member.objects.get(pk=member_id)
                 form.base_fields['member'].initial = member
                 # 追加の場合、会社は１個前の契約の会社を選択する。
                 contract_set = models.BpContract.objects.public_filter(member=member).order_by('-start_date')
                 if contract_set.count() > 0:
                     form.base_fields['company'].initial = contract_set[0].company
+                    # 開始日は前回の契約の終了日の次の日とする。
+                    if contract_set[0].end_date:
+                        form.base_fields['start_date'].initial = common.add_days(contract_set[0].end_date, 1)
         except (ObjectDoesNotExist, MultipleObjectsReturned):
             pass
         return form

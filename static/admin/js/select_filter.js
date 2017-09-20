@@ -51,6 +51,7 @@ $(document).ready(function() {
     replaceToFilter("id_member", "input_member");
     replaceToFilter("id_client", "input_client");
     replaceToFilter("id_subcontractor", "input_subcontractor");
+//    replaceToFilter('id_company', "input_company");
 
 //    replaceToFilterForSubRow("dynamic-projectmember_set", "field-member")
 });

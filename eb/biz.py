@@ -10,7 +10,7 @@ import StringIO
 import pandas as pd
 
 from django.db import connection
-from django.db.models import Q, Max, Prefetch, Count, Case, When, IntegerField
+from django.db.models import Q, Max, Prefetch, Count, Case, When, IntegerField, Subquery, OuterRef, BigIntegerField
 from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
 from django.contrib.humanize.templatetags import humanize
@@ -199,18 +199,6 @@ def get_members_by_section(all_members, section_id):
                               membersectionperiod__is_deleted=False)
 
 
-def get_members_by_salesperson(all_members, salesperson_id):
-    if not salesperson_id:
-        return all_members
-    today = datetime.date.today()
-    return all_members.filter((Q(membersalespersonperiod__start_date__lte=today) &
-                               Q(membersalespersonperiod__end_date__isnull=True)) |
-                              (Q(membersalespersonperiod__start_date__lte=today) &
-                               Q(membersalespersonperiod__end_date__gte=today)),
-                              membersalespersonperiod__salesperson__pk=salesperson_id,
-                              membersalespersonperiod__is_deleted=False)
-
-
 def get_project_members_by_section(project_members, section_id, date):
     return project_members.filter((Q(member__membersectionperiod__start_date__lte=date) &
                                    Q(member__membersectionperiod__end_date__isnull=date)) |
@@ -338,13 +326,34 @@ def get_business_partner_members():
     )
 
 
-def get_business_partner_members_with_contract():
-    queryset = get_business_partner_members()
-    contract_set = contract_models.BpContract.objects.public_all().order_by('-start_date')
+def get_bp_latest_contracts():
+    """ＢＰの最新の契約一覧を取得する
 
-    return queryset.prefetch_related(
-        Prefetch('bpcontract_set', queryset=contract_set, to_attr='latest_contract_set'),
-    )
+    :return:
+    """
+    query_set = contract_models.ViewLatestBpContract.objects.all()
+    return query_set
+
+
+def get_bp_contract(member, year, month):
+    """指定メンバーと指定年月でＢＰ契約を取得する。
+
+    :param member:
+    :param year:
+    :param month:
+    :return:
+    """
+    try:
+        first_day = common.get_first_day_from_ym("%04d%02d" % (int(year), int(month)))
+        last_day = common.get_last_day_by_month(first_day)
+        bp_contract = contract_models.BpContract.objects.get(
+            Q(end_date__gte=first_day) | Q(end_date__isnull=True),
+            member=member,
+            start_date__lte=last_day,
+        )
+    except (ObjectDoesNotExist, MultipleObjectsReturned):
+        bp_contract = None
+    return bp_contract
 
 
 def get_organization_turnover(year, month, section=None, param_dict=None, order_list=None):
@@ -631,7 +640,8 @@ def get_user_profile(user):
     return None
 
 
-def generate_bp_order_data(project_member, year, month, contract, user, bp_order, publish_date=None):
+def generate_bp_order_data(project_member, year, month, contract, user, bp_order,
+                           publish_date=None, end_year=None, end_month=None):
     """ＢＰ注文書を作成するためのデータを取得する。
 
     :param project_member:
@@ -640,18 +650,35 @@ def generate_bp_order_data(project_member, year, month, contract, user, bp_order
     :param contract:
     :param user:
     :param bp_order:
-    :param publish_date
+    :param publish_date:
+    :param end_year:
+    :param end_month:
     :return:
     """
+    if not end_year or not end_month:
+        end_year = year
+        end_month = month
+    elif '%04d%02d' % (int(year), int(month)) > '%04d%02d' % (int(end_year), int(end_month)):
+        # 終了年月は開始年月の前の場合エラーとする。
+        raise errors.CustomException(u"終了年月「%s年%s月」は不正です、開始年月以降に選択してください。" % (end_year, end_month))
     if not contract:
         raise errors.CustomException(constants.ERROR_BP_NO_CONTRACT)
+    elif contract.end_date and contract.end_date < common.get_last_day_by_month(
+            datetime.date(int(end_year), int(end_month), 1)):
+        # 注文書の終了年月はＢＰ契約の終了日以降の場合、エラーとする
+        raise errors.CustomException(u"契約は指定年月「%s年%s月」前にすでに終了しました。" % (end_year, end_month))
     company = get_company()
+    data = {'DETAIL': {}}
+    data['DETAIL']['YM'] = '%04d%02d' % (int(year), int(month))
+    data['DETAIL']['END_YM'] = '%04d%02d' % (int(end_year), int(end_month))
+    data['DETAIL']['INTERVAL'] = interval = (int(end_year) * 12 + int(end_month)) - (int(year) * 12 + int(month))
     first_day = datetime.date(int(year), int(month), 1)
     if project_member.start_date > first_day:
         first_day = project_member.start_date
-    last_day = common.get_last_day_by_month(first_day)
-    data = {'DETAIL': {}}
-    data['DETAIL']['YM'] = '%04d%02d' % (int(year), int(month))
+    if interval > 0:
+        last_day = common.get_last_day_by_month(datetime.date(int(end_year), int(end_month), 1))
+    else:
+        last_day = common.get_last_day_by_month(first_day)
     # 発行年月日
     publish_date = common.get_bp_order_publish_date(year, month, publish_date)
     data['DETAIL']['PUBLISH_DATE'] = common.to_wareki(publish_date)
@@ -702,15 +729,18 @@ def generate_bp_order_data(project_member, year, month, contract, user, bp_order
     # 時給
     data['DETAIL']['IS_HOURLY_PAY'] = contract.is_hourly_pay
     # 基本給
-    allowance_base = humanize.intcomma(contract.allowance_base + contract.allowance_other) if contract else ''
-    if contract.allowance_base_memo:
+    allowance_base = contract.get_cost()
+    if contract.allowance_base_memo and interval == 0:
         allowance_base_memo = contract.allowance_base_memo
     elif contract.is_hourly_pay:
-        allowance_base_memo = u"時間単価：¥%s/h  (消費税を含まない)" % allowance_base
+        allowance_base_memo = u"時間単価：¥%s/h  (消費税を含まない)" % humanize.intcomma(allowance_base)
     elif contract.is_fixed_cost:
-        allowance_base_memo = u"月額基本料金：¥%s円/月  (固定、税金抜き)" % allowance_base
+        allowance_base_memo = u"月額基本料金：¥%s円/月  (固定、税金抜き)" % humanize.intcomma(allowance_base)
     else:
-        allowance_base_memo = u"月額基本料金：¥%s円/月  (税金抜き)" % allowance_base
+        # 注文書は２か月以上の場合月額基本料金も２か月分以上
+        if interval > 0:
+            allowance_base *= (interval + 1)
+        allowance_base_memo = u"月額基本料金：¥%s円/月  (税金抜き)" % humanize.intcomma(allowance_base)
     data['DETAIL']['ALLOWANCE_BASE'] = allowance_base
     data['DETAIL']['ALLOWANCE_BASE_MEMO'] = allowance_base_memo
     # 固定

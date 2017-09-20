@@ -1,0 +1,119 @@
+{% extends theme|add:"/base.html" %}
+{% load humanize %}
+{% load sales_templates %}
+
+{% block header %}
+    <script type="text/javascript">
+        window.onload = function() {
+            init_select("member__first_name__icontains");
+            init_select("member__last_name__icontains");
+            init_select("company__name__icontains");
+            init_select("is_retired");
+            init_select("salesperson");
+        };
+    </script>
+{% endblock %}
+
+{% block content %}
+    <div class="dashboard">
+        <div class="dashboard-title">{{ title }}</div>
+        <form action="" method="get">
+            <label for="member__first_name__icontains">姓: </label><input type="text" id="member__first_name__icontains" name="member__first_name__icontains" style="width: 50px;"/>
+            <label for="member__last_name__icontains">名: </label><input type="text" id="member__last_name__icontains" name="member__last_name__icontains" style="width: 50px;"/>
+            <label for="company__name__icontains">協力会社: </label><input type="text" id="company__name__icontains" name="company__name__icontains" style="width: 150px;"/>
+            <select id="is_retired" name="is_retired">
+                <option value="">すべて</option>
+                <option value="1">退職</option>
+                <option value="0">未退職</option>
+            </select>
+            <label for="salesperson">営業員:</label>
+            <select id="salesperson" name="salesperson">
+                <option value="">すべて</option>
+                {% for sales in salesperson_list %}
+                    <option value="{{ sales.pk }}">{{ sales }}</option>
+                {% endfor %}
+            </select>
+            <input type="submit" value="Filter" />
+            <a href="{{ request.path }}">クリア</a>
+            <a href="{% url 'contract:contract_bpcontract_add' %}?from=portal&_popup=1&member_id={{member.pk}}" class="button" target="_blank">契約追加</a>
+        </form>
+    </div>
+    <table class="list" cellspacing="0" cellpadding="0">
+        <thead>
+            <tr>
+                <th>名前</th>
+                <th style="width: 50px;">現在案件</th>
+                <th>案件終了日</th>
+                <th style="width: 100px;">協力会社</th>
+                <th>営業員</th>
+                <th>契約開始日</th>
+                <th>契約終了日</th>
+                <th>コスト</th>
+                <th>基準時間</th>
+                <th>超過単価</th>
+                <th>不足単価</th>
+                <th>今月</th>
+                <th>来月</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for bp_contract in bp_contracts %}
+                <tr class="{% cycle 'row1' 'row2' %}
+                {% if bp_contract.is_retired %}expired{% endif %}
+                {% ifequal bp_contract.project|default:'' '' %}expired{% endifequal %}">
+                    <td><a href="{% url 'bp_member_orders' bp_contract.member.pk %}">{{ bp_contract.member }}</a></td>
+                    <td class="fixed_cell" style="width: 50px;" title="{{ bp_contract.project }}">
+                        {{ bp_contract.project|default:'&nbsp;' }}</td>
+                    <td>{{ bp_contract.projectmember.end_date|date:'Y-m-d'|default:'' }}</td>
+                    <td class="fixed_cell" style="width: 100px;" title="{{ bp_contract.company }}">{{ bp_contract.company }}</td>
+                    <td>{{ bp_contract.salesperson|default:'' }}</td>
+                    <td>{{ bp_contract.start_date|date:'Y-m-d' }}</td>
+                    <td>{{ bp_contract.end_date|date:'Y-m-d'|default:'' }}</td>
+                    <td class="num">{{ bp_contract.get_cost|intcomma }}</td>
+                    {% if bp_contract.is_retired %}
+                        <td colspan="5" class="num">退職</td>
+                    {% else %}
+                        {% if bp_contract.is_hourly_pay %}
+                            <td colspan="3" class="center">時給</td>
+                        {% elif bp_contract.is_fixed_cost %}
+                            <td colspan="3" class="center">固定</td>
+                        {% else %}
+                            <td>{{ bp_contract.allowance_time_min }}-{{ bp_contract.allowance_time_max }}</td>
+                            <td class="num">
+                                {% if bp_contract.allowance_overtime_memo %}
+                                    {{ bp_contract.allowance_overtime_memo|slice:'5:' }}
+                                {% else %}
+                                    ¥{{ bp_contract.get_cost|intcomma }}/{{ bp_contract.calculate_time_max }}h=¥{{ bp_contract.allowance_overtime|intcomma }}/h
+                                {% endif %}
+                            </td>
+                            <td class="num">
+                                {% if bp_contract.allowance_absenteeism_memo %}
+                                    {{ bp_contract.allowance_absenteeism_memo|slice:'5:' }}
+                                {% else %}
+                                    ¥{{ bp_contract.get_cost|intcomma }}/{{ bp_contract.calculate_time_min }}h=¥{{ bp_contract.allowance_absenteeism|intcomma }}/h
+                                {% endif %}
+                            </td>
+                        {% endif %}
+                        <td class="center">
+                            {% if bp_contract.current_bp_order %}
+                                <img width="12px" src="/static/{{ theme }}/img/icon-normal.png"/>
+                            {% endif %}
+                        </td>
+                        <td class="center">
+                            {% if bp_contract.next_bp_order %}
+                                <img width="12px" src="/static/{{ theme }}/img/icon-normal.png"/>
+                            {% endif %}
+                        </td>
+                    {% endif %}
+                </tr>
+            {% endfor %}
+        </tbody>
+        <tfoot>
+            <tr>
+                <td colspan="13">
+                    {% paging bp_contracts %}
+                </td>
+            </tr>
+        </tfoot>
+    </table>
+{% endblock %}

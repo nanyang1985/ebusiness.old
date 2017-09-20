@@ -17,6 +17,7 @@ mysql -u root -proot eb_sales < 114.v_sales_member.sql
 mysql -u root -proot eb_sales < 115.v_release_list.sql
 mysql -u root -proot eb_sales < 116.v_salesperson_status.sql
 mysql -u root -proot eb_sales < 117.v_status_monthly.sql
+mysql -u root -proot eb_sales < 118.v_latest_bp_contract.sql
 mysql -u root -proot eb_sales < 201.sp_organization_cost.sql
 mysql -u root -proot eb_sales < 202.sp_organization_turnover.sql
 mysql -u root -proot eb_sales < 203.sp_sales_member.sql

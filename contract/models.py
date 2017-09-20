@@ -7,13 +7,14 @@ Created on 2017/04/24
 from __future__ import unicode_literals
 import datetime
 import re
+import math
 
 from django.db import models
 from django.contrib.humanize.templatetags import humanize
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 
-from eb.models import Member, Config, Company, Subcontractor, BatchManage
+from eb.models import Member, Config, Company, Subcontractor, Project, ProjectMember, Salesperson, BpMemberOrder
 from utils import constants, common
 
 
@@ -280,6 +281,7 @@ class ContractRecipient(BaseModel):
 
 
 class BpContract(BaseModel):
+    contract_type = models.CharField(max_length=2, default='02', choices=constants.CHOICE_BP_CONTRACT_TYPE, verbose_name=u"契約形態")
     member = models.ForeignKey(Member, verbose_name=u"社員")
     company = models.ForeignKey(Subcontractor, on_delete=models.PROTECT, verbose_name=u"雇用会社")
     member_type = models.IntegerField(default=4, editable=False, choices=constants.CHOICE_MEMBER_TYPE,
@@ -353,15 +355,20 @@ class BpContract(BaseModel):
 
     def get_allowance_time_memo(self, year, month):
         allowance_time_min = self.get_allowance_time_min(year, month)
+        float_part, int_part = math.modf(self.allowance_time_max)
+        if float_part == 0.0:
+            allowance_time_max = int(int_part)
+        else:
+            allowance_time_max = self.allowance_time_max
         if self.is_hourly_pay or self.is_fixed_cost:
             allowance_time_memo = ''
         elif self.calculate_type in ('01', '02', '03'):
-            allowance_time_memo = u"※基準時間：%s～%sh/月" % (allowance_time_min, self.allowance_time_max)
+            allowance_time_memo = u"※基準時間：%s～%sh/月" % (allowance_time_min, allowance_time_max)
         else:
             if self.allowance_time_memo:
                 allowance_time_memo = self.allowance_time_memo
             else:
-                allowance_time_memo = u"※基準時間：%s～%sh/月" % (allowance_time_min, self.allowance_time_max)
+                allowance_time_memo = u"※基準時間：%s～%sh/月" % (allowance_time_min, allowance_time_max)
         return allowance_time_memo
 
     def get_allowance_absenteeism(self, year, month):
@@ -579,3 +586,66 @@ class ViewContract(models.Model):
             return int(cost * 14)
         else:
             return cost * 12
+
+
+class ViewLatestBpContract(models.Model):
+    contract_type = models.CharField(max_length=2, default='03', choices=constants.CHOICE_BP_CONTRACT_TYPE, verbose_name=u"契約形態")
+    member = models.ForeignKey(Member, verbose_name=u"社員")
+    company = models.ForeignKey(Subcontractor, on_delete=models.PROTECT, verbose_name=u"雇用会社")
+    member_type = models.IntegerField(default=4, editable=False, choices=constants.CHOICE_MEMBER_TYPE,
+                                      verbose_name=u"雇用形態")
+    start_date = models.DateField(verbose_name=u"雇用開始日")
+    end_date = models.DateField(blank=True, null=True, verbose_name=u"雇用終了日")
+    is_hourly_pay = models.BooleanField(default=False, verbose_name=u"時給")
+    is_fixed_cost = models.BooleanField(default=False, verbose_name=u"固定")
+    is_show_formula = models.BooleanField(default=True, verbose_name=u"計算式",
+                                          help_text=u"注文書に超過単価と不足単価の計算式を表示するか")
+    allowance_base = models.IntegerField(verbose_name=u"基本給")
+    allowance_base_memo = models.CharField(max_length=255, blank=True, null=True, verbose_name=u"基本給メモ")
+    allowance_time_min = models.DecimalField(default=160, max_digits=5, decimal_places=2, verbose_name=u"時間下限",
+                                             help_text=u"足りないなら欠勤となる")
+    allowance_time_max = models.DecimalField(default=200, max_digits=5, decimal_places=2, verbose_name=u"時間上限",
+                                             help_text=u"超えたら残業となる")
+    allowance_time_memo = models.CharField(max_length=255, blank=True, null=True,
+                                           default=u"※基準時間：160～200/月", verbose_name=u"基準時間メモ")
+    calculate_type = models.CharField(default='99', max_length=2, choices=constants.CHOICE_CALCULATE_TYPE,
+                                      verbose_name=u"計算種類")
+    business_days = models.IntegerField(blank=True, null=True, verbose_name=u"営業日数")
+    calculate_time_min = models.DecimalField(blank=True, null=True, default=160, max_digits=5, decimal_places=2,
+                                             verbose_name=u"計算用下限", help_text=u"欠勤手当を算出ために使われます。")
+    calculate_time_max = models.DecimalField(blank=True, null=True, default=200, max_digits=5, decimal_places=2,
+                                             verbose_name=u"計算用上限", help_text=u"残業手当を算出ために使われます。")
+    allowance_overtime = models.IntegerField(default=0, verbose_name=u"残業手当")
+    allowance_overtime_memo = models.CharField(max_length=255, blank=True, null=True, verbose_name=u"残業手当メモ")
+    allowance_absenteeism = models.IntegerField(default=0, verbose_name=u"欠勤手当")
+    allowance_absenteeism_memo = models.CharField(max_length=255, blank=True, null=True, verbose_name=u"欠勤手当メモ")
+    allowance_other = models.IntegerField(default=0, verbose_name=u"その他手当")
+    allowance_other_memo = models.CharField(max_length=255, blank=True, null=True, verbose_name=u"その他手当メモ")
+    status = models.CharField(max_length=2, default='01', choices=constants.CHOICE_CONTRACT_STATUS,
+                              verbose_name=u"契約状態")
+    comment = models.TextField(blank=True, null=True,  verbose_name=u"備考")
+    is_retired = models.BooleanField(blank=False, null=False, default=False, verbose_name=u"退職")
+    project = models.ForeignKey(Project, blank=True, null=True, verbose_name=u"案件")
+    projectmember = models.ForeignKey(ProjectMember, blank=True, null=True, verbose_name=u"案件メンバー")
+    salesperson = models.ForeignKey(Salesperson, blank=True, null=True, verbose_name=u"営業員")
+    current_bp_order = models.ForeignKey(BpMemberOrder, related_name='current_bp_order_set', blank=True, null=True,
+                                         verbose_name=u"今月注文書")
+    next_bp_order = models.ForeignKey(BpMemberOrder, related_name='next_bp_order_set', blank=True, null=True,
+                                      verbose_name=u"来月注文書")
+
+    class Meta:
+        managed = False
+        db_table = 'v_latest_bp_contract'
+        ordering = ['member']
+        default_permissions = ()
+
+    def __unicode__(self):
+        return unicode(self.member)
+
+    def get_cost(self):
+        """コストを取得する
+
+        :return:
+        """
+        cost = self.allowance_base + self.allowance_other
+        return cost

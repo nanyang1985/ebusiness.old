@@ -1601,36 +1601,31 @@ class SubcontractorMembersView(BaseTemplateView):
 
 
 @method_decorator(permission_required('eb.view_subcontractor', raise_exception=True), name='get')
-class BusinessPartnerMembersView(BaseTemplateView):
-    template_name = 'default/bp_member_list.html'
+class BpContractsView(BaseTemplateView):
+    template_name = 'default/bp_contracts.html'
 
     def get_context_data(self, **kwargs):
-        context = super(BusinessPartnerMembersView, self).get_context_data(**kwargs)
+        context = super(BpContractsView, self).get_context_data(**kwargs)
         request = kwargs.get('request')
-        salesperson_id = request.GET.get('salesperson', None)
 
         param_dict, params = common.get_request_params(request.GET)
 
-        if 'salesperson' in param_dict:
-            del param_dict['salesperson']
-
-        all_members = biz.get_business_partner_members_with_contract()
+        bp_contracts = biz.get_bp_latest_contracts()
         if param_dict:
-            all_members = all_members.filter(**param_dict)
-        if salesperson_id:
-            all_members = biz.get_members_by_salesperson(all_members, salesperson_id)
+            bp_contracts = bp_contracts.filter(**param_dict)
 
-        paginator = Paginator(all_members, biz_config.get_page_size())
+        paginator = Paginator(bp_contracts, biz_config.get_page_size())
         page = request.GET.get('page')
         try:
-            members = paginator.page(page)
+            bp_contracts = paginator.page(page)
         except PageNotAnInteger:
-            members = paginator.page(1)
+            bp_contracts = paginator.page(1)
         except EmptyPage:
-            members = paginator.page(paginator.num_pages)
+            bp_contracts = paginator.page(paginator.num_pages)
 
         context.update({
-            'members': members,
+            'title': u"ＢＰ契約一覧",
+            'bp_contracts': bp_contracts,
             'salesperson_list': models.Salesperson.objects.public_all(),
             'paginator': paginator,
             'params': params,
@@ -1650,6 +1645,8 @@ class BpMemberOrdersView(BaseTemplateView):
             'title': u"%s | ＢＰ注文書" % unicode(member),
             'member': member,
             'project_members': project_members,
+            'year_list': common.get_year_list(),
+            'month_list': common.get_month_list3(),
         })
         return context
 
@@ -1669,7 +1666,7 @@ class BpMemberOrderDetailView(BaseTemplateView):
             bp_order = models.BpMemberOrder.get_next_bp_order(project_member, year, month)
             error_message = u""
             try:
-                contract = project_member.member.get_contract(datetime.date(int(year), int(month), 20))
+                contract = biz.get_bp_contract(project_member.member, year, month)
                 data = biz.generate_bp_order_data(project_member, year, month, contract, request.user, bp_order)
             except Exception as ex:
                 data = None
@@ -1784,9 +1781,12 @@ class DownloadBpMemberOrder(BaseView):
         year = kwargs.get('year')
         month = kwargs.get('month')
         publish_date = request.GET.get('publish_date', None)
+        end_year = request.GET.get('end_year', None)
+        end_month = request.GET.get('end_month', None)
         is_request = kwargs.get('is_request')
         try:
-            bp_order = models.BpMemberOrder.get_next_bp_order(project_member, year, month, publish_date=publish_date)
+            bp_order = models.BpMemberOrder.get_next_bp_order(project_member, year, month, publish_date=publish_date,
+                                                              end_year=end_year, end_month=end_month)
             overwrite = request.GET.get("overwrite", None)
             if overwrite:
                 if is_request:
@@ -1794,7 +1794,7 @@ class DownloadBpMemberOrder(BaseView):
                 else:
                     filename = bp_order.filename if bp_order.filename else 'None'
                 path = os.path.join(settings.GENERATED_FILES_ROOT, "partner_order",
-                                    '%04d%02d' % (int(year), int(month)), filename)
+                                    '%04d%02d' % (int(bp_order.year), int(bp_order.month)), filename)
                 if not os.path.exists(path):
                     # ファイルが存在しない場合、エラーとする。
                     raise errors.FileNotExistException(constants.ERROR_BP_ORDER_FILE_NOT_EXISTS)
@@ -1805,9 +1805,9 @@ class DownloadBpMemberOrder(BaseView):
                                             CHANGE,
                                             u"ファイルをダウンロードしました：%s" % filename)
             else:
-                contract = project_member.member.get_contract(datetime.date(int(year), int(month), 20))
+                contract = biz.get_bp_contract(project_member.member, year, month)
                 data = biz.generate_bp_order_data(project_member, year, month, contract, request.user, bp_order,
-                                                  publish_date=publish_date)
+                                                  publish_date=publish_date, end_year=end_year, end_month=end_month)
                 template_path = common.get_template_order_path(contract, is_request)
                 path = file_gen.generate_order(data=data, template_path=template_path, is_request=is_request)
                 filename = os.path.basename(path)

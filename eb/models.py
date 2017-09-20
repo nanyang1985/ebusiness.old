@@ -19,6 +19,7 @@ from django.db import models, connection
 from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
 from django.db.models import Max, Min, Q, Sum, Prefetch, Subquery, OuterRef
+from django.db.models.functions import Concat
 from django.utils import timezone
 from django.utils.encoding import smart_str
 from django.template import Context, Template
@@ -313,6 +314,14 @@ class Config(models.Model):
     @staticmethod
     def get_bp_attendance_type():
         return Config.get(constants.CONFIG_BP_ATTENDANCE_TYPE, '2', group_name=constants.CONFIG_GROUP_SYSTEM)
+
+    @classmethod
+    def get_year_list_start(cls):
+        return Config.get(constants.CONFIG_YEAR_LIST_START, '2015', group_name=constants.CONFIG_GROUP_SYSTEM)
+
+    @classmethod
+    def get_year_list_end(cls):
+        return Config.get(constants.CONFIG_YEAR_LIST_END, '2025', group_name=constants.CONFIG_GROUP_SYSTEM)
 
 
 class BaseModel(models.Model):
@@ -1389,20 +1398,6 @@ class Member(AbstractMember):
         else:
             return "0001"
 
-    def get_current_month_bp_order(self):
-        today = datetime.date.today()
-        queryset = BpMemberOrder.objects.public_filter(project_member__member=self,
-                                                       year=today.year,
-                                                       month="%02d" % today.month)
-        return queryset
-
-    def get_next_month_bp_order(self):
-        next_month = common.add_months(datetime.date.today(), 1)
-        queryset = BpMemberOrder.objects.public_filter(project_member__member=self,
-                                                       year=next_month.year,
-                                                       month="%02d" % next_month.month)
-        return queryset
-
     def delete(self, using=None, keep_parents=False):
         self.is_deleted = True
         self.deleted_date = datetime.datetime.now()
@@ -1906,6 +1901,8 @@ class ClientOrder(BaseModel):
     end_date = models.DateField(default=timezone.now, verbose_name=u"終了日")
     order_no = models.CharField(max_length=20, verbose_name=u"注文番号")
     order_date = models.DateField(blank=False, null=True, verbose_name=u"注文日")
+    contract_type = models.CharField(max_length=2, blank=False, null=True,
+                                     choices=constants.CHOICE_CLIENT_CONTRACT_TYPE, verbose_name=u"契約形態")
     bank_info = models.ForeignKey(BankInfo, blank=False, null=True, on_delete=models.PROTECT, verbose_name=u"振込先口座")
     order_file = models.FileField(blank=True, null=True, upload_to=get_client_order_path, verbose_name=u"注文書")
     member_comma_list = models.CharField(max_length=255, blank=True, null=True, editable=False,
@@ -2389,7 +2386,11 @@ class ProjectMember(models.Model):
                 # 来月以降だったら、表示する必要ないので、スキップする。
                 continue
             try:
-                order = BpMemberOrder.objects.get(project_member=self, year=date.year, month='%02d' % date.month)
+                order = BpMemberOrder.objects.annotate(
+                    ym_start=Concat('year', 'month', output_field=models.CharField()),
+                    ym_end=Concat('end_year', 'end_month', output_field=models.CharField()),
+                ).get(project_member=self, ym_start__lte='%04d%02d' % (date.year, date.month),
+                      ym_end__gte='%04d%02d' % (date.year, date.month))
             except (ObjectDoesNotExist, MultipleObjectsReturned):
                 order = None
             days = common.get_business_days(date.year, date.month)
@@ -2994,8 +2995,11 @@ class BpMemberOrder(BaseModel):
     subcontractor = models.ForeignKey(Subcontractor, on_delete=models.PROTECT, verbose_name=u"協力会社")
     order_no = models.CharField(max_length=14, unique=True, verbose_name=u"注文番号")
     year = models.CharField(max_length=4, default=str(datetime.date.today().year),
-                            choices=constants.CHOICE_ATTENDANCE_YEAR, verbose_name=u"対象年")
-    month = models.CharField(max_length=2, choices=constants.CHOICE_ATTENDANCE_MONTH, verbose_name=u"対象月")
+                            choices=constants.CHOICE_ATTENDANCE_YEAR, verbose_name=u"開始年")
+    month = models.CharField(max_length=2, choices=constants.CHOICE_ATTENDANCE_MONTH, verbose_name=u"開始月")
+    end_year = models.CharField(max_length=4, blank=False, null=True,
+                                choices=constants.CHOICE_ATTENDANCE_YEAR, verbose_name=u"終了年")
+    end_month = models.CharField(max_length=2, blank=False, null=True, verbose_name=u"終了月")
     filename = models.CharField(max_length=255, blank=True, null=True, verbose_name=u"注文書ファイル名")
     filename_request = models.CharField(max_length=255, blank=True, null=True, verbose_name=u"注文請書")
     created_user = models.ForeignKey(User, related_name='created_orders', null=True, on_delete=models.PROTECT,
@@ -3011,26 +3015,36 @@ class BpMemberOrder(BaseModel):
         return u"%s(%s)" % (unicode(self.project_member.member), self.order_no)
 
     @classmethod
-    def get_next_bp_order(cls, project_member, year, month, publish_date=None):
+    def get_next_bp_order(cls, project_member, year, month, publish_date=None, end_year=None, end_month=None):
         """指定メンバー、年月によって、注文情報を取得する。
 
         :param project_member:
         :param year:
         :param month:
         :param publish_date:
+        :param end_year:
+        :param end_month:
         :return:
         """
         try:
-            order = BpMemberOrder.objects.get(project_member=project_member,
-                                              year=year,
-                                              month="%02d" % int(month))
+            order = BpMemberOrder.objects.annotate(
+                ym_start=Concat('year', 'month', output_field=models.CharField()),
+                ym_end=Concat('end_year', 'end_month', output_field=models.CharField()),
+            ).get(project_member=project_member,
+                  ym_start__lte='%04d%02d' % (int(year), int(month)),
+                  ym_end__gte='%04d%02d' % (int(year), int(month)))
         except ObjectDoesNotExist:
+            if not end_year or not end_month:
+                end_year = year
+                end_month = month
             salesperson = project_member.member.get_salesperson(datetime.date(int(year), int(month), 20))
             order = BpMemberOrder(project_member=project_member,
                                   subcontractor=project_member.member.subcontractor,
                                   order_no=BpMemberOrder.get_next_order_no(salesperson, year, month, publish_date),
                                   year=year,
-                                  month="%02d" % int(month))
+                                  month="%02d" % int(month),
+                                  end_year='%04d' % int(end_year),
+                                  end_month='%02d' % int(end_month))
         return order
 
     @classmethod
