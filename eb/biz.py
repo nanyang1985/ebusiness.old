@@ -683,28 +683,28 @@ def generate_bp_order_data(project_member, year, month, contract, user, bp_order
     publish_date = common.get_bp_order_publish_date(year, month, publish_date)
     data['DETAIL']['PUBLISH_DATE'] = common.to_wareki(publish_date)
     # 下請け会社名
-    data['DETAIL']['SUBCONTRACTOR_NAME'] = project_member.member.subcontractor.name
+    data['DETAIL']['SUBCONTRACTOR_NAME'] = contract.company.name
     # 下請け会社郵便番号
-    if project_member.member.subcontractor.post_code and len(project_member.member.subcontractor.post_code) == 7:
-        post_code = project_member.member.subcontractor.post_code[:3] + '-' + \
-                    project_member.member.subcontractor.post_code[3:]
+    if contract.company.post_code and len(contract.company.post_code) == 7:
+        post_code = contract.company.post_code[:3] + '-' + \
+                    contract.company.post_code[3:]
     else:
         post_code = ''
     data['DETAIL']['SUBCONTRACTOR_POST_CODE'] = post_code
     # 下請け会社住所
-    data['DETAIL']['SUBCONTRACTOR_ADDRESS1'] = project_member.member.subcontractor.address1
-    data['DETAIL']['SUBCONTRACTOR_ADDRESS2'] = project_member.member.subcontractor.address2
+    data['DETAIL']['SUBCONTRACTOR_ADDRESS1'] = contract.company.address1
+    data['DETAIL']['SUBCONTRACTOR_ADDRESS2'] = contract.company.address2
     # 下請け会社電話番号
-    data['DETAIL']['SUBCONTRACTOR_TEL'] = project_member.member.subcontractor.tel
+    data['DETAIL']['SUBCONTRACTOR_TEL'] = contract.company.tel
     # 下請け会社ファックス
-    data['DETAIL']['SUBCONTRACTOR_FAX'] = project_member.member.subcontractor.fax
+    data['DETAIL']['SUBCONTRACTOR_FAX'] = contract.company.fax
     # 委託業務責任者（乙）
-    data['DETAIL']['SUBCONTRACTOR_MASTER'] = project_member.member.subcontractor.president
+    data['DETAIL']['SUBCONTRACTOR_MASTER'] = contract.company.president
     # 連絡窓口担当者（甲）
     salesperson = project_member.member.get_salesperson(datetime.date(int(year), int(month), 20))
     data['DETAIL']['MIDDLEMAN'] = unicode(salesperson) if salesperson else ''
     # 連絡窓口担当者（乙）
-    data['DETAIL']['SUBCONTRACTOR_MIDDLEMAN'] = project_member.member.subcontractor.middleman
+    data['DETAIL']['SUBCONTRACTOR_MIDDLEMAN'] = contract.company.middleman
     # 作成者
     create_user = get_user_profile(user)
     data['DETAIL']['AUTHOR_FIRST_NAME'] = create_user.first_name if create_user else ''
@@ -735,6 +735,9 @@ def generate_bp_order_data(project_member, year, month, contract, user, bp_order
     elif contract.is_hourly_pay:
         allowance_base_memo = u"時間単価：¥%s/h  (消費税を含まない)" % humanize.intcomma(allowance_base)
     elif contract.is_fixed_cost:
+        # 注文書は２か月以上の場合月額基本料金も２か月分以上
+        if interval > 0:
+            allowance_base *= (interval + 1)
         allowance_base_memo = u"月額基本料金：¥%s円/月  (固定、税金抜き)" % humanize.intcomma(allowance_base)
     else:
         # 注文書は２か月以上の場合月額基本料金も２か月分以上

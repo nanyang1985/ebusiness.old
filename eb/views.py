@@ -10,6 +10,7 @@ import json
 import os
 import urllib
 import operator
+import traceback
 
 from django.conf import settings
 from django.contrib import admin
@@ -1663,13 +1664,14 @@ class BpMemberOrderDetailView(BaseTemplateView):
             project_member = get_object_or_404(models.ProjectMember, pk=project_member_id)
             year = kwargs.get('year')
             month = kwargs.get('month')
-            bp_order = models.BpMemberOrder.get_next_bp_order(project_member, year, month)
             error_message = u""
+            contract = biz.get_bp_contract(project_member.member, year, month)
+            bp_order = models.BpMemberOrder.get_next_bp_order(contract.company, project_member, year, month)
             try:
-                contract = biz.get_bp_contract(project_member.member, year, month)
                 data = biz.generate_bp_order_data(project_member, year, month, contract, request.user, bp_order)
             except Exception as ex:
                 data = None
+                common.get_sales_logger().error(traceback.format_exc())
                 error_message = ex.message if ex.message else unicode(ex)
             context.update({
                 'data': data,
@@ -1785,7 +1787,9 @@ class DownloadBpMemberOrder(BaseView):
         end_month = request.GET.get('end_month', None)
         is_request = kwargs.get('is_request')
         try:
-            bp_order = models.BpMemberOrder.get_next_bp_order(project_member, year, month, publish_date=publish_date,
+            contract = biz.get_bp_contract(project_member.member, year, month)
+            bp_order = models.BpMemberOrder.get_next_bp_order(contract.company, project_member, year, month,
+                                                              publish_date=publish_date,
                                                               end_year=end_year, end_month=end_month)
             overwrite = request.GET.get("overwrite", None)
             if overwrite:
@@ -1805,7 +1809,6 @@ class DownloadBpMemberOrder(BaseView):
                                             CHANGE,
                                             u"ファイルをダウンロードしました：%s" % filename)
             else:
-                contract = biz.get_bp_contract(project_member.member, year, month)
                 data = biz.generate_bp_order_data(project_member, year, month, contract, request.user, bp_order,
                                                   publish_date=publish_date, end_year=end_year, end_month=end_month)
                 template_path = common.get_template_order_path(contract, is_request)

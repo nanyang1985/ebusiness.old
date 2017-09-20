@@ -3015,9 +3015,11 @@ class BpMemberOrder(BaseModel):
         return u"%s(%s)" % (unicode(self.project_member.member), self.order_no)
 
     @classmethod
-    def get_next_bp_order(cls, project_member, year, month, publish_date=None, end_year=None, end_month=None):
+    def get_next_bp_order(cls, subcontractor, project_member, year, month,
+                          publish_date=None, end_year=None, end_month=None):
         """指定メンバー、年月によって、注文情報を取得する。
 
+        :param subcontractor:
         :param project_member:
         :param year:
         :param month:
@@ -3039,7 +3041,7 @@ class BpMemberOrder(BaseModel):
                 end_month = month
             salesperson = project_member.member.get_salesperson(datetime.date(int(year), int(month), 20))
             order = BpMemberOrder(project_member=project_member,
-                                  subcontractor=project_member.member.subcontractor,
+                                  subcontractor=subcontractor,
                                   order_no=BpMemberOrder.get_next_order_no(salesperson, year, month, publish_date),
                                   year=year,
                                   month="%02d" % int(month),
