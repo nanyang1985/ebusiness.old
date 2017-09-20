@@ -88,7 +88,7 @@ class ProjectMemberInline(admin.TabularInline):
 
     def get_queryset(self, request):
         queryset = super(ProjectMemberInline, self).get_queryset(request)
-        return queryset.filter(member__is_retired=False, member__is_deleted=False).order_by('end_date', 'start_date')
+        return queryset.filter(member__is_retired=False, member__is_deleted=False).order_by('-end_date', '-start_date')
 
 
 # class ProjectMemberPriceInline(admin.TabularInline):

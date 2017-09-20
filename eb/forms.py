@@ -269,6 +269,7 @@ class ProjectMemberForm(forms.ModelForm):
     class Meta:
         model = models.ProjectMember
         fields = '__all__'
+        exclude = ['stages']
 
     def __init__(self, *args, **kwargs):
         self.request = kwargs.pop('request', None)
