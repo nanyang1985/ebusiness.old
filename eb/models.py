@@ -2395,7 +2395,7 @@ class ProjectMember(models.Model):
                 order = None
             days = common.get_business_days(date.year, date.month)
             orders.append((date.year, date.month, len(days), order,
-                           date.strftime('%Y%m') < common.add_months(today, -1).strftime('%Y%m')))
+                           date.strftime('%Y%m') < common.add_months(today, -2).strftime('%Y%m')))
         return orders
 
     def delete(self, using=None, keep_parents=False):
