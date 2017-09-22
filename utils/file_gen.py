@@ -870,7 +870,7 @@ def generate_pay_notify(data, template_path):
         sheet.cell(row=start_row, column=14).alignment = Alignment(vertical="center")
         sheet.merge_cells(start_row=start_row, start_column=14, end_row=start_row, end_column=16)
         # 諸経費
-        sheet.cell(row=start_row, column=17).value = 0
+        sheet.cell(row=start_row, column=17).value = detail['ITEM_EXPENSES_TOTAL']
         sheet.cell(row=start_row, column=17).number_format = '#,##0'
         sheet.cell(row=start_row, column=17).alignment = Alignment(vertical="center")
         sheet.merge_cells(start_row=start_row, start_column=17, end_row=start_row, end_column=18)
@@ -938,7 +938,7 @@ def generate_pay_notify(data, template_path):
     sheet.cell(row=start_row, column=12).value = '諸経費計'
     sheet.cell(row=start_row, column=12).alignment = Alignment(horizontal="center", vertical="center")
     sheet.merge_cells(start_row=start_row, start_column=12, end_row=start_row, end_column=15)
-    sheet.cell(row=start_row, column=16).value = 0
+    sheet.cell(row=start_row, column=16).value = sum([item['ITEM_EXPENSES_CATEGORY_AMOUNT'] for item in data['EXPENSES']])
     sheet.cell(row=start_row, column=16).alignment = Alignment(vertical="center")
     sheet.cell(row=start_row, column=16).number_format = '#,##0'
     sheet.merge_cells(start_row=start_row, start_column=16, end_row=start_row, end_column=18)
@@ -1455,7 +1455,10 @@ def get_openpyxl_replaced_string(str_format, data):
             replace_value = data.get(replace_item[2:-2], '')
             if not isinstance(replace_value, basestring):
                 replace_value = str(replace_value)
-            replaced_string = replaced_string.replace(replace_item, replace_value if replace_value else '')
+            try:
+                replaced_string = replaced_string.replace(replace_item, replace_value if replace_value else '')
+            except:
+                pass
         return replaced_string
     else:
         return None

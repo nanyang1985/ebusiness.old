@@ -8,6 +8,7 @@ mysql -u root -proot eb_sales < 007.get_overtime_cost.sql
 mysql -u root -proot eb_sales < 008.get_member_status_by_month.sql
 mysql -u root -proot eb_sales < 009.get_member_status_today.sql
 mysql -u root -proot eb_sales < 010.get_member_release_date.sql
+mysql -u root -proot eb_sales < 011.get_bp_expenses.sql
 mysql -u root -proot eb_sales < 101.v_interval_dates.sql
 mysql -u root -proot eb_sales < 102.v_turnover_dates.sql
 mysql -u root -proot eb_sales < 111.v_contract.sql

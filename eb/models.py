@@ -540,7 +540,7 @@ class Subcontractor(AbstractCompany):
         #     projectmember__start_date__lte=last_day,
         #     projectmember__end_date__gte=first_day
         # ).distinct()
-        members = Member.objects.public_filter(
+        members = Member.objects.filter(
             Q(viewcontract__end_date__gte=first_day) | Q(viewcontract__end_date__isnull=True),
             viewcontract__start_date__lte=last_day,
             projectmember__start_date__lte=last_day,
@@ -2708,6 +2708,7 @@ class MemberAttendance(BaseModel):
                                help_text=u"交通費、残業、保険など含む")
     basic_price = models.IntegerField(default=0, editable=False, verbose_name=u"単価")
     total_hours = models.DecimalField(max_digits=5, decimal_places=2, verbose_name=u"合計時間")
+    total_hours_bp = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True, verbose_name=u"ＢＰ作業時間")
     extra_hours = models.DecimalField(max_digits=5, decimal_places=2, default=0, verbose_name=u"残業時間")
     total_days = models.IntegerField(blank=True, null=True, editable=False, verbose_name=u"勤務日数")
     night_days = models.IntegerField(blank=True, null=True, editable=False, verbose_name=u"深夜日数")
@@ -2764,7 +2765,8 @@ class MemberAttendance(BaseModel):
         :return:
         """
         attendance_type = Config.get_bp_attendance_type()
-        return common.get_attendance_total_hours(self.total_hours, attendance_type)
+        total_hours = self.total_hours_bp if self.total_hours_bp else self.total_hours
+        return common.get_attendance_total_hours(total_hours, attendance_type)
 
     def get_cost(self):
         """コストを取得する
@@ -2817,8 +2819,6 @@ class MemberAttendance(BaseModel):
         """
         contract = self.get_contract()
         if contract:
-            if self.project_member.member.employee_id == 'BP01193':
-                pass
             if contract.is_fixed_cost:
                 return 0
             total_hours = self.get_total_hours_cost()
@@ -2990,6 +2990,144 @@ class MemberAttendance(BaseModel):
         super(MemberAttendance, self).save(force_insert, force_update, using, update_fields)
 
 
+class BpLumpOrder(BaseModel):
+    subcontractor = models.ForeignKey(Subcontractor, on_delete=models.PROTECT, verbose_name=u"協力会社")
+    contract = models.OneToOneField('contract.BpLumpContract', on_delete=models.PROTECT, verbose_name=u"契約")
+    order_no = models.CharField(max_length=14, unique=True, verbose_name=u"注文番号")
+    year = models.CharField(max_length=4, default=str(datetime.date.today().year),
+                            choices=constants.CHOICE_ATTENDANCE_YEAR, verbose_name=u"対象年")
+    month = models.CharField(max_length=2, choices=constants.CHOICE_ATTENDANCE_MONTH, verbose_name=u"対象月")
+    amount = models.IntegerField(default=0, verbose_name=u"契約金額")
+    tax_amount = models.IntegerField(default=0, verbose_name=u"消費税")
+    total_amount = models.IntegerField(default=0, verbose_name=u"合計額")
+    filename = models.CharField(max_length=255, blank=True, null=True, verbose_name=u"注文書ファイル名")
+    filename_request = models.CharField(max_length=255, blank=True, null=True, verbose_name=u"注文請書")
+    created_user = models.ForeignKey(User, related_name='created_lump_orders', null=True, on_delete=models.PROTECT,
+                                     editable=False, verbose_name=u"作成者")
+    updated_user = models.ForeignKey(User, related_name='updated_lump_orders', null=True, on_delete=models.PROTECT,
+                                     editable=False, verbose_name=u"更新者")
+
+    class Meta:
+        verbose_name = verbose_name_plural = u"ＢＰ一括註文書"
+
+    def __unicode__(self):
+        return u"%s(%s)" % (unicode(self.subcontractor), self.order_no)
+
+    @classmethod
+    def get_next_bp_order(cls, contract, user, publish_date=None):
+        salesperson = None
+        if publish_date is None:
+            publish_date = datetime.date.today()
+        elif isinstance(publish_date, basestring):
+            publish_date = datetime.datetime.strptime(publish_date, '%Y/%m/%d').date()
+        if hasattr(user, 'salesperson'):
+            salesperson = user.salesperson
+        elif hasattr(user, 'member'):
+            salesperson = user.member
+        lump_order = BpLumpOrder(
+            subcontractor=contract.company,
+            contract=contract,
+            order_no=BpLumpOrder.get_next_order_no(salesperson, publish_date),
+            year='%04d' % publish_date.year,
+            month='%02d' % publish_date.month,
+            amount=contract.allowance_base,
+            tax_amount=contract.allowance_base_tax,
+            total_amount=contract.allowance_base_total,
+        )
+        return lump_order
+
+    @classmethod
+    def get_next_order_no(cls, member, publish_date=None):
+        """注文番号を取得する。
+
+        :param member:
+        :param publish_date:
+        :return:
+        """
+        prefix = '-'
+        date = publish_date if publish_date else datetime.date.today()
+        if member and member.first_name_en:
+            prefix = member.first_name_en[0].upper()
+
+        order_no = "EB{0:04d}{1:02d}{2:02d}{3}".format(date.year, date.month, date.day, prefix)
+        max_order_no = BpLumpOrder.objects.public_filter(order_no__startswith=order_no) \
+            .aggregate(Max('order_no'))
+        max_order_no = max_order_no.get('order_no__max')
+        if max_order_no:
+            index = int(max_order_no[-2:]) + 1
+        else:
+            index = 1
+        return "{0}{1:02d}".format(order_no, index)
+
+    def save(self, force_insert=False, force_update=False, using=None,
+             update_fields=None, data=None, is_request=False):
+        super(BpLumpOrder, self).save(force_insert, force_update, using, update_fields)
+        # 注文書作成時、注文に関する全ての情報を履歴として保存する。
+        if data:
+            # 既存のデータを全部消す。
+            if hasattr(self, 'bplumporderheading'):
+                self.bplumporderheading.delete()
+            heading = BpLumpOrderHeading(bp_order=self,
+                                         publish_date=data['DETAIL'].get('PUBLISH_DATE', None),
+                                         subcontractor_name=data['DETAIL'].get('SUBCONTRACTOR_NAME', None),
+                                         subcontractor_post_code=data['DETAIL'].get('SUBCONTRACTOR_POST_CODE', None),
+                                         subcontractor_address1=data['DETAIL'].get('SUBCONTRACTOR_ADDRESS1', None),
+                                         subcontractor_address2=data['DETAIL'].get('SUBCONTRACTOR_ADDRESS2', None),
+                                         subcontractor_tel=data['DETAIL'].get('SUBCONTRACTOR_TEL', None),
+                                         subcontractor_fax=data['DETAIL'].get('SUBCONTRACTOR_FAX', None),
+                                         company_address1=data['DETAIL'].get('ADDRESS1', None),
+                                         company_address2=data['DETAIL'].get('ADDRESS2', None),
+                                         company_name=data['DETAIL'].get('COMPANY_NAME', None),
+                                         company_tel=data['DETAIL'].get('TEL', None),
+                                         company_fax=data['DETAIL'].get('FAX', None),
+                                         project_name=data['DETAIL'].get('PROJECT_NAME', None),
+                                         start_date=data['DETAIL'].get('START_DATE', None),
+                                         end_date=data['DETAIL'].get('END_DATE', None),
+                                         delivery_date=data['DETAIL'].get('DELIVERY_DATE', None),
+                                         project_content=data['DETAIL'].get('PROJECT_CONTENT', None),
+                                         workload=data['DETAIL'].get('WORKLOAD', None),
+                                         project_result=data['DETAIL'].get('PROJECT_RESULT', None),
+                                         allowance_base=data['DETAIL'].get('ALLOWANCE_BASE', None),
+                                         allowance_base_tax=data['DETAIL'].get('ALLOWANCE_BASE_TAX', None),
+                                         allowance_base_total=data['DETAIL'].get('ALLOWANCE_BASE_TOTAL', None),
+                                         comment=data['DETAIL'].get('COMMENT', None),
+                                         )
+            heading.save()
+
+
+class BpLumpOrderHeading(models.Model):
+    bp_order = models.OneToOneField(BpLumpOrder, verbose_name=u"ＢＰ注文書")
+    publish_date = models.CharField(max_length=200, verbose_name=u"発行年月日")
+    subcontractor_name = models.CharField(blank=True, null=True, max_length=50, verbose_name=u"下請け会社名")
+    subcontractor_post_code = models.CharField(blank=True, null=True, max_length=8, verbose_name=u"協力会社郵便番号")
+    subcontractor_address1 = models.CharField(blank=True, null=True, max_length=200, verbose_name=u"協力会社住所１")
+    subcontractor_address2 = models.CharField(blank=True, null=True, max_length=200, verbose_name=u"協力会社住所２")
+    subcontractor_tel = models.CharField(blank=True, null=True, max_length=15, verbose_name=u"協力会社電話番号")
+    subcontractor_fax = models.CharField(blank=True, null=True, max_length=15, verbose_name=u"協力会社ファックス")
+    company_address1 = models.CharField(blank=True, null=True, max_length=200, verbose_name=u"本社住所１")
+    company_address2 = models.CharField(blank=True, null=True, max_length=200, verbose_name=u"本社住所２")
+    company_name = models.CharField(blank=True, null=True, max_length=30, verbose_name=u"会社名")
+    company_tel = models.CharField(blank=True, null=True, max_length=15, verbose_name=u"会社電話番号")
+    company_fax = models.CharField(blank=True, null=True, max_length=15, verbose_name=u"会社ファックス")
+    project_name = models.CharField(blank=True, null=True, max_length=50, verbose_name=u"業務名称")
+    start_date = models.CharField(blank=True, null=True, max_length=20, verbose_name=u"作業開始日")
+    end_date = models.CharField(blank=True, null=True, max_length=20, verbose_name=u"作業終了日")
+    delivery_date = models.CharField(blank=True, null=True, max_length=20, verbose_name=u"納品日")
+    project_content = models.CharField(max_length=200, blank=True, null=True, verbose_name=u"作業内容")
+    workload = models.CharField(max_length=200, blank=True, null=True, verbose_name=u"作業量")
+    project_result = models.CharField(max_length=200, blank=True, null=True, verbose_name=u"納入成果品")
+    allowance_base = models.CharField(blank=True, null=True, max_length=20, verbose_name=u"契約金額")
+    allowance_base_tax = models.CharField(blank=True, null=True, max_length=20, verbose_name=u"消費税")
+    allowance_base_total = models.CharField(blank=True, null=True, max_length=20, verbose_name=u"合計額")
+    comment = models.TextField(blank=True, null=True, verbose_name=u"備考")
+
+    class Meta:
+        verbose_name = verbose_name_plural = u"ＢＰ一括註文書見出し"
+
+    def __unicode__(self):
+        return unicode(self.bp_order)
+
+
 class BpMemberOrder(BaseModel):
     project_member = models.ForeignKey(ProjectMember, on_delete=models.PROTECT, verbose_name=u"案件メンバー")
     subcontractor = models.ForeignKey(Subcontractor, on_delete=models.PROTECT, verbose_name=u"協力会社")
@@ -3086,6 +3224,11 @@ class BpMemberOrder(BaseModel):
             heading = BpMemberOrderHeading(bp_order=self,
                                            publish_date=data['DETAIL'].get('PUBLISH_DATE', None),
                                            subcontractor_name=data['DETAIL'].get('SUBCONTRACTOR_NAME', None),
+                                           subcontractor_post_code=data['DETAIL'].get('SUBCONTRACTOR_POST_CODE', None),
+                                           subcontractor_address1=data['DETAIL'].get('SUBCONTRACTOR_ADDRESS1', None),
+                                           subcontractor_address2=data['DETAIL'].get('SUBCONTRACTOR_ADDRESS2', None),
+                                           subcontractor_tel=data['DETAIL'].get('SUBCONTRACTOR_TEL', None),
+                                           subcontractor_fax=data['DETAIL'].get('SUBCONTRACTOR_FAX', None),
                                            company_address1=data['DETAIL'].get('ADDRESS1', None),
                                            company_address2=data['DETAIL'].get('ADDRESS2', None),
                                            company_name=data['DETAIL'].get('COMPANY_NAME', None),

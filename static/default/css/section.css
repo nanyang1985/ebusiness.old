@@ -137,6 +137,10 @@ section table.list tr.off_sales {
     background: lightgray;
 }
 
+section table.list tr.lump_project {
+    background-color: yellow;
+}
+
 section table.list tr.planning {
     background-color: #FFFFAA;
 }

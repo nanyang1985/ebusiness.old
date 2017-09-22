@@ -378,3 +378,16 @@ function change_calculate_type(obj, name_base, name_min, name_max, name_minus, n
         //}
     }
 }
+
+// 一括契約で消費税を計算時に使う
+function calculate_tax_amount(obj, name_tax, name_total) {
+    if (obj.id == "id_allowance_base") {
+        obj_tax = $("#id_" + name_tax);
+        obj_total = $("#id_" + name_total);
+
+        cost = parseInt($(obj).val());
+        tax = parseInt(cost * 0.08);
+        obj_tax.val(tax);
+        obj_total.val(cost + tax);
+    }
+}

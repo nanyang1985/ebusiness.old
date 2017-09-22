@@ -791,15 +791,15 @@ def get_template_order_path(contract, is_request=False):
 
     if not contract:
         raise errors.CustomException(constants.ERROR_BP_NO_CONTRACT)
-    if contract.is_hourly_pay:
+    if hasattr(contract, 'is_hourly_pay') and contract.is_hourly_pay:
         # 時給
         filename = "eb_order_hourly"
-    elif contract.is_fixed_cost:
+    elif hasattr(contract, 'is_fixed_cost') and contract.is_fixed_cost:
         # 固定給料
         filename = "eb_order_fixed"
-    # elif contract.is_show_formula is False:
-    #     # 計算式を隠す
-    #     path = os.path.join(settings.MEDIA_ROOT, 'eb_order', 'eb_order_hide_formula.xlsx')
+    elif type(contract).__name__ == 'BpLumpContract':
+        # 一括
+        filename = "eb_order_lump"
     else:
         # 既定
         filename = "eb_order"

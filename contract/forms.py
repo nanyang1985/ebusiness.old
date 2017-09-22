@@ -218,3 +218,15 @@ class BpContractForm(BaseForm):
                     self.add_error('start_date', u"契約期間の開始日が重複している。")
                 if end_date and common.is_cross_date(dates, end_date, i):
                     self.add_error('end_date', u"契約期間の終了日が重複している。")
+
+
+class BpContractLumpForm(BaseForm):
+    class Meta:
+        model = models.BpLumpContract
+        fields = '__all__'
+
+    def __init__(self, *args, **kwargs):
+        super(BpContractLumpForm, self).__init__(*args, **kwargs)
+        self.fields['allowance_base'].widget.attrs.update({
+            'onchange': 'calculate_tax_amount(this, "allowance_base_tax", "allowance_base_total")'
+        })

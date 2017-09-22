@@ -1,0 +1,261 @@
+{% extends theme|add:"/base.html" %}
+{% load humanize %}
+{% load sales_templates %}
+
+{% block header %}
+    <script type="text/javascript">
+        window.onload = function() {
+        };
+    </script>
+{% endblock %}
+
+{% block content %}
+    <div class="dashboard print">
+        <div class="dashboard-title">{{ title }}</div>
+        <form>
+        </form>
+        <table class="order print" cellpadding="0" cellspacing="0" style="width: 948px;">
+            {% if error_message %}
+            <tr>
+                <td class="center red">{{ error_message }}</td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="9" style="text-align: right;">
+                    <u>注文番号：
+                        {% if data %}
+                            {{ data.DETAIL.ORDER_NO }}
+                        {% else %}
+                            {{ lump_order.order_no }}
+                        {% endif %}
+                    </u>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="9" style="text-align: right;">
+                    <u>
+                        {% if data %}
+                            {{ data.DETAIL.PUBLISH_DATE }}
+                        {% else %}
+                            {{ lump_order.bplumporderheading.publish_date }}
+                        {% endif %}
+                    </u>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="9" class="center" style="font-size: 24px;">
+                    <b>注&nbsp;&nbsp;文&nbsp;&nbsp;書</b>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="9">
+                    （乙）
+                </td>
+            </tr>
+            <tr>
+                <td colspan="9">
+                    <u>
+                        {% if data %}
+                            {{ data.DETAIL.SUBCONTRACTOR_NAME }}
+                        {% else %}
+                            {{ lump_order.bplumporderheading.subcontractor_name }}
+                        {% endif %}&nbsp;&nbsp;
+                    </u>
+                    御中
+                </td>
+            </tr>
+            <tr>
+                <td colspan="5"></td>
+                <td colspan="4">
+                    （甲）
+                </td>
+            </tr>
+            <tr>
+                <td colspan="5"></td>
+                <td colspan="4">
+                    {% if data %}
+                        {{ data.DETAIL.COMPANY_NAME }}
+                    {% else %}
+                        {{ lump_order.bplumporderheading.company_name }}
+                    {% endif %}
+                </td>
+            </tr>
+            <tr>
+                <td colspan="5"></td>
+                <td colspan="4">
+                    {% if data %}
+                        {{ data.DETAIL.ADDRESS1 }}
+                    {% else %}
+                        {{ lump_order.bplumporderheading.company_address1 }}
+                    {% endif %}
+                </td>
+            </tr>
+            <tr>
+                <td colspan="5"></td>
+                <td colspan="4">
+                    {% if data %}
+                        {{ data.DETAIL.ADDRESS2 }}
+                    {% else %}
+                        {{ lump_order.bplumporderheading.company_address2 }}
+                    {% endif %}
+                </td>
+            </tr>
+            <tr>
+                <td colspan="5"></td>
+                <td colspan="4">
+                    TEL:
+                    {% if data %}
+                        {{ data.DETAIL.TEL }}
+                    {% else %}
+                        {{ lump_order.bplumporderheading.company_tel }}
+                        &nbsp;&nbsp;
+                        FAX:{{ lump_order.bplumporderheading.company_fax|default:'' }}
+                    {% endif %}
+                </td>
+            </tr>
+            <tr><td colspan="9">&nbsp;</td></tr>
+            <!--<tr>-->
+                <!--<td colspan="6">&nbsp;</td>-->
+                <!--<td>作成者</td>-->
+                <!--<td colspan="2"></td>-->
+            <!--</tr>-->
+            <!--<tr>-->
+                <!--<td colspan="6">&nbsp;</td>-->
+                <!--<td class="left top border_right"></td>-->
+                <!--<td colspan="2"></td>-->
+            <!--</tr>-->
+            <!--<tr>-->
+                <!--<td colspan="6">&nbsp;</td>-->
+                <!--<td class="left border_right"></td>-->
+                <!--<td colspan="2"></td>-->
+            <!--</tr>-->
+            <!--<tr>-->
+                <!--<td colspan="6">&nbsp;</td>-->
+                <!--<td class="left bottom border_right"></td>-->
+                <!--<td colspan="2"></td>-->
+            <!--</tr>-->
+            <tr><td colspan="9">&nbsp;</td></tr>
+            <tr>
+                <td colspan="9">下記の通り注文致しますので、ご了承の上、折り返し注文請書をご送付下さい。</td>
+            </tr>
+            <tr><td colspan="9">&nbsp;</td></tr>
+            <tr>
+                <td colspan="2" class="center left top">件名</td>
+                <td colspan="7" class="left top border_right">
+                    {% if data %}
+                        {{ data.DETAIL.PROJECT_NAME }}
+                    {% else %}
+                        {{ lump_order.bplumporderheading.project_name }}
+                    {% endif %}
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2" class="center left top">契約金額</td>
+                <td colspan="7" class="left top border_right">
+                    {% if data %}
+                        {{ data.DETAIL.ALLOWANCE_BASE|intcomma }}
+                    {% else %}
+                        {{ lump_order.bplumporderheading.allowance_base }}
+                    {% endif %}
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2" class="center left top">消費税</td>
+                <td colspan="7" class="left top border_right">
+                    {% if data %}
+                        {{ data.DETAIL.ALLOWANCE_BASE_TAX|intcomma }}
+                    {% else %}
+                        {{ lump_order.bplumporderheading.allowance_base_tax }}
+                    {% endif %}
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2" class="center left top">合計額</td>
+                <td colspan="7" class="left top border_right">
+                    {% if data %}
+                        {{ data.DETAIL.ALLOWANCE_BASE_TOTAL|intcomma }}
+                    {% else %}
+                        {{ lump_order.bplumporderheading.allowance_base_total }}
+                    {% endif %}
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2" class="center left top">作業期間及び納期</td>
+                <td colspan="7" class="left top border_right">
+                    {% if data %}
+                        {{ data.DETAIL.START_DATE }} ～ {{ data.DETAIL.END_DATE }}　（納期：{{ data.DETAIL.DELIVERY_DATE }}）
+                    {% else %}
+                        {{ lump_order.bplumporderheading.start_date }} ～ {{ lump_order.bplumporderheading.end_date }}
+                        （納期：{{ lump_order.bplumporderheading.delivery_date }}）
+                    {% endif %}
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2" class="center left top">作業内容</td>
+                <td colspan="7" class="left top border_right">
+                    {% if data %}
+                        {{ data.DETAIL.PROJECT_CONTENT }}
+                    {% else %}
+                        {{ lump_order.bplumporderheading.project_content }}
+                    {% endif %}
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2" class="center left top">作業量</td>
+                <td colspan="7" class="left top border_right">
+                    {% if data %}
+                        {{ data.DETAIL.WORKLOAD }}
+                    {% else %}
+                        {{ lump_order.bplumporderheading.workload }}
+                    {% endif %}
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2" class="center left top">納入成果品</td>
+                <td colspan="7" class="left top border_right">
+                    {% if data %}
+                        {{ data.DETAIL.PROJECT_RESULT }}
+                    {% else %}
+                        {{ lump_order.bplumporderheading.project_result }}
+                    {% endif %}
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2" class="center left top">主管部署</td>
+                <td class="left top">住所</td>
+                <td colspan="6" class="left top border_right">
+                    {% if data %}
+                        {{ data.DETAIL.ADDRESS1 }}{{ data.DETAIL.ADDRESS2 }}
+                    {% else %}
+                        {{ lump_order.bplumporderheading.company_address1 }}{{ lump_order.bplumporderheading.company_address2 }}
+                    {% endif %}
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2" class="center left top">及び納入場所</td>
+                <td class="left top">部署</td>
+                <td colspan="6" class="left top border_right">
+                    {% if data %}
+                        {{ data.DETAIL.COMPANY_NAME }}
+                    {% else %}
+                        {{ lump_order.bplumporderheading.company_name }}
+                    {% endif %}
+                </td>
+            </tr>
+            <tr><td colspan="9" class="top" style="padding: 2px 0px;">&nbsp;</td></tr>
+            <tr><td colspan="9" class="top left border_right center" style="padding: 2px 0px; border-bottom: 3px black double;">備考</td></tr>
+            <tr>
+                <td colspan="9" class="left border_right bottom">
+                    {% if data %}
+                        <pre style="min-height: 170px; white-space: inherit;">{{ data.DETAIL.COMMENT|default:'' }}</pre>
+                    {% else %}
+                        <pre style="min-height: 170px; white-space: inherit;">{{ lump_order.bplumporderheading.comment }}</pre>
+                    {% endif %}
+                </td>
+            </tr>
+            <tr><td colspan="9">&nbsp;</td></tr>
+            <tr><td colspan="9">&nbsp;</td></tr>
+            {% endif %}
+        </table>
+    </div>
+{% endblock %}

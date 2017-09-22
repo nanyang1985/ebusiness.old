@@ -14,7 +14,9 @@ from django.contrib.humanize.templatetags import humanize
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 
-from eb.models import Member, Config, Company, Subcontractor, Project, ProjectMember, Salesperson, BpMemberOrder
+from eb.models import (
+    Member, Config, Company, Subcontractor, Project, ProjectMember, Salesperson, BpMemberOrder, BpLumpOrder
+)
 from utils import constants, common
 
 
@@ -401,6 +403,32 @@ class BpContract(BaseModel):
         return allowance_absenteeism_memo
 
 
+class BpLumpContract(BaseModel):
+    contract_type = models.CharField(max_length=2, default='04', editable=False, verbose_name=u"契約形態")
+    company = models.ForeignKey(Subcontractor, on_delete=models.PROTECT, verbose_name=u"雇用会社")
+    start_date = models.DateField(verbose_name=u"契約開始日")
+    end_date = models.DateField(verbose_name=u"契約終了日")
+    delivery_date = models.DateField(blank=True, null=True, verbose_name=u"納品日")
+    project_name = models.CharField(max_length=50, verbose_name=u"件名")
+    allowance_base = models.IntegerField(verbose_name=u"契約金額")
+    allowance_base_tax = models.IntegerField(default=0, verbose_name=u"消費税")
+    allowance_base_total = models.IntegerField(default=0, verbose_name=u"合計額")
+    project_content = models.CharField(max_length=200, blank=True, null=True, verbose_name=u"作業内容")
+    workload = models.CharField(max_length=200, blank=True, null=True, verbose_name=u"作業量")
+    project_result = models.CharField(max_length=200, blank=True, null=True, verbose_name=u"納入成果品")
+    status = models.CharField(max_length=2, default='01', choices=constants.CHOICE_CONTRACT_STATUS,
+                              verbose_name=u"契約状態")
+    comment = models.TextField(blank=True, null=True,  verbose_name=u"備考")
+
+    class Meta:
+        ordering = ['company', '-start_date']
+        verbose_name = verbose_name_plural = u"ＢＰ一括契約"
+        db_table = 'eb_bp_lump_contract'
+
+    def __unicode__(self):
+        return self.project_name
+
+
 class ViewContract(models.Model):
     contract_no = models.CharField(db_column='contract_no', max_length=20, verbose_name=u"契約番号")
     contract_date = models.DateField(db_column='contract_date', verbose_name=u"契約日", help_text=u"例：2014-01-01")
@@ -632,11 +660,12 @@ class ViewLatestBpContract(models.Model):
                                          verbose_name=u"今月注文書")
     next_bp_order = models.ForeignKey(BpMemberOrder, related_name='next_bp_order_set', blank=True, null=True,
                                       verbose_name=u"来月注文書")
+    lump_order = models.ForeignKey(BpLumpOrder, blank=True, null=True, verbose_name=u"一括注文書")
+    project_name = models.CharField(max_length=50, verbose_name=u"件名")
 
     class Meta:
         managed = False
         db_table = 'v_latest_bp_contract'
-        ordering = ['member']
         default_permissions = ()
 
     def __unicode__(self):

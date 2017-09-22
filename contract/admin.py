@@ -142,6 +142,17 @@ class BpContractAdmin(BaseAdmin):
         return form
 
 
+class BpLumpContractAdmin(BaseAdmin):
+    form = forms.BpContractLumpForm
+    list_display = ('company', 'project_name', 'start_date', 'end_date', 'allowance_base')
+    list_display_links = ('project_name',)
+
+    class Media:
+        js = (
+            '/static/admin/js/calc_contract.js',
+        )
+
+
 class ContractAdminSite(admin.AdminSite):
     site_header = "契約管理システム"
     site_title = "管理サイト"
@@ -150,3 +161,4 @@ class ContractAdminSite(admin.AdminSite):
 contract_admin_site = ContractAdminSite(name='contract')
 contract_admin_site.register(models.Contract, ContractAdmin)
 contract_admin_site.register(models.BpContract, BpContractAdmin)
+contract_admin_site.register(models.BpLumpContract, BpLumpContractAdmin)

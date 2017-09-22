@@ -42,6 +42,7 @@ from django.db.models import Count, Prefetch, Q
 from eb import biz, biz_turnover, biz_config, biz_plot
 from utils import constants, common, errors, loader as file_loader, file_gen
 from . import forms, models
+from contract import models as contract_models
 
 
 @method_decorator(login_required(login_url=constants.LOGIN_IN_URL), name='dispatch')
@@ -1652,6 +1653,56 @@ class BpMemberOrdersView(BaseTemplateView):
         return context
 
 
+class BpLumpContractOrdersView(BaseTemplateView):
+    template_name = 'default/bp_lump_orders.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(BpLumpContractOrdersView, self).get_context_data(**kwargs)
+        contract_id = kwargs.get('contract_id')
+        bp_lump_contract = get_object_or_404(contract_models.BpLumpContract, pk=contract_id)
+        context.update({
+            'title': u"%s | ＢＰ注文書" % bp_lump_contract,
+            'bp_lump_contract': bp_lump_contract,
+        })
+        return context
+
+
+class BpLumpOrderDetailView(BaseTemplateView):
+    template_name = 'default/bp_lump_order.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(BpLumpOrderDetailView, self).get_context_data(**kwargs)
+        request = kwargs.get('request')
+        preview = kwargs.get('preview', False)
+        if preview:
+            contract_id = kwargs.get('contract_id', 0)
+            lump_contract = get_object_or_404(contract_models.BpLumpContract, pk=contract_id)
+            error_message = u""
+            lump_order = models.BpLumpOrder.get_next_bp_order(lump_contract, request.user)
+            try:
+                data = biz.generate_bp_lump_order_data(lump_contract, lump_order, request.user)
+            except Exception as ex:
+                data = None
+                common.get_sales_logger().error(traceback.format_exc())
+                error_message = ex.message if ex.message else unicode(ex)
+            context.update({
+                'data': data,
+                'error_message': error_message,
+            })
+        else:
+            order_id = kwargs.get('order_id')
+            lump_order = get_object_or_404(models.BpLumpOrder, pk=order_id)
+            context.update({
+                'lump_order': lump_order,
+            })
+        context.update({
+            'title': u"%s | %s" % (
+                lump_order.order_no, unicode(lump_order.subcontractor),
+            ),
+        })
+        return context
+
+
 class BpMemberOrderDetailView(BaseTemplateView):
     template_name = 'default/bp_member_order.html'
 
@@ -1773,6 +1824,76 @@ class DownloadSubcontractorOrderView(BaseView):
             return response
         except errors.FileNotExistException, ex:
             return HttpResponse(u"<script>alert('%s');window.close();</script>" % (ex.message,))
+
+
+class DownloadBpLumpOrder(BaseView):
+
+    def get(self, request, *args, **kwargs):
+        publish_date = request.GET.get('publish_date', None)
+        contract_id = kwargs.get('contract_id', 0)
+        lump_contract = get_object_or_404(contract_models.BpLumpContract, pk=contract_id)
+        is_request = kwargs.get('is_request')
+        try:
+            overwrite = request.GET.get("overwrite", None)
+            if hasattr(lump_contract, 'bplumporder'):
+                lump_order = lump_contract.bplumporder
+            else:
+                lump_order = models.BpLumpOrder.get_next_bp_order(lump_contract, request.user, publish_date=publish_date)
+            if overwrite:
+                if is_request:
+                    filename = lump_order.filename_request if lump_order.filename_request else 'None'
+                else:
+                    filename = lump_order.filename if lump_order.filename else 'None'
+                path = os.path.join(settings.GENERATED_FILES_ROOT, "partner_order",
+                                    '%04d%02d' % (int(lump_order.year), int(lump_order.month)), filename)
+                if not os.path.exists(path):
+                    # ファイルが存在しない場合、エラーとする。
+                    raise errors.FileNotExistException(constants.ERROR_BP_ORDER_FILE_NOT_EXISTS)
+                LogEntry.objects.log_action(request.user.id,
+                                            ContentType.objects.get_for_model(lump_order).pk,
+                                            lump_order.pk,
+                                            unicode(lump_order),
+                                            CHANGE,
+                                            u"ファイルをダウンロードしました：%s" % filename)
+            else:
+                data = biz.generate_bp_lump_order_data(lump_contract, lump_order, request.user,
+                                                       publish_date=publish_date)
+                template_path = common.get_template_order_path(lump_contract, is_request)
+                path = file_gen.generate_order(data=data, template_path=template_path, is_request=is_request)
+                filename = os.path.basename(path)
+                if not lump_order.pk:
+                    lump_order.created_user = request.user
+                    action_flag = ADDITION
+                else:
+                    action_flag = CHANGE
+                lump_order.updated_user = request.user
+                if is_request:
+                    # 注文請書の場合
+                    lump_order.filename_request = filename
+                    lump_order.save()
+                else:
+                    lump_order.filename = filename
+                    lump_order.save(data=data)
+                if action_flag == ADDITION:
+                    change_message = u'追加しました。'
+                elif not is_request:
+                    change_message = u'再作成しました。'
+                else:
+                    change_message = u"注文請書を作成しました。"
+                LogEntry.objects.log_action(request.user.id,
+                                            ContentType.objects.get_for_model(lump_order).pk,
+                                            lump_order.pk,
+                                            unicode(lump_order),
+                                            action_flag,
+                                            change_message)
+            response = HttpResponse(open(path, 'rb'), content_type="application/excel")
+            response['Content-Disposition'] = "filename=" + urllib.quote(filename.encode('UTF-8'))
+            return response
+        except Exception as ex:
+            common.get_sales_logger().error(traceback.format_exc())
+            return HttpResponse(
+                u"<script>alert('%s');window.close();</script>" % ex.message if ex.message else unicode(ex)
+            )
 
 
 class DownloadBpMemberOrder(BaseView):

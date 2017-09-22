@@ -640,6 +640,78 @@ def get_user_profile(user):
     return None
 
 
+def generate_bp_lump_order_data(contract, bp_order, user, publish_date=None):
+    """ＢＰ一括注文書を作成するためのデータを取得する。
+
+    :param contract:
+    :param bp_order:
+    :param user:
+    :param publish_date:
+    :return:
+    """
+    if not contract:
+        raise errors.CustomException(constants.ERROR_BP_NO_CONTRACT)
+    company = get_company()
+    data = {'DETAIL': {}}
+    # 発行年月日
+    publish_date = common.get_bp_order_publish_date(bp_order.year, bp_order.month, publish_date)
+    data['DETAIL']['PUBLISH_DATE'] = common.to_wareki(publish_date)
+    data['DETAIL']['YM'] = '%04d%02d' % (int(bp_order.year), int(bp_order.month))
+    # 下請け会社名
+    data['DETAIL']['SUBCONTRACTOR_NAME'] = contract.company.name
+    # 下請け会社郵便番号
+    if contract.company.post_code and len(contract.company.post_code) == 7:
+        post_code = contract.company.post_code[:3] + '-' + \
+                    contract.company.post_code[3:]
+    else:
+        post_code = ''
+    data['DETAIL']['SUBCONTRACTOR_POST_CODE'] = post_code
+    # 下請け会社住所
+    data['DETAIL']['SUBCONTRACTOR_ADDRESS1'] = contract.company.address1
+    data['DETAIL']['SUBCONTRACTOR_ADDRESS2'] = contract.company.address2 if contract.company.address2 else ''
+    # 下請け会社電話番号
+    data['DETAIL']['SUBCONTRACTOR_TEL'] = contract.company.tel
+    # 下請け会社ファックス
+    data['DETAIL']['SUBCONTRACTOR_FAX'] = contract.company.fax
+    # 作成者
+    create_user = get_user_profile(user)
+    data['DETAIL']['AUTHOR_FIRST_NAME'] = create_user.first_name if create_user else ''
+    # 会社名
+    data['DETAIL']['COMPANY_NAME'] = company.name
+    # 本社郵便番号
+    data['DETAIL']['POST_CODE'] = common.get_full_postcode(company.post_code)
+    # 本社電話番号
+    data['DETAIL']['TEL'] = company.tel
+    # 本社ファックス
+    data['DETAIL']['FAX'] = company.fax
+    # 代表取締役
+    data['DETAIL']['MASTER'] = company.president if company.president else ""
+    # 本社住所
+    data['DETAIL']['ADDRESS1'] = company.address1
+    data['DETAIL']['ADDRESS2'] = company.address2
+    # 業務名称
+    data['DETAIL']['PROJECT_NAME'] = contract.project_name
+    # 作業内容
+    data['DETAIL']['PROJECT_CONTENT'] = contract.project_content
+    # 作業量
+    data['DETAIL']['WORKLOAD'] = contract.workload
+    # 納入成果品
+    data['DETAIL']['PROJECT_RESULT'] = contract.project_result
+    # 作業期間
+    data['DETAIL']['START_DATE'] = contract.start_date.strftime('%Y年%m月%d日').decode('utf8')
+    data['DETAIL']['END_DATE'] = contract.end_date.strftime('%Y年%m月%d日').decode('utf8')
+    data['DETAIL']['DELIVERY_DATE'] = contract.delivery_date.strftime('%Y年%m月%d日').decode('utf8')
+    # 契約金額
+    data['DETAIL']['ALLOWANCE_BASE'] = u'¥%s' % humanize.intcomma(contract.allowance_base)
+    data['DETAIL']['ALLOWANCE_BASE_TAX'] = u'¥%s' % humanize.intcomma(contract.allowance_base_tax)
+    data['DETAIL']['ALLOWANCE_BASE_TOTAL'] = u'¥%s' % humanize.intcomma(contract.allowance_base_total)
+    # 備考
+    data['DETAIL']['COMMENT'] = contract.comment
+    # 注文番号
+    data['DETAIL']['ORDER_NO'] = bp_order.order_no
+    return data
+
+
 def generate_bp_order_data(project_member, year, month, contract, user, bp_order,
                            publish_date=None, end_year=None, end_month=None):
     """ＢＰ注文書を作成するためのデータを取得する。
@@ -1148,7 +1220,8 @@ def generate_subcontractor_request_data(subcontractor, year, month, subcontracto
                     # 時間上限
                     dict_expenses['ITEM_MAX_HOURS'] = contract.allowance_time_max
                     # 勤務時間
-                    dict_expenses['ITEM_WORK_HOURS'] = member_attendance.total_hours
+                    dict_expenses['ITEM_WORK_HOURS'] = member_attendance.total_hours_bp \
+                        if member_attendance.total_hours_bp else member_attendance.total_hours
                     # 超過金額と控除金額
                     extra_amount = member_attendance.get_overtime_cost()
                     # 諸経費

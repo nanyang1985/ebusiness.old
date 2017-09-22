@@ -1,0 +1,184 @@
+{% extends theme|add:"/base.html" %}
+{% load humanize %}
+{% load sales_templates %}
+{% load year_month_filter %}
+
+{% block header %}
+<script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1/jquery-ui.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1/i18n/jquery.ui.datepicker-ja.min.js"></script>
+<link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1/themes/redmond/jquery-ui.css" >
+<script type="text/javascript">
+</script>
+{% endblock %}
+
+{% block content %}
+    <div class="dashboard">
+        <div class="dashboard-title">{{ title }}</div>
+        <form>
+        </form>
+    </div>
+    <div id="mask" onclick="hide_dialog()" class="mask"></div>
+    <table class="list" cellpadding="0" cellspacing="0">
+        <thead>
+            <tr>
+                <th style="width: 100px;">開始日</th>
+                <th style="width: 100px;">終了日</th>
+                <th style="width: 100px;">納期</th>
+                <th>会社名</th>
+                <th>契約金額</th>
+                <th>消費税</th>
+                <th>合計額</th>
+                <th style="width: 50px;"></th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr class="{% cycle 'row1' 'row2' %}">
+                <td>{{ bp_lump_contract.start_date }}</td>
+                <td>{{ bp_lump_contract.end_date }}</td>
+                <td>{{ bp_lump_contract.delivery_date }}</td>
+                <td>{{ bp_lump_contract.company }}</td>
+                <td class="num">{{ bp_lump_contract.allowance_base|intcomma }}</td>
+                <td class="num">{{ bp_lump_contract.allowance_base_tax|intcomma }}</td>
+                <td class="num">{{ bp_lump_contract.allowance_base_total|intcomma }}</td>
+                <td class="center"><a href="{% url 'contract:contract_bplumpcontract_change' bp_lump_contract.pk %}?from=portal&_popup=1" target="_blank">編集</a></td>
+            </tr>
+        </tbody>
+        <tfoot>
+            <tr>
+                <th>開始日</th>
+                <th>終了日</th>
+                <th>納期</th>
+                <th>会社名</th>
+                <th>契約金額</th>
+                <th>消費税</th>
+                <th>合計額</th>
+                <th></th>
+            </tr>
+        </tfoot>
+    </table>
+    <table class="list" cellpadding="0" cellspacing="0">
+        <thead>
+            <tr>
+                <th>案件名称</th>
+                <th>注文番号</th>
+                <th>注文書</th>
+                <th>注文請書</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr class="row1">
+                <td>{{ bp_lump_contract.project_name }}</td>
+                <td class="center">
+                    {% if bp_lump_contract.bplumporder %}
+                        <a href="{% url 'bp_lump_order' bp_lump_contract.bplumporder.pk %}">{{ bp_lump_contract.bplumporder.order_no }}</a>
+                    {% else %}
+                        <a href="{% url 'bp_lump_order_preview' bp_lump_contract.pk %}" target="_blank">プレビュー</a>
+                    {% endif %}
+                </td>
+                <td class="center">
+                    {% if bp_lump_contract.bplumporder %}
+                        <a href="{% url 'download_bp_lump_order' bp_lump_contract.pk %}?overwrite=1" target="_blank">
+                            ダウンロード</a>
+                        &nbsp;|&nbsp;
+                        <a href="{% url 'download_bp_lump_order' bp_lump_contract.pk %}" target="_blank"
+                           onclick="return confirm('既に作成済みなので、上書きしてもよろしいですか？')">
+                            再作成</a>
+                    {% else %}
+                        <a href="javascript:show_dialog('bp_order_gen');$('#id_publish_date').datepicker();" target="_blank">注文書新規作成</a>
+                        <div id="bp_order_gen" class="dialog" style="overflow-y: hidden;">
+                            <form method="get" action="{% url 'download_bp_lump_order' bp_lump_contract.pk %}" target="_blank">
+                                <div style="padding: 5px 0px;">
+                                    {% now 'Y/m/d' as default_date %}
+                                    <label for="id_publish_date" style="float: left; width: 120px;">発行年月日</label>
+                                    <input name="publish_date" id="id_publish_date" style="float: left; width: 120px;"
+                                           value="{{ default_date }}"/>
+                                    <div style="clear: both;"></div>
+                                </div>
+                                <div style="padding: 2px 10px; clear: both;">
+                                    <input type="submit" value="作成" style="float: right; padding: 0px 20px;"/>
+                                </div>
+                                <div style="clear: both;"></div>
+                            </form>
+                        </div>
+                    {% endif %}
+                </td>
+                <td class="center">
+                    {% if bp_lump_contract.bplumporder %}
+                        {% if bp_lump_contract.bplumporder.filename_request %}
+                            <a href="{% url 'download_bp_lump_order_request' bp_lump_contract.pk %}?overwrite=1" target="_blank">
+                                ダウンロード</a>
+                                &nbsp;|&nbsp;
+                            <a href="{% url 'download_bp_lump_order_request' bp_lump_contract.pk %}" target="_blank"
+                               onclick="return confirm('既に作成済みなので、上書きしてもよろしいですか？')">
+                                再作成</a>
+                        {% else %}
+                            <a href="{% url 'download_bp_lump_order_request' bp_lump_contract.pk %}" target="_blank">注文請書作成</a>
+                        {% endif %}
+                    {% endif %}
+                </td>
+            </tr>
+            {% for project_member in project_members %}
+                {% for year, month, days, order, is_old in project_member.get_bp_member_orders %}
+                    <tr class="row2">
+                        <td>{{ year }}年{{ month|stringformat:"02d" }}月</td>
+                        <td class="num">{{ days }}</td>
+                        <td class="center">
+                            {% if order %}
+                                <a href="{% url 'bp_member_order' order.pk %}">{{ order.order_no }}</a>
+                            {% else %}
+                                <a href="{% url 'bp_member_order_preview' project_member.pk year month|stringformat:'02d' %}" target="_blank">プレビュー</a>
+                            {% endif %}
+                        </td>
+                        {% if order %}
+                            <td class="center">
+                                <a href="{% url 'download_bp_order' project_member.pk year month|stringformat:'02d' %}?overwrite=1" target="_blank">
+                                    ダウンロード</a>
+                                {% if order.month != month|stringformat:"02d" %}
+                                    <!--複数月の注文書は開始年月だけで作成できる。-->
+                                {% else %}
+                                &nbsp;|&nbsp;
+                                <a href="{% url 'download_bp_order' project_member.pk year month|stringformat:'02d' %}?end_year={{ order.end_year }}&end_month={{ order.end_month }}" target="_blank"
+                                   onclick="return confirm('既に作成済みなので、上書きしてもよろしいですか？')">
+                                    再作成</a>
+                                {% endif %}
+                            </td>
+                            <td class="center">
+                                {% if order.filename_request %}
+                                    <a href="{% url 'download_bp_order_request' project_member.pk year month|stringformat:'02d' %}?overwrite=1" target="_blank">
+                                        ダウンロード</a>
+                                    {% if order.month != month|stringformat:"02d" %}
+                                        <!--複数月の注文書は開始年月だけで作成できる。-->
+                                    {% else %}
+                                        &nbsp;|&nbsp;
+                                        <a href="{% url 'download_bp_order_request' project_member.pk year month|stringformat:'02d' %}?end_year={{ order.end_year }}&end_month={{ order.end_month }}" target="_blank"
+                                           onclick="return confirm('既に作成済みなので、上書きしてもよろしいですか？')">
+                                            再作成</a>
+                                    {% endif %}
+                                {% else %}
+                                    <a href="{% url 'download_bp_order_request' project_member.pk year month|stringformat:'02d' %}?end_year={{ order.end_year }}&end_month={{ order.end_month }}" target="_blank">注文請書作成</a>
+                                {% endif %}
+                            </td>
+                            {% else %}
+                            <td class="center">
+                                {% if is_old %}
+                                    <!-- 昔の注文書は作成できないように -->
+                                {% else %}
+                                    <a href="javascript:show_dialog('bp_order_gen_{{ project_member.pk }}_{{ year }}_{{ month|stringformat:'02d' }}');$('#id_publish_date_{{project_member.pk}}{{year}}{{month}}').datepicker();" target="_blank">注文書新規作成</a>
+                                {% endif %}
+                            </td>
+                            <td></td>
+                        {% endif %}
+                    </tr>
+                {% endfor %}
+            {% endfor %}
+        </tbody>
+        <tfoot>
+            <tr>
+                <th>案件名称</th>
+                <th>注文番号</th>
+                <th>注文書</th>
+                <th>注文請書</th>
+            </tr>
+        </tfoot>
+    </table>
+{% endblock %}

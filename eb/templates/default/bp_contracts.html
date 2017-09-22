@@ -10,6 +10,7 @@
             init_select("company__name__icontains");
             init_select("is_retired");
             init_select("salesperson");
+            init_select("contract_type");
         };
     </script>
 {% endblock %}
@@ -33,9 +34,20 @@
                     <option value="{{ sales.pk }}">{{ sales }}</option>
                 {% endfor %}
             </select>
+            <select name="contract_type" id="contract_type">
+                <option value="">===契約形態===</option>
+                <option value="01">業務委託</option>
+                <option value="02">準委任</option>
+                <option value="03">派遣</option>
+                <option value="04">一括</option>
+                <option value="11">出向（在籍）</option>
+                <option value="12">出向（完全）</option>
+                <option value="99">その他</option>
+            </select>
             <input type="submit" value="Filter" />
             <a href="{{ request.path }}">クリア</a>
-            <a href="{% url 'contract:contract_bpcontract_add' %}?from=portal&_popup=1&member_id={{member.pk}}" class="button" target="_blank">契約追加</a>
+            <a href="{% url 'contract:contract_bpcontract_add' %}?from=portal&_popup=1" class="button" target="_blank">ＢＰ契約追加</a>
+            <a href="{% url 'contract:contract_bplumpcontract_add' %}?from=portal&_popup=1" class="button" target="_blank">一括契約追加</a>
         </form>
     </div>
     <table class="list" cellspacing="0" cellpadding="0">
@@ -60,11 +72,18 @@
             {% for bp_contract in bp_contracts %}
                 <tr class="{% cycle 'row1' 'row2' %}
                 {% if bp_contract.is_retired %}expired{% endif %}
-                {% ifequal bp_contract.project|default:'' '' %}expired{% endifequal %}">
-                    <td><a href="{% url 'bp_member_orders' bp_contract.member.pk %}">{{ bp_contract.member }}</a></td>
-                    <td class="fixed_cell" style="width: 50px;" title="{{ bp_contract.project }}">
-                        {{ bp_contract.project|default:'&nbsp;' }}</td>
-                    <td>{{ bp_contract.projectmember.end_date|date:'Y-m-d'|default:'' }}</td>
+                {% ifequal bp_contract.project|default:'' '' %}expired{% endifequal %}
+                {% if bp_contract.project_name %}lump_project{% endif %}">
+                    {% if bp_contract.contract_type == '04' %}
+                        <td colspan="3">
+                            <a href="{% url 'bp_lump_contract_orders' bp_contract.pk %}">{{ bp_contract.project_name }}</a>
+                        </td>
+                    {% else %}
+                        <td><a href="{% url 'bp_member_orders' bp_contract.member.pk %}">{{ bp_contract.member }}</a></td>
+                        <td class="fixed_cell" style="width: 50px;" title="{{ bp_contract.project }}">
+                            {{ bp_contract.project|default:'&nbsp;' }}</td>
+                        <td>{{ bp_contract.projectmember.end_date|date:'Y-m-d'|default:'' }}</td>
+                    {% endif %}
                     <td class="fixed_cell" style="width: 100px;" title="{{ bp_contract.company }}">{{ bp_contract.company }}</td>
                     <td>{{ bp_contract.salesperson|default:'' }}</td>
                     <td>{{ bp_contract.start_date|date:'Y-m-d' }}</td>
@@ -96,6 +115,8 @@
                         {% endif %}
                         <td class="center">
                             {% if bp_contract.current_bp_order %}
+                                <img width="12px" src="/static/{{ theme }}/img/icon-normal.png"/>
+                            {% elif bp_contract.lump_order %}
                                 <img width="12px" src="/static/{{ theme }}/img/icon-normal.png"/>
                             {% endif %}
                         </td>
