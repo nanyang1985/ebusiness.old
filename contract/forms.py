@@ -230,3 +230,5 @@ class BpContractLumpForm(BaseForm):
         self.fields['allowance_base'].widget.attrs.update({
             'onchange': 'calculate_tax_amount(this, "allowance_base_tax", "allowance_base_total")'
         })
+        self.fields['comment'] = forms.CharField(widget=forms.Textarea(attrs={'style': 'width: 610px;'}),
+                                                 required=False, label=u"備考")

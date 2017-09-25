@@ -880,7 +880,13 @@ def generate_pay_notify(data, template_path):
         sheet.cell(row=start_row, column=19).alignment = Alignment(vertical="center")
         sheet.merge_cells(start_row=start_row, start_column=19, end_row=start_row, end_column=21)
         # 件名
-        sheet.cell(row=start_row + 1, column=2).value = "件名：%s" % unicode(detail['EXTRA_PROJECT_MEMBER'].project)
+        if detail.get('EXTRA_PROJECT_MEMBER', None):
+            project_name = unicode(detail['EXTRA_PROJECT_MEMBER'].project)
+        elif detail.get('EXTRA_LUMP_CONTRACT', None):
+            project_name = unicode(detail['EXTRA_LUMP_CONTRACT'])
+        else:
+            project_name = ''
+        sheet.cell(row=start_row + 1, column=2).value = "件名：%s" % project_name
         if detail['BP_MEMBER_ORDER']:
             bp_order_no = detail['BP_MEMBER_ORDER'].order_no
         else:

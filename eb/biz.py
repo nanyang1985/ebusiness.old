@@ -411,6 +411,7 @@ def get_cost_by_month(year, month, param_dict=None, order_list=None):
         'traffic_cost'] + df['expenses'] + df['employment_insurance'] + df['health_insurance']
     # 利益
     df['profit'] = df['total_price'] - df['total_cost']
+    df.project_id = df.project_id.fillna(0).astype(int)
     return common.data_frame_filter(df, param_dict, order_list)
 
 
@@ -690,7 +691,7 @@ def generate_bp_lump_order_data(contract, bp_order, user, publish_date=None):
     data['DETAIL']['ADDRESS1'] = company.address1
     data['DETAIL']['ADDRESS2'] = company.address2
     # 業務名称
-    data['DETAIL']['PROJECT_NAME'] = contract.project_name
+    data['DETAIL']['PROJECT_NAME'] = unicode(contract.project) if contract.project else ''
     # 作業内容
     data['DETAIL']['PROJECT_CONTENT'] = contract.project_content
     # 作業量
@@ -1166,6 +1167,9 @@ def generate_subcontractor_request_data(subcontractor, year, month, subcontracto
     detail_members = []
 
     section_members = subcontractor.get_members_by_month_and_section(year, month, subcontractor_request.section)
+    lump_contracts = subcontractor.get_lump_contracts(year, month).filter(
+        project__department=subcontractor_request.section
+    )
     members_amount = 0
     project_members = []
     if False:
@@ -1288,6 +1292,50 @@ def generate_subcontractor_request_data(subcontractor, year, month, subcontracto
                     # 金額合計
                     members_amount += dict_expenses['ITEM_AMOUNT_TOTAL']
                     detail_members.append(dict_expenses)
+        for i, lump_contract in enumerate(lump_contracts):
+            dict_expenses = dict()
+            # この項目は請求書の出力ではなく、履歴データをProjectRequestDetailに保存するために使う。
+            dict_expenses["EXTRA_PROJECT_MEMBER"] = None
+            dict_expenses['EXTRA_LUMP_CONTRACT'] = lump_contract
+            # BP注文書
+            dict_expenses['BP_MEMBER_ORDER'] = lump_contract.bplumporder if hasattr(lump_contract, 'lump_contract') else None
+            # 番号
+            dict_expenses['NO'] = str(i + 1)
+            # 項目
+            dict_expenses['ITEM_NAME'] = u"一括"
+            # 時間下限
+            dict_expenses['ITEM_MIN_HOURS'] = 0
+            # 時間上限
+            dict_expenses['ITEM_MAX_HOURS'] = 0
+            # 勤務時間
+            dict_expenses['ITEM_WORK_HOURS'] = 0
+            # 諸経費
+            dict_expenses['ITEM_EXPENSES_TOTAL'] = 0
+            # 超過金額と控除金額
+            dict_expenses['ITEM_PLUS_AMOUNT'] = 0
+            dict_expenses['ITEM_MINUS_AMOUNT'] = 0
+            # 基本金額
+            dict_expenses['ITEM_AMOUNT_BASIC'] = lump_contract.get_cost()
+            # 単価（円）
+            dict_expenses['ITEM_PRICE'] = lump_contract.get_cost()
+            # Min/Max（H）
+            dict_expenses['ITEM_MIN_MAX'] = u""
+            # 残業時間
+            dict_expenses['ITEM_EXTRA_HOURS'] = 0
+            # 率
+            dict_expenses['ITEM_RATE'] = 1
+            # 減（円）
+            dict_expenses['ITEM_MINUS_PER_HOUR'] = 0
+            # 増（円）
+            dict_expenses['ITEM_PLUS_PER_HOUR'] = 0
+            # 基本金額＋残業金額
+            dict_expenses['ITEM_AMOUNT_TOTAL'] = lump_contract.get_cost()
+            # 備考
+            dict_expenses['ITEM_COMMENT'] = lump_contract.comment if lump_contract.comment else u""
+            dict_expenses['ITEM_OTHER'] = u""
+            # 金額合計
+            members_amount += dict_expenses['ITEM_AMOUNT_TOTAL']
+            detail_members.append(dict_expenses)
 
     detail_expenses, expenses_amount = get_subcontractor_request_expenses_list(
         first_day.year,

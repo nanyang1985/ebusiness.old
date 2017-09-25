@@ -10,6 +10,7 @@
             init_select("last_name");
             init_select("company_name");
             init_select("project_name");
+            init_select("contract_type");
         };
 
         function generate_request(obj, url, is_overwrite) {
@@ -52,6 +53,16 @@
             <label for="last_name">名: </label><input type="text" id="last_name" name="last_name" style="width: 50px;"/>
             <label for="company_name">協力会社: </label><input type="text" id="company_name" name="company_name" style="width: 150px;"/>
             <label for="project_name">案件名: </label><input type="text" id="project_name" name="project_name" style="width: 150px;"/>
+            <select name="contract_type" id="contract_type">
+                <option value="">===契約形態===</option>
+                <option value="01">業務委託</option>
+                <option value="02">準委任</option>
+                <option value="03">派遣</option>
+                <option value="04">一括</option>
+                <option value="11">出向（在籍）</option>
+                <option value="12">出向（完全）</option>
+                <option value="99">その他</option>
+            </select>
             <input type="submit" value="Filter" />
             <a href="{{ request.path }}">クリア</a>
             <div class="example" style="float: right;">
@@ -78,7 +89,7 @@
                         <br/>
                         <a href="{% url 'view_subcontractor_pay_notify' subcontractor_request.pk %}" style="font-size: 11px;" target="_blank">支払通知書</a>
                         |&nbsp;<a href="{% url 'download_subcontractor_pay_notify' subcontractor_request.pk %}" style="font-size: 11px;" target="_blank">Download</a>
-                        |&nbsp;<a href="javascript:void(0)" style="font-size: 11px;" target="_blank">送信</a>
+                        |&nbsp;<a href="javascript:alert('未実装です。')" style="font-size: 11px;" target="_blank">送信</a>
                     {% endif %}
                 </div>
             </div>
@@ -108,9 +119,13 @@
                 {% for idx, data_row in object_list %}
                 <tr class="{% cycle 'row1' 'row2' %} {% if data_row.is_loan %}is_loan{% endif %}">
                     <td>
-                        <a href="{% url 'member_detail' data_row.employee_id %}">
-                            {{ data_row.first_name }} {{ data_row.last_name }}
-                        </a>
+                        {% if data_row.contract_type == '04' %}
+
+                        {% else %}
+                            <a href="{% url 'member_detail' data_row.employee_id %}">
+                                {{ data_row.first_name }} {{ data_row.last_name }}
+                            </a>
+                        {% endif %}
                     </td>
                     <td>
                         <div style="width: 200px; overflow: hidden; white-space: nowrap;">
@@ -118,9 +133,13 @@
                         </div>
                     </td>
                     <td>
-                        <div style="width: 250px; overflow: hidden; white-space: nowrap;">
-                            <a href="{% url 'project_detail' data_row.project_id %}">{{ data_row.project_name }}</a>
-                        </div>
+                        {% if data_row.project_id %}
+                            <div style="width: 250px; overflow: hidden; white-space: nowrap;">
+                                <a href="{% url 'project_detail' data_row.project_id %}">{{ data_row.project_name }}</a>
+                            </div>
+                        {% else %}
+                            {{ data_row.project_name }}
+                        {% endif %}
                     </td>
                     <td class="num">{{ data_row.cost|floatformat:0|intcomma }}</td>
                     {% if data_row.is_hourly_pay %}

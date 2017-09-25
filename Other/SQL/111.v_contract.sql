@@ -4,6 +4,7 @@ CREATE OR REPLACE VIEW v_contract AS
         c.contract_no AS contract_no,
         c.contract_date AS contract_date,
         c.member_type AS member_type,
+        null as contract_type,
         c.employment_date AS employment_date,
         c.start_date AS start_date,
         CASE
@@ -116,6 +117,7 @@ CREATE OR REPLACE VIEW v_contract AS
         NULL AS contract_no,
         NULL AS contract_date,
         4 AS member_type,
+        c.contract_type,
         NULL AS employment_date,
         c.start_date AS start_date,
         c.end_date AS end_date,

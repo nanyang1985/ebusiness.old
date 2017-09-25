@@ -42,6 +42,7 @@ select m.id as member_id
            when 7 then '正社員（試用期間）'
            else c.member_type
        end as member_type_name
+	 , c.contract_type
      , c.cost
      , c.is_hourly_pay
      , c.is_fixed_cost
@@ -156,6 +157,7 @@ select null as member_id
      , null as endowment_insurance
      , null as member_type
      , null as member_type_name
+     , null as contract_type
      , 0 as cost
      , 0 as is_hourly_pay
      , 0 as is_fixed_cost
@@ -194,3 +196,69 @@ select null as member_id
    and p.is_deleted = 0
    and concat(pr.year, pr.month) = get_ym()
    and not exists(select 1 from eb_projectmember pm where pm.project_id = p.id and pm.is_deleted = 0)
+UNION ALL
+-- ＢＰの一括契約
+select null as member_id
+     , null as employee_id
+     , null as first_name
+     , null as last_name
+     , null as membersectionperiod_id
+     , IF(s.org_type = '01', s.id, null) as division_id
+     , IF(s.org_type = '01', s.name, null) as division_name
+     , IF(s.org_type = '02', s.id, null) as section_id
+     , IF(s.org_type = '02', s.name, null) as section_name
+     , IF(s.org_type = '03', s.id, null) as subsection_id
+     , IF(s.org_type = '03', s.id, null) as subsection_name
+     , null as salesperson_id
+     , null as salesperson_name
+     , null as projectmember_id
+     , p.id as project_id
+     , p.name as project_name
+     , 0 as is_reserve
+     , 1 as is_lump
+     , null as client_id
+     , null as client_name
+     , sc.id as company_id
+     , sc.name as company_name
+     , null as endowment_insurance
+     , 4 as member_type
+     , '他者技術者' as member_type_name
+     , lc.contract_type
+     , lc.allowance_base as cost
+     , 0 as is_hourly_pay
+     , 1 as is_fixed_cost
+     , 0 as min_hours
+     , 0 as max_hours
+     , 0 as minus_per_hour
+     , 0 as plus_per_hour
+     , 0 as is_loan
+     , null as projectrequestdetail_id
+     , 0 as prev_traffic_cost
+     , 0 as prev_allowance
+     , null as memberattendance_id
+     , 0 as total_hours
+     , 0 as extra_hours
+     , 0 as total_days
+     , 0 as night_days
+     , 0 as advances_paid_client
+     , 0 as advances_paid
+     , 0 as traffic_cost
+     , 0 as all_price
+     , 0 as total_price
+     , 0 as expenses_price
+     , 0 as tax_price
+     , lc.allowance_base as salary
+     , 0 as allowance
+     , 0 as night_allowance
+     , 0 as overtime_cost
+     , 0 as expenses
+     , 0 as employment_insurance
+     , 0 as health_insurance 
+  from eb_bp_lump_contract lc
+  left join eb_project p on p.id = lc.project_id
+  left join eb_section s on s.id = p.department_id
+  left join eb_subcontractor sc on sc.id = lc.company_id
+  left join eb_bplumporder lo on lc.id = lo.contract_id
+ where lc.is_deleted = 0
+   and lc.status <> '04'
+   and extract(year_month from(lc.delivery_date)) = get_ym()

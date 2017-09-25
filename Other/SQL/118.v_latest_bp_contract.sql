@@ -37,7 +37,6 @@ select c.id
      , bpmo1.id as current_bp_order_id
      , bpmo2.id as next_bp_order_id
      , null as lump_order_id
-     , null as project_name
   from eb_bp_contract c 
   left join eb_projectmember pm on pm.member_id = c.member_id and pm.start_date <= current_date() and pm.end_date >= current_date() and pm.is_deleted = 0 and pm.status = 2
   left join eb_project p on p.id = pm.project_id and p.is_deleted = 0
@@ -93,11 +92,11 @@ select c.id
      , c.comment
      , 0 as is_retired 
      , null as projectmember_id
-     , null as project_id
+     , p.id as project_id
      , null as salesperson_id
      , null as current_bp_order_id
      , null as next_bp_order_id
      , bplo.id as lump_order_id
-     , c.project_name
   from eb_bp_lump_contract c
+  left join eb_project p on p.id = c.project_id
   left join eb_bplumporder bplo on bplo.contract_id = c.id

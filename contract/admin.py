@@ -144,8 +144,8 @@ class BpContractAdmin(BaseAdmin):
 
 class BpLumpContractAdmin(BaseAdmin):
     form = forms.BpContractLumpForm
-    list_display = ('company', 'project_name', 'start_date', 'end_date', 'allowance_base')
-    list_display_links = ('project_name',)
+    list_display = ('company', 'project', 'start_date', 'end_date', 'allowance_base')
+    list_display_links = ('company', 'project',)
 
     class Media:
         js = (

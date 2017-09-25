@@ -67,7 +67,11 @@
         </thead>
         <tbody>
             <tr class="row1">
-                <td>{{ bp_lump_contract.project_name }}</td>
+                <td>
+                    <a href="{% url 'project_detail' bp_lump_contract.project.pk %}" title="{{ bp_lump_contract.project }}">
+                        {{ bp_lump_contract.project }}
+                    </a>
+                </td>
                 <td class="center">
                     {% if bp_lump_contract.bplumporder %}
                         <a href="{% url 'bp_lump_order' bp_lump_contract.bplumporder.pk %}">{{ bp_lump_contract.bplumporder.order_no }}</a>

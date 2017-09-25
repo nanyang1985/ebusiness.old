@@ -112,7 +112,9 @@
             <tr style="height: 28px;">
                 <td rowspan="4"></td>
                 <td class="left bottom center" rowspan="4">{{ item.no }}</td>
-                <td class="left bottom align_left" colspan="6">{{ item.project_member }}</td>
+                <td class="left bottom align_left" colspan="6">
+                    {% if item.project_member %}{{ item.project_member }}{% else %}一括{% endif %}
+                </td>
                 <td class="left bottom align_right" colspan="2">{{ item.total_hours }}</td>
                 <td class="left bottom align_right" colspan="2">{% if item %}時間{% endif %}</td>
                 <td class="left bottom align_right" colspan="2">
@@ -129,7 +131,9 @@
                 <td></td>
             </tr>
             <tr>
-                <td class="left align_left" colspan="14">件名：&nbsp;&nbsp;{{ item.project_member.project }}</td>
+                <td class="left align_left" colspan="14">
+                    件名：&nbsp;&nbsp;{% if item.project_member %}{{ item.project_member.project }}{% else %}{{ item.project }}{% endif %}
+                </td>
                 <td class="border_right" colspan="6">発注伝票番号：&nbsp;
                     {% if item.bp_member_order %}
                     <a href="{% url 'bp_member_order' item.bp_member_order.pk %}">{{ item.bp_member_order.order_no }}</a>

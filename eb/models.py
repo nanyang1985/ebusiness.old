@@ -595,7 +595,43 @@ class Subcontractor(AbstractCompany):
                         subcontractor_request = None
                     organizations.append(division)
                     ret_list.append((division, subcontractor_request))
+        # 一括請求書
+        for department in self.get_lump_departments(first_day):
+            division = department.get_root_section()
+            if division and division.pk not in [org.pk for org, r in ret_list]:
+                try:
+                    subcontractor_request = SubcontractorRequest.objects.get(
+                        subcontractor=self,
+                        section=division,
+                        year=year,
+                        month=month
+                    )
+                except (ObjectDoesNotExist, MultipleObjectsReturned):
+                    subcontractor_request = None
+                organizations.append(division)
+                ret_list.append((division, subcontractor_request))
         return ret_list
+
+    def get_lump_departments(self, date):
+        """一括案件の部署別リストを取得する。
+
+        支払通知書と請求書を作成時一括案件も作成できるように。
+
+        :param date:
+        :return:
+        """
+        lump_contracts = self.get_lump_contracts(date.year, date.month)
+        departments = lump_contracts.values('project__department').distinct()
+        return Section.objects.public_filter(pk__in=departments)
+
+    def get_lump_contracts(self, year, month):
+        first_day = common.get_first_day_from_ym('%04d%02d' % (int(year), int(month)))
+        last_day = common.get_last_day_by_month(first_day)
+        lump_contracts = self.bplumpcontract_set.filter(
+            start_date__lte=last_day,
+            end_date__gte=first_day,
+        ).exclude(status='04')
+        return lump_contracts
 
     def get_members_by_month_and_section(self, year, month, section):
         """協力会社の請求書を作成時に、部署単位でメンバーを取得し、作成する。
@@ -1623,10 +1659,10 @@ class Project(models.Model):
     department = models.ForeignKey(Section, blank=True, null=True, verbose_name=u"所属部署", on_delete=models.PROTECT,
                                    help_text=u"一括案件で、メンバーアサインしていない場合を設定する。")
     members = models.ManyToManyField(Member, through='ProjectMember', blank=True)
-    insert_date = models.DateTimeField(blank=True, null=True, auto_now_add=True, editable=False,
-                                       verbose_name=u"追加日時")
-    update_date = models.DateTimeField(blank=True, null=True, auto_now=True, editable=False,
-                                       verbose_name=u"更新日時")
+    created_date = models.DateTimeField(blank=True, null=True, auto_now_add=True, editable=False,
+                                        verbose_name=u"追加日時")
+    updated_date = models.DateTimeField(blank=True, null=True, auto_now=True, editable=False,
+                                        verbose_name=u"更新日時")
     is_deleted = models.BooleanField(default=False, editable=False, verbose_name=u"削除フラグ")
     deleted_date = models.DateTimeField(blank=True, null=True, editable=False, verbose_name=u"削除日時")
 
@@ -2482,21 +2518,28 @@ class SubcontractorRequest(models.Model):
             )
             heading.save()
             for i, item in enumerate(data['MEMBERS']):
-                project_member = item["EXTRA_PROJECT_MEMBER"]
-                contract = project_member.member.get_contract(date)
+                project_member = item.get('EXTRA_PROJECT_MEMBER', None)
+                contract = project_member.member.get_contract(date) if project_member else None
+                lump_contract = item.get('EXTRA_LUMP_CONTRACT', None)
                 detail = SubcontractorRequestDetail(subcontractor_request=self)
                 detail.bp_member_order = item['BP_MEMBER_ORDER']
                 detail.project_member = project_member
-                detail.member_section = project_member.member.get_section(date)
                 detail.member_type = 4
-                detail.salesperson = project_member.member.get_salesperson(date)
+                if project_member:
+                    detail.member_section = project_member.member.get_section(date)
+                    detail.salesperson = project_member.member.get_salesperson(date)
+                elif lump_contract:
+                    detail.project = lump_contract.project
+                    detail.member_section = lump_contract.project.department
+                    detail.salesperson = lump_contract.project.salesperson
                 detail.subcontractor = self.subcontractor
                 detail.cost = 0
                 detail.no = str(i + 1)
-                detail.hourly_pay = contract.allowance_base if contract.is_hourly_pay else 0
-                detail.basic_price = contract.allowance_base
-                detail.min_hours = contract.allowance_time_min
-                detail.max_hours = contract.allowance_time_max
+                if contract:
+                    detail.hourly_pay = contract.allowance_base if contract.is_hourly_pay else 0
+                    detail.basic_price = contract.allowance_base
+                    detail.min_hours = contract.allowance_time_min
+                    detail.max_hours = contract.allowance_time_max
                 detail.total_hours = item['ITEM_WORK_HOURS'] if item['ITEM_WORK_HOURS'] else 0
                 detail.extra_hours = item['ITEM_EXTRA_HOURS'] if item['ITEM_EXTRA_HOURS'] else 0
                 detail.rate = item['ITEM_RATE']
@@ -2575,7 +2618,8 @@ class SubcontractorRequestHeading(models.Model):
 class SubcontractorRequestDetail(models.Model):
     subcontractor_request = models.ForeignKey(SubcontractorRequest, on_delete=models.PROTECT, verbose_name=u"請求書")
     bp_member_order = models.ForeignKey('BpMemberOrder', null=True, on_delete=models.PROTECT, verbose_name=u"ＢＰ注文書")
-    project_member = models.ForeignKey('ProjectMember', on_delete=models.PROTECT, verbose_name=u"メンバー")
+    project_member = models.ForeignKey('ProjectMember', null=True, on_delete=models.PROTECT, verbose_name=u"メンバー")
+    project = models.ForeignKey(Project, null=True, on_delete=models.PROTECT, verbose_name=u"一括案件")
     member_section = models.ForeignKey(Section, verbose_name=u"部署")
     member_type = models.IntegerField(default=4, choices=constants.CHOICE_MEMBER_TYPE, verbose_name=u"社員区分")
     salesperson = models.ForeignKey(Salesperson, blank=True, null=True, on_delete=models.PROTECT,
@@ -2598,7 +2642,7 @@ class SubcontractorRequestDetail(models.Model):
     minus_amount = models.IntegerField(default=0, editable=False, verbose_name=u"控除金額")
     total_price = models.IntegerField(default=0, verbose_name=u"売上（基本単価＋残業料）（税抜き）")
     expenses_price = models.IntegerField(default=0, verbose_name=u"精算金額")
-    comment = models.CharField(blank=True, null=True, max_length=50, verbose_name=u"備考")
+    comment = models.CharField(blank=True, null=True, max_length=255, verbose_name=u"備考")
 
     class Meta:
         ordering = ['-subcontractor_request__request_no', 'no']

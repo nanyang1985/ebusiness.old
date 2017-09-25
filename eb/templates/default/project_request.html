@@ -124,7 +124,13 @@
             <tr>
                 <td></td>
                 <td class="left bottom align_right">{{ item.no }}</td>
-                <td class="left bottom align_left" colspan="5">{{ item.project_member }}</td>
+                <td class="left bottom align_left" colspan="5">
+                    {% if item.project_member %}
+                        {{ item.project_member }}
+                    {% elif item.project %}
+                        一括
+                    {% endif %}
+                </td>
                 <td class="left bottom align_right">
                     {% if request_heading.is_hourly_pay %}
                         <!-- 時給の場合、時給の表示する。 -->
@@ -158,7 +164,7 @@
                 </td>
                 <td class="left bottom"></td>
                 <td class="left bottom align_right">{{ item.total_price|intcomma }}</td>
-                <td class="left bottom align_left border_right">{{ item.comment }}</td>
+                <td class="left bottom align_left border_right"><div style="overflow: hidden; white-space: nowrap;">{{ item.comment }}</div></td>
             </tr>
             {% endfor %}
             <tr>

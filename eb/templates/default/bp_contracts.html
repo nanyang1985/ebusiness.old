@@ -73,10 +73,10 @@
                 <tr class="{% cycle 'row1' 'row2' %}
                 {% if bp_contract.is_retired %}expired{% endif %}
                 {% ifequal bp_contract.project|default:'' '' %}expired{% endifequal %}
-                {% if bp_contract.project_name %}lump_project{% endif %}">
+                {% if bp_contract.contract_type == '04' %}lump_project{% endif %}">
                     {% if bp_contract.contract_type == '04' %}
                         <td colspan="3">
-                            <a href="{% url 'bp_lump_contract_orders' bp_contract.pk %}">{{ bp_contract.project_name }}</a>
+                            <a href="{% url 'bp_lump_contract_orders' bp_contract.pk %}">{{ bp_contract.project }}</a>
                         </td>
                     {% else %}
                         <td><a href="{% url 'bp_member_orders' bp_contract.member.pk %}">{{ bp_contract.member }}</a></td>
