@@ -49,13 +49,14 @@ var timeline;
         });
 
         showBusinessTypeOther($("#id_business_type"));
-        setTimeline();
+        setTimeline()
     });
 
     function setTimeline() {
         var container = document.getElementById('contract_lines');
         var groups = new vis.DataSet();
-        groups.add({id: "lbl", content: ""});
+        groups.add({id: "lbl_in", content: "入社"});
+        groups.add({id: "lbl_out", content: "退社"});
         groups.add({id: "eb", content: "EB契約"});
         var items = new vis.DataSet();
         {% for c in all_contract %}
@@ -63,30 +64,29 @@ var timeline;
                 items.add({
                     content: "入社",
                     title: "{{ c.join_date|date:'Y年m月d日' }}",
-                    group: "lbl",
+                    group: "lbl_in",
                     start: "{{ c.join_date|date:'Y-m-d' }} 0:00:00",
                     className: "join_date",
-                    member_type: 4,
                 });
             {% endif %}
             {% if c.retired_date %}
                 items.add({
                     content: "退職",
                     title: "{{ c.retired_date|date:'Y年m月d日' }}",
-                    group: "lbl",
+                    group: "lbl_out",
                     start: "{{ c.retired_date|date:'Y-m-d' }} 23:59:59",
                     className: "retired_date",
-                    member_type: 4,
                 });
             {% endif %}
             item_data = {
                 id: {{ c.id }},
-                content: "{% if c.status == '05' %}&nbsp;{% else %}{{ c.contract_no }}{% endif %}",
+                content: "{% if c.status == '05' %}&nbsp;{% else %}{{ c.contract_no }}({{ c.get_member_type_display }}){% endif %}",
                 title: "{{ c.contract_no }}",
+                contract_no: "{{ c.contract_no }}",
                 group: "eb",
+                subgroup: "{{ c.contract_no }}",
                 start: "{{ c.start_date|date:'Y-m-d' }} 0:00:00",
                 editable: false,
-                member_type: {{ c.member_type }},
                 className: getItemClassName({{ c.member_type }}, "{{ c.status }}")
             };
             {% if c.end_date %}item_data.end = "{{ c.end_date|date:'Y-m-d' }} 23:59:59";{% endif %}
@@ -95,8 +95,9 @@ var timeline;
         var options = {
             template: function (item, element, data) {
                 var html;
-                if (data.member_type != 4) {
-                    html = '<a href="{% url 'contract_change' member.id_from_api %}?ver=' + item.content + '">'
+                debugger;
+                if (data.contract_no != undefined) {
+                    html = '<a href="{% url 'contract_change' member.id_from_api %}?ver=' + item.contract_no + '">'
                         + item.content + '</a>';
                 } else {
                     html = item.content;
@@ -106,10 +107,14 @@ var timeline;
             max: '2030-12-30',
             min: '2014-01-01',
             zoomMin: 24 * 60 * 60 * 10000,
-            stack: false
+            stackSubgroups: true,
+            stack: false,
         };
         timeline = new vis.Timeline(container, items, groups, options);
-        timeline.setSelection([{{ contract.id }}], {focus: true});
+        setTimeout(function(){
+            timeline.setSelection([{{ contract.id }}], {focus: true});
+            timeline.focus(timeline.getSelection());
+        }, 500);
     }
 
     function getItemClassName(member_type, status) {
