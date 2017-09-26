@@ -5,19 +5,23 @@
 {% block header %}
 <script type="text/javascript">
     function show_attendance(obj, section_id) {
-        window.location = "/eb/section/" + section_id + "/attendance/" + $("#_year").val() + "/" + $("#_month").val() + ".html";
+        if (section_id === null) {
+            window.location = "/eb/section/section_all/attendance/" + $("#_year").val() + "/" + $("#_month").val() + ".html";
+        } else {
+            window.location = "/eb/section/" + section_id + "/attendance/" + $("#_year").val() + "/" + $("#_month").val() + ".html";
+        }
     }
 </script>
 {% endblock %}
 
 {% block content %}
     <div class="dashboard">
-        <div class="dashboard-title">部署「{{ section }}」</div>
+        <div class="dashboard-title">{{ title }}</div>
         <form method="get">
             {% now "Y" as current_year %}
             {% now "m" as current_month %}
             {% year_month_filter current_year current_month %}
-            <input type="button" onclick="show_attendance(this, {{ section.pk }})" value="出勤情報"/>
+            <input type="button" onclick="show_attendance(this, {% if section %}{{ section.pk }}{% else %}null{% endif %})" value="出勤情報"/>
         </form>
     </div>
     <table cellspacing="0" cellpadding="0" class="list">
@@ -27,7 +31,7 @@
                 <th>{% create_order_display "配属開始日" "start_date" %}</th>
                 <th>{% create_order_display "事業部" "division" %}</th>
                 <th>{% create_order_display "部署" "section" %}</th>
-                <th>{% create_order_display "課・グループ" "subsection" %}</th>
+                <th>{% create_order_display "課" "subsection" %}</th>
                 <th style="width: 80px;"></th>
             </tr>
         </thead>

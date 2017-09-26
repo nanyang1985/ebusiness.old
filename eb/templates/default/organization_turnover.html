@@ -168,9 +168,15 @@
             {% if theme == "default" %}
             <a id="switch" href="javascript:switchDisplay()"><i class="fa fa-expand" aria-hidden="true"></i> 展開</a>
             {% endif %}
-            <a href="{% url 'organization_turnover' section.pk prev_month|date:'Y' prev_month|date:'m' %}"><i class="fa fa-angle-double-left" aria-hidden="true"></i> 先月</a>
-            <a href="{% url 'organization_turnover' section.pk next_month|date:'Y' next_month|date:'m' %}">来月 <i class="fa fa-angle-double-right" aria-hidden="true"></i></a>
-            <a href="{% url 'download_organization_turnover' section.pk year month %}" target="_blank"><i class="fa fa-download" aria-hidden="true"></i> ダウンロード</a>
+            {% if section %}
+                <a href="{% url 'organization_turnover' section.pk prev_month|date:'Y' prev_month|date:'m' %}"><i class="fa fa-angle-double-left" aria-hidden="true"></i> 先月</a>
+                <a href="{% url 'organization_turnover' section.pk next_month|date:'Y' next_month|date:'m' %}">来月 <i class="fa fa-angle-double-right" aria-hidden="true"></i></a>
+                <a href="{% url 'download_organization_turnover' section.pk year month %}" target="_blank"><i class="fa fa-download" aria-hidden="true"></i> ダウンロード</a>
+            {% else %}
+                <a href="{% url 'organization_all_turnover' prev_month|date:'Y' prev_month|date:'m' %}"><i class="fa fa-angle-double-left" aria-hidden="true"></i> 先月</a>
+                <a href="{% url 'organization_all_turnover' next_month|date:'Y' next_month|date:'m' %}">来月 <i class="fa fa-angle-double-right" aria-hidden="true"></i></a>
+                <a href="{% url 'download_organization_all_turnover' year month %}" target="_blank"><i class="fa fa-download" aria-hidden="true"></i> ダウンロード</a>
+            {% endif %}
         </div>
     </div>
     {% if has_error %}

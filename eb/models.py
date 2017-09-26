@@ -2206,7 +2206,7 @@ class ProjectStage(BaseModel):
         return self.name
 
 
-class ProjectMember(models.Model):
+class ProjectMember(BaseModel):
     project = models.ForeignKey(Project, on_delete=models.PROTECT, verbose_name=u'案件名称')
     member = models.ForeignKey(Member, on_delete=models.PROTECT, verbose_name=u"名前")
     start_date = models.DateField(blank=False, null=True, verbose_name=u"開始日")
@@ -2221,8 +2221,6 @@ class ProjectMember(models.Model):
                                  choices=constants.CHOICE_PROJECT_MEMBER_STATUS, verbose_name=u"ステータス")
     role = models.CharField(default="PG", max_length=2, choices=constants.CHOICE_PROJECT_ROLE, verbose_name=u"作業区分")
     stages = models.ManyToManyField(ProjectStage, blank=True, verbose_name=u"作業工程")
-    is_deleted = models.BooleanField(default=False, editable=False, verbose_name=u"削除フラグ")
-    deleted_date = models.DateTimeField(blank=True, null=True, editable=False, verbose_name=u"削除年月日")
 
     objects = PublicManager(is_deleted=False, project__is_deleted=False, member__is_deleted=False)
 

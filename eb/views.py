@@ -779,6 +779,19 @@ class SectionListView(BaseTemplateView):
         return self.render_to_response(context)
 
 
+class SectionAllDetailView(BaseTemplateView):
+    template_name = 'default/section_detail.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(SectionAllDetailView, self).get_context_data(**kwargs)
+        company = context.get('company')
+        context.update({
+            'title': u'%s | %s' % (unicode(company), constants.NAME_SYSTEM),
+            'year_list': biz.get_year_list(),
+        })
+        return context
+
+
 class SectionDetailView(BaseTemplateView):
     template_name = 'default/section_detail.html'
 
@@ -822,9 +835,12 @@ class OrganizationTurnoverView(BaseTemplateView):
 
     def get_context_data(self, **kwargs):
         context = super(OrganizationTurnoverView, self).get_context_data(**kwargs)
-        today = datetime.date.today()
-        section_id = kwargs.get('section_id', 0)
-        section = get_object_or_404(models.Section, pk=section_id)
+        is_all = kwargs.get('is_all', False)
+        if is_all:
+            section = None
+        else:
+            section_id = kwargs.get('section_id', 0)
+            section = get_object_or_404(models.Section, pk=section_id)
         request = kwargs.get('request')
         year = kwargs.get('year')
         month = kwargs.get('month')
@@ -836,12 +852,13 @@ class OrganizationTurnoverView(BaseTemplateView):
         order_list = common.get_ordering_list(o)
 
         data_frame = biz.get_organization_turnover(year, month, section, order_list=order_list)
-        df = biz.get_organization_turnover(year, month, order_list=order_list)
         summary_subcontractor = data_frame.loc[data_frame.member_type == 4].sum()
         summary_self = data_frame.loc[data_frame.member_type != 4].sum()
 
         context.update({
-            'title': u'出勤 | %s年%s月 | %s | %s' % (year, month, section.name, constants.NAME_SYSTEM),
+            'title': u'出勤 | %s年%s月 | %s | %s' % (
+                year, month, section.name if section else u"全社", constants.NAME_SYSTEM
+            ),
             'section': section,
             'year': year,
             'month': month,
@@ -2038,13 +2055,18 @@ class DownloadResumeView(BaseView):
 
 class DownloadOrganizationTurnover(BaseView):
     def get(self, request, *args, **kwargs):
-        section_id = kwargs.get('section_id', 0)
         year = kwargs.get('year', 0)
         month = kwargs.get('month', 0)
-        section = get_object_or_404(models.Section, pk=section_id)
+        is_all = kwargs.get('is_all', False)
+        if is_all:
+            section = None
+            filename = constants.NAME_SECTION_ATTENDANCE % ('全社', int(year), int(month))
+        else:
+            section_id = kwargs.get('section_id', 0)
+            section = get_object_or_404(models.Section, pk=section_id)
+            filename = constants.NAME_SECTION_ATTENDANCE % (section.name, int(year), int(month))
         batch = biz.get_batch_manage(constants.BATCH_SEND_ATTENDANCE_FORMAT)
         data_frame = biz.get_organization_turnover(year, month, section)
-        filename = constants.NAME_SECTION_ATTENDANCE % (section.name, int(year), int(month))
         output = file_gen.generate_organization_turnover(
             request.user, batch.mail_template.attachment1.path, data_frame, year, month
         )
