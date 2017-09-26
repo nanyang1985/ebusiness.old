@@ -62,7 +62,7 @@
                 <th style="width: 62px;">{% create_order_display "現在人数" "" %}</th>
                 <th style="width: 85px;">{% create_order_display "メンバー" "" %}</th>
                 <th style="width: 60px;">{% create_order_display "状態" "" %}</th>
-                <th style="width: 140px;">{% create_order_display "更新日" "update_date" %}</th>
+                <th style="width: 140px;">{% create_order_display "更新日" "updated_date" %}</th>
                 <th class="noprint" style="width: 65px;"></th>
             </tr>
         </thead>
@@ -101,7 +101,7 @@
                             {% endfor %}
                         </td>
                         <td class="center"><a href="?status={{ project.status }}">{{ project.get_status_display }}</a></td>
-                        <td>{{ project.update_date|date:'Y/m/d H:i' }}</td>
+                        <td>{{ project.updated_date|date:'Y/m/d H:i' }}</td>
                         <td class="center noprint">
                             <a href="{% url 'admin:eb_project_change' project.id %}?from=portal&_popup=1" target="_blank">編集</a>
                             <a href="{% url 'project_end' project.id %}?{{ params }}" onclick="return confirm('案件「{{ project.name }}」の状態を完了とします、よろしいですか？')">終了</a>

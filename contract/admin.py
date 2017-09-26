@@ -150,6 +150,8 @@ class BpLumpContractAdmin(BaseAdmin):
     class Media:
         js = (
             '/static/admin/js/calc_contract.js',
+            '/static/admin/js/filterlist.js',
+            '/static/admin/js/select_filter.js',
         )
 
 

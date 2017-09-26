@@ -1050,6 +1050,7 @@ class Salesperson(AbstractMember):
 
 class Member(AbstractMember):
     user = models.OneToOneField(User, blank=True, null=True)
+    oa_user_id = models.IntegerField(blank=True, null=True, editable=False, verbose_name=u"ＯＡのユーザーＩＤ")
     member_type = models.IntegerField(default=0, choices=constants.CHOICE_MEMBER_TYPE, verbose_name=u"社員区分")
     section = models.ForeignKey('Section', blank=True, null=True, verbose_name=u"部署", on_delete=models.PROTECT,
                                 help_text=u"開発メンバーなど営業必要な方はしたの「社員の部署期間」のほうで設定してください、"
@@ -1618,7 +1619,7 @@ class OS(BaseModel):
         return self.name
 
 
-class Project(models.Model):
+class Project(BaseModel):
     name = models.CharField(blank=False, null=False, max_length=50, verbose_name=u"案件名称")
     description = models.TextField(blank=True, null=True, verbose_name=u"案件概要")
     business_type = models.CharField(blank=False, null=True, max_length=2,
@@ -1659,12 +1660,6 @@ class Project(models.Model):
     department = models.ForeignKey(Section, blank=True, null=True, verbose_name=u"所属部署", on_delete=models.PROTECT,
                                    help_text=u"一括案件で、メンバーアサインしていない場合を設定する。")
     members = models.ManyToManyField(Member, through='ProjectMember', blank=True)
-    created_date = models.DateTimeField(blank=True, null=True, auto_now_add=True, editable=False,
-                                        verbose_name=u"追加日時")
-    updated_date = models.DateTimeField(blank=True, null=True, auto_now=True, editable=False,
-                                        verbose_name=u"更新日時")
-    is_deleted = models.BooleanField(default=False, editable=False, verbose_name=u"削除フラグ")
-    deleted_date = models.DateTimeField(blank=True, null=True, editable=False, verbose_name=u"削除日時")
 
     objects = PublicManager(is_deleted=False, client__is_deleted=False)
 
