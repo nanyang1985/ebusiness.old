@@ -116,6 +116,9 @@
     table.attendance th.bk06 {
         background: rgb(255, 255, 0);
     }
+    table.attendance th.bk07 {
+        background: rgb(235, 169, 255);
+    }
     table.attendance th, td {
         padding: 0 3px;
         overflow: hidden;
@@ -199,7 +202,10 @@
                     <th class="bk03" colspan="6">勤務情報</th>
                     <th class="bk04" colspan="3">売上</th>
                     <th class="bk05" colspan="9">原価</th>
-                    <th class="bk06" rowspan="2">利益</th>
+                    <th class="bk06" rowspan="2">粗利</th>
+                    <!--経費（原価ではない）-->
+                    <th class="bk07" colspan="7">経費</th>
+                    <th class="bk06" rowspan="2">営業利益</th>
                 </tr>
                 <tr>
                     <!--基本データ-->
@@ -233,6 +239,14 @@
                     <th class="bk05">雇用／労災</th>
                     <th class="bk05">健康／厚生</th>
                     <th class="bk05">原価合計</th>
+                    <!--経費（原価ではない）-->
+                    <th class="bk07">会議費</th>
+                    <th class="bk07">交際費</th>
+                    <th class="bk07">旅費交通費</th>
+                    <th class="bk07">通信費</th>
+                    <th class="bk07">租税公課</th>
+                    <th class="bk07">消耗品費</th>
+                    <th class="bk07">経費合計</th>
                 </tr>
             </thead>
         </table>
@@ -240,7 +254,7 @@
             <table class="attendance" cellspacing="0" cellpadding="0">
                 <tbody>
                     {% if data_frame is None %}
-                        <tr class="row2"><td class="center red" colspan="29">メンバーがいません。</td></tr>
+                        <tr class="row2"><td class="center red" colspan="35">メンバーがいません。</td></tr>
                     {% else %}
                         {% for idx, data_row in data_frame.iterrows %}
                         {% is_belong_to request.user data_row.member_id year month as is_own %}
@@ -314,10 +328,27 @@
                                 <td class="num">{{ data_row.total_cost|floatformat:0|intcomma }}</td>
                                 <!-- 原価（利益） -->
                                 <td class="num {% if data_row.profit < 0 %}red{% endif %}">{{ data_row.profit|floatformat:0|intcomma }}</td>
+                                <!--経費（原価ではない）-->
+                                <td class="num"></td>
+                                <td class="num"></td>
+                                <td class="num"></td>
+                                <td class="num"></td>
+                                <td class="num"></td>
+                                <td class="num"></td>
+                                <td class="num"></td>
+                                <td class="num"></td>
                             {% else %}
                                 <td class="{% if data_row.projectrequestdetail_id %}project_requested{% endif %}" style="color: lightblue;">******</td>
                                 <td class="{% if data_row.projectrequestdetail_id %}project_requested{% endif %}" style="color: lightblue;">******</td>
                                 <td class="{% if data_row.projectrequestdetail_id %}project_requested{% endif %}" style="color: lightblue;">******</td>
+                                <td style="color: lightblue;">******</td>
+                                <td style="color: lightblue;">******</td>
+                                <td style="color: lightblue;">******</td>
+                                <td style="color: lightblue;">******</td>
+                                <td style="color: lightblue;">******</td>
+                                <td style="color: lightblue;">******</td>
+                                <td style="color: lightblue;">******</td>
+                                <td style="color: lightblue;">******</td>
                                 <td style="color: lightblue;">******</td>
                                 <td style="color: lightblue;">******</td>
                                 <td style="color: lightblue;">******</td>
@@ -336,7 +367,7 @@
                 <tfoot>
                     <tr style="height: 20px; font-size: 12px;">
                         <td colspan="10" rowspan="3">
-                            {{ project_members|length }} 件
+                            {{ data_frame|length }} 件
                         </td>
                         <td colspan="6" style="text-align: right;">他社技術者の合計</td>
                         <td class="num">{{ summary_subcontractor.all_price|floatformat:0|intcomma }}</td>
@@ -352,6 +383,14 @@
                         <td class="num">{{ summary_subcontractor.health_insurance|floatformat:0|intcomma }}</td>
                         <td class="num">{{ summary_subcontractor.total_cost|floatformat:0|intcomma }}</td>
                         <td class="num">{{ summary_subcontractor.profit|floatformat:0|intcomma }}</td>
+                        <td class="num">{{ 0|floatformat:0|intcomma }}</td>
+                        <td class="num">{{ 0|floatformat:0|intcomma }}</td>
+                        <td class="num">{{ 0|floatformat:0|intcomma }}</td>
+                        <td class="num">{{ 0|floatformat:0|intcomma }}</td>
+                        <td class="num">{{ 0|floatformat:0|intcomma }}</td>
+                        <td class="num">{{ 0|floatformat:0|intcomma }}</td>
+                        <td class="num">{{ 0|floatformat:0|intcomma }}</td>
+                        <td class="num">{{ 0|floatformat:0|intcomma }}</td>
                     </tr>
                     <tr style="height: 20px; font-size: 12px;">
                         <td colspan="6" style="text-align: right;">自社の合計</td>
@@ -368,6 +407,14 @@
                         <td class="num">{{ summary_self.health_insurance|floatformat:0|intcomma }}</td>
                         <td class="num">{{ summary_self.total_cost|floatformat:0|intcomma }}</td>
                         <td class="num">{{ summary_self.profit|floatformat:0|intcomma }}</td>
+                        <td class="num">{{ 0|floatformat:0|intcomma }}</td>
+                        <td class="num">{{ 0|floatformat:0|intcomma }}</td>
+                        <td class="num">{{ 0|floatformat:0|intcomma }}</td>
+                        <td class="num">{{ 0|floatformat:0|intcomma }}</td>
+                        <td class="num">{{ 0|floatformat:0|intcomma }}</td>
+                        <td class="num">{{ 0|floatformat:0|intcomma }}</td>
+                        <td class="num">{{ 0|floatformat:0|intcomma }}</td>
+                        <td class="num">{{ 0|floatformat:0|intcomma }}</td>
                     </tr>
                     <tr style="font-size: 12px;">
                         <td colspan="6" style="text-align: right;">すべての合計</td>
@@ -384,6 +431,14 @@
                         <td class="num">{{ data_frame.sum.health_insurance|floatformat:0|intcomma }}</td>
                         <td class="num">{{ data_frame.sum.total_cost|floatformat:0|intcomma }}</td>
                         <td class="num">{{ data_frame.sum.profit|floatformat:0|intcomma }}</td>
+                        <td class="num">{{ 0|floatformat:0|intcomma }}</td>
+                        <td class="num">{{ 0|floatformat:0|intcomma }}</td>
+                        <td class="num">{{ 0|floatformat:0|intcomma }}</td>
+                        <td class="num">{{ 0|floatformat:0|intcomma }}</td>
+                        <td class="num">{{ 0|floatformat:0|intcomma }}</td>
+                        <td class="num">{{ 0|floatformat:0|intcomma }}</td>
+                        <td class="num">{{ 0|floatformat:0|intcomma }}</td>
+                        <td class="num">{{ 0|floatformat:0|intcomma }}</td>
                     </tr>
                 </tfoot>
             </table>
