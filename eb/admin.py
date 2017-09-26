@@ -960,7 +960,7 @@ class LogEntryAdmin(ReadonlyAdmin):
 
 
 class BatchManageAdmin(BaseAdmin):
-    list_display = ['name', 'title', 'cron_tab', 'is_active', 'is_deleted']
+    list_display = ['name', 'title', 'cron_tab', 'mail_template', 'is_active', 'is_deleted']
     list_filter = ['is_active', 'is_deleted']
     inlines = (BatchCarbonCopyInline,)
 

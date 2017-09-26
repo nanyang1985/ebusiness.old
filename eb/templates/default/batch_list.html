@@ -13,6 +13,7 @@
                 <th>バッチID</th>
                 <th>バッチ名</th>
                 <th>バッチの実行タイミング</th>
+                <th>メールテンプレート</th>
                 <th>有効</th>
                 <th>実行</th>
                 <th>ログ</th>
@@ -24,6 +25,7 @@
                 <td>{{ batch.name }}</td>
                 <td>{{ batch.title }}</td>
                 <td>{{ batch.cron_tab }}</td>
+                <td>{{ batch.mail_template|default:'' }}</td>
                 <td>
                     {% if batch.is_active %}
                     <img width="12px" src="/static/{{ theme }}/img/icon-normal.png"/>
@@ -53,6 +55,7 @@
                 <th>バッチID</th>
                 <th>バッチ名</th>
                 <th>バッチの実行タイミング</th>
+                <th>メールテンプレート</th>
                 <th>有効</th>
                 <th>実行</th>
                 <th>ログ</th>
