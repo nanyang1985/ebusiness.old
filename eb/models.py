@@ -2762,6 +2762,13 @@ class MemberAttendance(BaseModel):
     minus_per_hour = models.IntegerField(default=0, editable=False, verbose_name=u"減（円）")
     price = models.IntegerField(default=0, verbose_name=u"価格")
     comment = models.CharField(blank=True, null=True, max_length=50, verbose_name=u"備考")
+    # 経費（原価ではない、営業コストとする）
+    expenses_conference = models.IntegerField(default=0, verbose_name=u"会議費")
+    expenses_entertainment = models.IntegerField(default=0, verbose_name=u"交際費")
+    expenses_travel = models.IntegerField(default=0, verbose_name=u"旅費交通費")
+    expenses_communication = models.IntegerField(default=0, verbose_name=u"通信費")
+    expenses_tax_dues = models.IntegerField(default=0, verbose_name=u"租税公課")
+    expenses_expendables = models.IntegerField(default=0, verbose_name=u"消耗品")
 
     objects = PublicManager(is_deleted=False, project_member__is_deleted=False)
 

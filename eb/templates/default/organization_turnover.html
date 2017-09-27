@@ -329,14 +329,14 @@
                                 <!-- 原価（利益） -->
                                 <td class="num {% if data_row.profit < 0 %}red{% endif %}">{{ data_row.profit|floatformat:0|intcomma }}</td>
                                 <!--経費（原価ではない）-->
-                                <td class="num"></td>
-                                <td class="num"></td>
-                                <td class="num"></td>
-                                <td class="num"></td>
-                                <td class="num"></td>
-                                <td class="num"></td>
-                                <td class="num"></td>
-                                <td class="num"></td>
+                                <td class="num">{{ data_row.expenses_conference|floatformat:0|intcomma }}</td>
+                                <td class="num">{{ data_row.expenses_entertainment|floatformat:0|intcomma }}</td>
+                                <td class="num">{{ data_row.expenses_travel|floatformat:0|intcomma }}</td>
+                                <td class="num">{{ data_row.expenses_communication|floatformat:0|intcomma }}</td>
+                                <td class="num">{{ data_row.expenses_tax_dues|floatformat:0|intcomma }}</td>
+                                <td class="num">{{ data_row.expenses_expendables|floatformat:0|intcomma }}</td>
+                                <td class="num">{{ data_row.expenses_total|floatformat:0|intcomma }}</td>
+                                <td class="num {% if data_row.income < 0 %}red{% endif %}">{{ data_row.income|floatformat:0|intcomma }}</td>
                             {% else %}
                                 <td class="{% if data_row.projectrequestdetail_id %}project_requested{% endif %}" style="color: lightblue;">******</td>
                                 <td class="{% if data_row.projectrequestdetail_id %}project_requested{% endif %}" style="color: lightblue;">******</td>
@@ -383,14 +383,14 @@
                         <td class="num">{{ summary_subcontractor.health_insurance|floatformat:0|intcomma }}</td>
                         <td class="num">{{ summary_subcontractor.total_cost|floatformat:0|intcomma }}</td>
                         <td class="num">{{ summary_subcontractor.profit|floatformat:0|intcomma }}</td>
-                        <td class="num">{{ 0|floatformat:0|intcomma }}</td>
-                        <td class="num">{{ 0|floatformat:0|intcomma }}</td>
-                        <td class="num">{{ 0|floatformat:0|intcomma }}</td>
-                        <td class="num">{{ 0|floatformat:0|intcomma }}</td>
-                        <td class="num">{{ 0|floatformat:0|intcomma }}</td>
-                        <td class="num">{{ 0|floatformat:0|intcomma }}</td>
-                        <td class="num">{{ 0|floatformat:0|intcomma }}</td>
-                        <td class="num">{{ 0|floatformat:0|intcomma }}</td>
+                        <td class="num">{{ summary_subcontractor.expenses_conference|floatformat:0|intcomma }}</td>
+                        <td class="num">{{ summary_subcontractor.expenses_entertainment|floatformat:0|intcomma }}</td>
+                        <td class="num">{{ summary_subcontractor.expenses_travel|floatformat:0|intcomma }}</td>
+                        <td class="num">{{ summary_subcontractor.expenses_communication|floatformat:0|intcomma }}</td>
+                        <td class="num">{{ summary_subcontractor.expenses_tax_dues|floatformat:0|intcomma }}</td>
+                        <td class="num">{{ summary_subcontractor.expenses_expendables|floatformat:0|intcomma }}</td>
+                        <td class="num">{{ summary_subcontractor.expenses_total|floatformat:0|intcomma }}</td>
+                        <td class="num">{{ summary_subcontractor.income|floatformat:0|intcomma }}</td>
                     </tr>
                     <tr style="height: 20px; font-size: 12px;">
                         <td colspan="6" style="text-align: right;">自社の合計</td>
@@ -407,14 +407,14 @@
                         <td class="num">{{ summary_self.health_insurance|floatformat:0|intcomma }}</td>
                         <td class="num">{{ summary_self.total_cost|floatformat:0|intcomma }}</td>
                         <td class="num">{{ summary_self.profit|floatformat:0|intcomma }}</td>
-                        <td class="num">{{ 0|floatformat:0|intcomma }}</td>
-                        <td class="num">{{ 0|floatformat:0|intcomma }}</td>
-                        <td class="num">{{ 0|floatformat:0|intcomma }}</td>
-                        <td class="num">{{ 0|floatformat:0|intcomma }}</td>
-                        <td class="num">{{ 0|floatformat:0|intcomma }}</td>
-                        <td class="num">{{ 0|floatformat:0|intcomma }}</td>
-                        <td class="num">{{ 0|floatformat:0|intcomma }}</td>
-                        <td class="num">{{ 0|floatformat:0|intcomma }}</td>
+                        <td class="num">{{ summary_self.expenses_conference|floatformat:0|intcomma }}</td>
+                        <td class="num">{{ summary_self.expenses_entertainment|floatformat:0|intcomma }}</td>
+                        <td class="num">{{ summary_self.expenses_travel|floatformat:0|intcomma }}</td>
+                        <td class="num">{{ summary_self.expenses_communication|floatformat:0|intcomma }}</td>
+                        <td class="num">{{ summary_self.expenses_tax_dues|floatformat:0|intcomma }}</td>
+                        <td class="num">{{ summary_self.expenses_expendables|floatformat:0|intcomma }}</td>
+                        <td class="num">{{ summary_self.expenses_total|floatformat:0|intcomma }}</td>
+                        <td class="num">{{ summary_self.income|floatformat:0|intcomma }}</td>
                     </tr>
                     <tr style="font-size: 12px;">
                         <td colspan="6" style="text-align: right;">すべての合計</td>
@@ -431,14 +431,14 @@
                         <td class="num">{{ data_frame.sum.health_insurance|floatformat:0|intcomma }}</td>
                         <td class="num">{{ data_frame.sum.total_cost|floatformat:0|intcomma }}</td>
                         <td class="num">{{ data_frame.sum.profit|floatformat:0|intcomma }}</td>
-                        <td class="num">{{ 0|floatformat:0|intcomma }}</td>
-                        <td class="num">{{ 0|floatformat:0|intcomma }}</td>
-                        <td class="num">{{ 0|floatformat:0|intcomma }}</td>
-                        <td class="num">{{ 0|floatformat:0|intcomma }}</td>
-                        <td class="num">{{ 0|floatformat:0|intcomma }}</td>
-                        <td class="num">{{ 0|floatformat:0|intcomma }}</td>
-                        <td class="num">{{ 0|floatformat:0|intcomma }}</td>
-                        <td class="num">{{ 0|floatformat:0|intcomma }}</td>
+                        <td class="num">{{ data_frame.sum.expenses_conference|floatformat:0|intcomma }}</td>
+                        <td class="num">{{ data_frame.sum.expenses_entertainment|floatformat:0|intcomma }}</td>
+                        <td class="num">{{ data_frame.sum.expenses_travel|floatformat:0|intcomma }}</td>
+                        <td class="num">{{ data_frame.sum.expenses_communication|floatformat:0|intcomma }}</td>
+                        <td class="num">{{ data_frame.sum.expenses_tax_dues|floatformat:0|intcomma }}</td>
+                        <td class="num">{{ data_frame.sum.expenses_expendables|floatformat:0|intcomma }}</td>
+                        <td class="num">{{ data_frame.sum.expenses_total|floatformat:0|intcomma }}</td>
+                        <td class="num">{{ data_frame.sum.income|floatformat:0|intcomma }}</td>
                     </tr>
                 </tfoot>
             </table>

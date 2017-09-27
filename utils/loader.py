@@ -307,6 +307,18 @@ def load_section_attendance(file_content, year, month, use_id):
         # 経費(原価)
         expenses = values[constants.POS_ATTENDANCE_COL_EXPENSES]
         expenses = expenses if expenses else None
+        # 会議費
+        expenses_conference = values[constants.POS_ATTENDANCE_COL_EXPENSES_CONFERENCE] or None
+        # 交際費
+        expenses_entertainment = values[constants.POS_ATTENDANCE_COL_EXPENSES_ENTERTAINMENT] or None
+        # 旅費交通費
+        expenses_travel = values[constants.POS_ATTENDANCE_COL_EXPENSES_TRAVEL] or None
+        # 通信費
+        expenses_communication = values[constants.POS_ATTENDANCE_COL_EXPENSES_COMMUNICATION] or None
+        # 租税公課
+        expenses_tax_dues = values[constants.POS_ATTENDANCE_COL_EXPENSES_TAX_DUES] or None
+        # 消耗品
+        expenses_expendables = values[constants.POS_ATTENDANCE_COL_EXPENSES_EXPENDABLES] or None
 
         if not project_member_id:
             if member_code or member_name:
@@ -357,13 +369,6 @@ def load_section_attendance(file_content, year, month, use_id):
             if not allowance:
                 allowance = attendance.get_prev_allowance()
             action_flag = CHANGE
-            common.get_object_changed_message(attendance, 'total_days', total_days, changed_list)
-            common.get_object_changed_message(attendance, 'night_days', night_days, changed_list)
-            common.get_object_changed_message(attendance, 'advances_paid', advances_paid, changed_list)
-            common.get_object_changed_message(attendance, 'advances_paid_client', advances_paid_client, changed_list)
-            common.get_object_changed_message(attendance, 'traffic_cost', traffic_cost, changed_list)
-            common.get_object_changed_message(attendance, 'allowance', allowance, changed_list)
-            common.get_object_changed_message(attendance, 'expenses', expenses, changed_list)
             attendance.total_days = total_days if total_days else None
             attendance.night_days = night_days if night_days else None
             if not has_requested:
@@ -379,7 +384,6 @@ def load_section_attendance(file_content, year, month, use_id):
             attendance.traffic_cost = traffic_cost
             attendance.allowance = allowance
             attendance.expenses = expenses
-            change_message = _('Changed %s.') % get_text_list(changed_list, _('and')) if changed_list else ''
         else:
             attendance = models.MemberAttendance(project_member=project_member,
                                                  year=year, month=month,
@@ -402,14 +406,31 @@ def load_section_attendance(file_content, year, month, use_id):
             action_flag = ADDITION
             common.get_object_changed_message(attendance, 'total_hours', total_hours, changed_list)
             common.get_object_changed_message(attendance, 'extra_hours', extra_hours, changed_list)
-            common.get_object_changed_message(attendance, 'total_days', total_days, changed_list)
-            common.get_object_changed_message(attendance, 'night_days', night_days, changed_list)
             common.get_object_changed_message(attendance, 'price', price, changed_list)
-            common.get_object_changed_message(attendance, 'advances_paid', advances_paid, changed_list)
-            common.get_object_changed_message(attendance, 'advances_paid_client', advances_paid_client, changed_list)
-            common.get_object_changed_message(attendance, 'traffic_cost', traffic_cost, changed_list)
-            common.get_object_changed_message(attendance, 'allowance', allowance, changed_list)
-            common.get_object_changed_message(attendance, 'expenses', expenses, changed_list)
+        # 経費（原価ではない）
+        attendance.expenses_conference = expenses_conference
+        attendance.expenses_entertainment = expenses_entertainment
+        attendance.expenses_travel = expenses_travel
+        attendance.expenses_communication = expenses_communication
+        attendance.expenses_tax_dues = expenses_tax_dues
+        attendance.expenses_expendables = expenses_expendables
+        # 修正履歴
+        common.get_object_changed_message(attendance, 'total_days', total_days, changed_list)
+        common.get_object_changed_message(attendance, 'night_days', night_days, changed_list)
+        common.get_object_changed_message(attendance, 'advances_paid', advances_paid, changed_list)
+        common.get_object_changed_message(attendance, 'advances_paid_client', advances_paid_client, changed_list)
+        common.get_object_changed_message(attendance, 'traffic_cost', traffic_cost, changed_list)
+        common.get_object_changed_message(attendance, 'allowance', allowance, changed_list)
+        common.get_object_changed_message(attendance, 'expenses', expenses, changed_list)
+        common.get_object_changed_message(attendance, 'expenses_conference', expenses_conference, changed_list)
+        common.get_object_changed_message(attendance, 'expenses_entertainment', expenses_entertainment, changed_list)
+        common.get_object_changed_message(attendance, 'expenses_travel', expenses_travel, changed_list)
+        common.get_object_changed_message(attendance, 'expenses_communication', expenses_communication, changed_list)
+        common.get_object_changed_message(attendance, 'expenses_tax_dues', expenses_tax_dues, changed_list)
+        common.get_object_changed_message(attendance, 'expenses_expendables', expenses_expendables, changed_list)
+        if action_flag == CHANGE:
+            change_message = _('Changed %s.') % get_text_list(changed_list, _('and')) if changed_list else ''
+        else:
             change_message = (get_text_list(changed_list, _('and')) if changed_list else '') + _('Added.')
 
         attendance.save()

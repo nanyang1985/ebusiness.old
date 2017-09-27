@@ -409,8 +409,13 @@ def get_cost_by_month(year, month, param_dict=None, order_list=None):
     # 原価合計を計算する。
     df['total_cost'] = df['salary'] + df['allowance'] + df['night_allowance'] + df['overtime_cost'] + df[
         'traffic_cost'] + df['expenses'] + df['employment_insurance'] + df['health_insurance']
-    # 利益
+    # 粗利
     df['profit'] = df['total_price'] - df['total_cost']
+    # 経費合計
+    df['expenses_total'] = df['expenses_conference'] + df['expenses_entertainment'] + df['expenses_travel'] + df[
+        'expenses_communication'] + df['expenses_tax_dues'] + df['expenses_expendables']
+    # 営業利益
+    df['income'] = df['total_price'] - df['total_cost'] - df['expenses_total']
     df.project_id = df.project_id.fillna(0).astype(int)
     return common.data_frame_filter(df, param_dict, order_list)
 
