@@ -391,3 +391,31 @@ function calculate_tax_amount(obj, name_tax, name_total) {
         obj_total.val(cost + tax);
     }
 }
+
+// 健康保険料と厚生年金保険料を計算する。
+function calculate_insurance_rate(obj, name_level2, name_amount1_total, name_amount1_half, name_amount2_total, name_amount2_half, name_amount3_total, name_amount3_half) {
+    // Inlineの場合
+    row_id = $(obj).parent().parent().attr("id");
+    level2 = parseInt($("#id_" + row_id + "-" + name_level2).val());
+    var salary = parseInt($(obj).val());
+    if (salary > 0) {
+        var rate1 = parseFloat($("#id_rate1").val());
+        var rate2 = parseFloat($("#id_rate2").val());
+        var rate3 = parseFloat($("#id_rate3").val());
+        if (rate1 > 0) {
+            var amount1_total = (salary * rate1).toFixed(1)
+            $("#id_" + row_id + "-" + name_amount1_total).val(amount1_total);
+            $("#id_" + row_id + "-" + name_amount1_half).val((amount1_total / 2).toFixed(1));
+        }
+        if (rate2 > 0) {
+            var amount2_total = (salary * rate2).toFixed(1)
+            $("#id_" + row_id + "-" + name_amount2_total).val(amount2_total);
+            $("#id_" + row_id + "-" + name_amount2_half).val((amount2_total / 2).toFixed(1));
+        }
+        if (rate3 > 0 && level2 > 0) {
+            var amount3_total = (salary * rate3).toFixed(1)
+            $("#id_" + row_id + "-" + name_amount3_total).val(amount3_total);
+            $("#id_" + row_id + "-" + name_amount3_half).val((amount3_total / 2).toFixed(1));
+        }
+    }
+}

@@ -23,6 +23,19 @@ get_full_name.short_description = u"名前"
 get_full_name.admin_order_field = "first_name"
 
 
+class InsuranceLevelDetailInline(admin.TabularInline):
+    model = models.InsuranceLevelDetail
+    form = forms.InsuranceLevelDetailForm
+    formset = forms.InsuranceLevelDetailFormset
+    # extra = 50
+
+    def get_extra(self, request, obj=None, **kwargs):
+        if obj:
+            return 0
+        else:
+            return 50
+
+
 class BaseAdmin(admin.ModelAdmin):
 
     class Media:
@@ -155,6 +168,17 @@ class BpLumpContractAdmin(BaseAdmin):
         )
 
 
+class InsuranceLevelPeriodAdmin(BaseAdmin):
+    form = forms.InsuranceLevelPeriodForm
+    list_display = ('title', 'location', 'start_date', 'rate1', 'rate2', 'rate3')
+    inlines = (InsuranceLevelDetailInline,)
+
+    class Media:
+        js = (
+            '/static/admin/js/calc_contract.js',
+        )
+
+
 class ContractAdminSite(admin.AdminSite):
     site_header = "契約管理システム"
     site_title = "管理サイト"
@@ -164,3 +188,4 @@ contract_admin_site = ContractAdminSite(name='contract')
 contract_admin_site.register(models.Contract, ContractAdmin)
 contract_admin_site.register(models.BpContract, BpContractAdmin)
 contract_admin_site.register(models.BpLumpContract, BpLumpContractAdmin)
+contract_admin_site.register(models.InsuranceLevelPeriod, InsuranceLevelPeriodAdmin)

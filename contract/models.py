@@ -17,6 +17,7 @@ from django.contrib.contenttypes.models import ContentType
 from eb.models import (
     Member, Config, Company, Subcontractor, Project, ProjectMember, Salesperson, BpMemberOrder, BpLumpOrder
 )
+from utils.validator import validate_rate
 from utils import constants, common
 
 
@@ -691,3 +692,46 @@ class ViewLatestBpContract(models.Model):
         """
         cost = self.allowance_base + self.allowance_other
         return cost
+
+
+class InsuranceLevelPeriod(BaseModel):
+    title = models.CharField(max_length=100, verbose_name=u"名称")
+    location = models.CharField(max_length=10, verbose_name=u"区域")
+    start_date = models.DateField(verbose_name="開始日")
+    end_date = models.DateField(blank=True, null=True, verbose_name=u"終了日")
+    rate1 = models.FloatField(verbose_name="介護保険第２号被保険者でない保険率", validators=[validate_rate])
+    rate2 = models.FloatField(verbose_name="介護保険第２号被保険者保険率", validators=[validate_rate])
+    rate3 = models.FloatField(verbose_name="厚生年金保険率", validators=[validate_rate])
+
+    class Meta:
+        ordering = ['title']
+        verbose_name = verbose_name_plural = "社会保険等級期間"
+        db_table = 'eb_insurance_level_period'
+
+    def __unicode__(self):
+        return self.title
+
+
+class InsuranceLevelDetail(BaseModel):
+    period = models.ForeignKey(InsuranceLevelPeriod, verbose_name=u"保険レベル期間")
+    level1 = models.IntegerField(verbose_name="健康月額等級")
+    level2 = models.IntegerField(blank=True, null=True, verbose_name="厚生月額等級")
+    salary = models.IntegerField(verbose_name="月額")
+    amount1_total = models.DecimalField(max_digits=8, decimal_places=1, verbose_name=u"全額１")
+    amount1_half = models.DecimalField(max_digits=8, decimal_places=1, verbose_name=u"折半額１")
+    amount2_total = models.DecimalField(max_digits=8, decimal_places=1, verbose_name=u"全額２")
+    amount2_half = models.DecimalField(max_digits=8, decimal_places=1, verbose_name=u"折半額２")
+    amount3_total = models.DecimalField(max_digits=8, decimal_places=1, blank=True, null=True, verbose_name=u"全額３")
+    amount3_half = models.DecimalField(max_digits=8, decimal_places=1, blank=True, null=True, verbose_name=u"折半額３")
+
+    class Meta:
+        ordering = ['period', 'level1']
+        unique_together = ('period', 'level1')
+        verbose_name = verbose_name_plural = "社会保険等級詳細"
+        db_table = 'eb_insurance_level_detail'
+
+    def __unicode__(self):
+        if self.level2:
+            return '%s - %02d(%02d)' % (unicode(self.period), self.level1, self.level2)
+        else:
+            return '%s - %02d' % (unicode(self.period), self.level1)

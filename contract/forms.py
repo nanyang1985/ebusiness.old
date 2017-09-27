@@ -203,6 +203,8 @@ class BpContractForm(BaseForm):
         company = cleaned_data.get('company', None)
         start_date = cleaned_data.get('start_date', None)
         end_date = cleaned_data.get('end_date', None)
+        if end_date and start_date > end_date:
+            self.add_error('end_date', u"終了日は開始日の前になっている、開始日の以降に設定してください。")
         if not company and member and self.instance:
             self.instance.company = member.subcontractor
         # 契約期間が重複されているかどうかをチェック
@@ -232,3 +234,65 @@ class BpContractLumpForm(BaseForm):
         })
         self.fields['comment'] = forms.CharField(widget=forms.Textarea(attrs={'style': 'width: 610px;'}),
                                                  required=False, label=u"備考")
+
+
+class InsuranceLevelPeriodForm(BaseForm):
+    class Meta:
+        model = models.InsuranceLevelPeriod
+        fields = '__all__'
+
+    def __init__(self, *args, **kwargs):
+        super(InsuranceLevelPeriodForm, self).__init__(*args, **kwargs)
+        self.fields['title'].widget.attrs.update({'style': 'width: 500px;'})
+
+    def clean(self):
+        cleaned_data = super(InsuranceLevelPeriodForm, self).clean()
+        start_date = cleaned_data.get('start_date', None)
+        end_date = cleaned_data.get('end_date', None)
+        if end_date and start_date > end_date:
+            self.add_error('end_date', u"終了日は開始日の前になっている、開始日の以降に設定してください。")
+        # 期間が重複されているかどうかをチェック
+        dates = [(start_date, end_date)]
+        queryset = models.InsuranceLevelPeriod.objects.public_all()
+        for obj in queryset:
+            dates.append((obj.start_date, obj.end_date))
+        if len(dates) > 1:
+            dates.sort(key=lambda date: date[0])
+            for i, period in enumerate(dates):
+                start_date, end_date = period
+                if common.is_cross_date(dates, start_date, i):
+                    self.add_error('start_date', u"期間の開始日が重複している。")
+                if end_date and common.is_cross_date(dates, end_date, i):
+                    self.add_error('end_date', u"期間の終了日が重複している。")
+        return cleaned_data
+
+
+class InsuranceLevelDetailForm(BaseForm):
+    class Meta:
+        model = models.InsuranceLevelDetail
+        fields = '__all__'
+
+    def __init__(self, *args, **kwargs):
+        super(InsuranceLevelDetailForm, self).__init__(*args, **kwargs)
+        self.fields['salary'].widget.attrs.update({
+            'onchange': 'calculate_insurance_rate(this, "level2", "amount1_total", "amount1_half", "amount2_total", "amount2_half", "amount3_total", "amount3_half")',
+            'style': 'width: 70px;',
+        })
+        self.fields['amount1_total'].widget.attrs.update({'style': 'width: 70px;'})
+        self.fields['amount1_half'].widget.attrs.update({'style': 'width: 70px;'})
+        self.fields['amount2_total'].widget.attrs.update({'style': 'width: 70px;'})
+        self.fields['amount2_half'].widget.attrs.update({'style': 'width: 70px;'})
+        self.fields['amount3_total'].widget.attrs.update({'style': 'width: 70px;'})
+        self.fields['amount3_half'].widget.attrs.update({'style': 'width: 70px;'})
+
+
+class InsuranceLevelDetailFormset(forms.BaseInlineFormSet):
+
+    def _construct_form(self, i, **kwargs):
+        # kwargs.update({'request': self.request})
+        initial = {'level1': i + 1}
+        kwargs.update({'initial': initial})
+        if 3 <= i < 34:
+            initial.update({'level2': i - 2})
+        form = super(InsuranceLevelDetailFormset, self)._construct_form(i, **kwargs)
+        return form
