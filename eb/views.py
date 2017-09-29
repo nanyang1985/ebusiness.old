@@ -2028,7 +2028,7 @@ class DownloadProjectRequestView(BaseTemplateView):
                     bank = None
                 project_request.request_name = request_name if request_name else project.name
                 data = biz.generate_request_data(company, project, client_order, bank, ym, project_request)
-                path, path_pdf = file_gen.generate_request(company, project, data, project_request.request_no, ym)
+                path = file_gen.generate_request(company, project, data, project_request.request_no, ym)
                 filename = os.path.basename(path)
                 project_request.filename = filename
                 project_request.created_user = request.user if not project_request.pk else project_request.created_user
@@ -2158,9 +2158,9 @@ class GenerateSubcontractorRequestView(BaseView):
         action_flag = CHANGE if subcontractor_request.pk else ADDITION
         subcontractor_request.save(other_data=data)
         # PDF作成
-        url = request.build_absolute_uri(reverse('view_subcontractor_pay_notify', args=(subcontractor_request.pk,)))
+        url = common.get_absolute_url(reverse('view_subcontractor_pay_notify', args=(subcontractor_request.pk,)))
         common.generate_pdf_from_url(url, pay_notify_pdf_path)
-        url = request.build_absolute_uri(reverse('view_subcontractor_request', args=(subcontractor_request.pk,)))
+        url = common.get_absolute_url(reverse('view_subcontractor_request', args=(subcontractor_request.pk,)))
         common.generate_pdf_from_url(url, request_pdf_path)
         LogEntry.objects.log_action(request.user.id,
                                     ContentType.objects.get_for_model(subcontractor_request).pk,

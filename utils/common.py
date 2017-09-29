@@ -16,6 +16,7 @@ import math
 import logging
 import traceback
 import pdfkit
+import urlparse
 
 import constants, errors
 import jholiday
@@ -1143,6 +1144,12 @@ def generate_pdf_from_url(url, out_path):
         logger = get_sales_logger()
         logger.error(ex)
         logger.error(traceback.format_exc())
+
+
+def get_absolute_url(url):
+    from eb.models import Config
+    domain_name = Config.get_domain_name()
+    return urlparse.urljoin(domain_name, url)
 
 
 if __name__ == "__main__":

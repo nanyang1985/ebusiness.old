@@ -765,7 +765,7 @@ def generate_request(company, project, data, request_no, ym):
     :param ym:
     :return:
     """
-    if is_win32:
+    if False:
         pythoncom.CoInitializeEx(pythoncom.COINIT_MULTITHREADED)
         if project.is_lump:
             request_file = company.request_lump_file

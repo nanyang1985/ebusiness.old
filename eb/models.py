@@ -323,6 +323,10 @@ class Config(models.Model):
     def get_year_list_end(cls):
         return Config.get(constants.CONFIG_YEAR_LIST_END, '2025', group_name=constants.CONFIG_GROUP_SYSTEM)
 
+    @classmethod
+    def get_domain_name(cls):
+        return Config.get(constants.CONFIG_DOMAIN_NAME, '', group_name=constants.CONFIG_GROUP_SYSTEM)
+
 
 class BaseModel(models.Model):
     created_date = models.DateTimeField(auto_now_add=True, auto_now=False, null=True, editable=False,
