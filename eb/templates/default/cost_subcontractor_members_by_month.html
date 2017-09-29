@@ -24,20 +24,22 @@
         function callback_fn (obj, data) {
             if ($(obj).text() == "新規作成") {
                 $(obj).text("再作成");
-                // 請求書ダウンロード
-                download_request_link = "/eb/download/subcontractor_request/" + data.pk + ".html";
-                $(obj).parent().append('|&nbsp;<a href="' + download_request_link + '" target="_blank" style="font-size: 11px;">Download</a>');
-                // 請求書参照
-                view_request_link = "/eb/subcontractor/subcontractor_request_view/" + data.pk + ".html";
-                $(obj).parent().append('|&nbsp;<a href="' + view_request_link + '" target="_blank" style="font-size: 11px;">' + data.request_no + '</a>');
-                // 改行
-                $(obj).parent().append('<br/>');
-                // 支払通知書参照
-                view_pay_notify_link = "/eb/subcontractor/subcontractor_pay_notify_view/" + data.pk + ".html";
-                $(obj).parent().append('<a href="' + view_pay_notify_link + '" target="_blank" style="font-size: 11px;">支払通知書</a>');
                 // 支払通知書ダウンロード
                 download_pay_notify_link = "/eb/download/subcontractor_pay_notify/" + data.pk + ".html";
-                $(obj).parent().append('|&nbsp;<a href="' + download_pay_notify_link + '" target="_blank" style="font-size: 11px;">Download</a>');
+                $(obj).parent().next().append('<a href="' + download_pay_notify_link + '?ext=xlsx" target="_blank">Excel</a>');
+                $(obj).parent().next().append('&nbsp;|&nbsp;<a href="' + download_pay_notify_link + '?ext=pdf" target="_blank">PDF</a>');
+                // 支払通知書参照
+                view_pay_notify_link = "/eb/subcontractor/subcontractor_pay_notify_view/" + data.pk + ".html";
+                $(obj).parent().next().append('&nbsp;|&nbsp;<a href="' + view_pay_notify_link + '" target="_blank">' + data.pay_notify_no + '</a>');
+
+                // 請求書ダウンロード
+                download_request_link = "/eb/download/subcontractor_request/" + data.pk + ".html";
+                $(obj).parent().next().next().append('<a href="' + download_request_link + '?ext=xlsx" target="_blank">Excel</a>');
+                $(obj).parent().next().next().append('&nbsp;|&nbsp;<a href="' + download_request_link + '?ext=pdf" target="_blank">PDF</a>');
+                // 請求書参照
+                view_request_link = "/eb/subcontractor/subcontractor_request_view/" + data.pk + ".html";
+                $(obj).parent().next().next().append('&nbsp;|&nbsp;<a href="' + view_request_link + '" target="_blank">' + data.request_no + '</a>');
+                $(obj).parent().next().next().next().html('<img width="12px" src="/static/{{ theme }}/img/icon-warn.png"/>');
             }
             alert("作成完了しました！");
             unmask();
@@ -73,7 +75,7 @@
         </form>
     </div>
     {% if subcontractor %}
-    <div class="dashboard">
+    <!--<div class="dashboard">
         <div class="dashboard-title">{{ subcontractor }}の請求書と支払通知書</div>
         <form action="" method="get">
             {% for section, subcontractor_request in sections %}
@@ -96,7 +98,61 @@
             {% endfor %}
             <div style="clear: both;"></div>
         </form>
-    </div>
+    </div>-->
+        <table class="list" cellpadding="0" cellspacing="0">
+            <thead>
+                <tr>
+                    <th>部署</th>
+                    <th>作成</th>
+                    <th>支払通知書</th>
+                    <th>請求書</th>
+                    <th>送信</th>
+                </tr>
+            </thead>
+            <tfoot>
+                <tr>
+                    <th>部署</th>
+                    <th>作成</th>
+                    <th>支払通知書</th>
+                    <th>請求書</th>
+                    <th>送信</th>
+                </tr>
+            </tfoot>
+            <tbody>
+                {% for section, subcontractor_request in sections %}
+                <tr class="{% cycle 'row1' 'row2' %}">
+                    <td>{{ section }}</td>
+                    <td class="center">
+                        <a onclick="generate_request(this, '{% url 'generate_subcontractor_request' subcontractor.pk section.pk year month %}', {% if subcontractor_request %}true{% else %}false{% endif %})"
+                            href="javascript:void(0)">{% if subcontractor_request %}再作成{% else %}新規作成{% endif %}</a>
+                    </td>
+                    {% if subcontractor_request %}
+                    <td>
+                        <a href="{% url 'download_subcontractor_pay_notify' subcontractor_request.pk %}?ext=xlsx" target="_blank">Excel</a>&nbsp;|&nbsp;
+                        <a href="{% url 'download_subcontractor_pay_notify' subcontractor_request.pk %}?ext=pdf" target="_blank">PDF</a>&nbsp;|&nbsp;
+                        <a href="{% url 'view_subcontractor_pay_notify' subcontractor_request.pk %}" target="_blank">{{ subcontractor_request.pay_notify_no }}</a>
+                    </td>
+                    <td>
+                        <a href="{% url 'download_subcontractor_request' subcontractor_request.pk %}?ext=xlsx" target="_blank">Excel</a>&nbsp;|&nbsp;
+                        <a href="{% url 'download_subcontractor_request' subcontractor_request.pk %}?ext=pdf" target="_blank">PDF</a>&nbsp;|&nbsp;
+                        <a href="{% url 'view_subcontractor_request' subcontractor_request.pk %}" target="_blank">{{ subcontractor_request.request_no }}</a>
+                    </td>
+                    <td>
+                        {% if subcontractor_request.is_sent %}
+                            <img width="12px" src="/static/{{ theme }}/img/icon-normal.png"/>
+                        {% else %}
+                            <img width="12px" src="/static/{{ theme }}/img/icon-warn.png"/>
+                        {% endif %}
+                    </td>
+                    {% else %}
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    {% endif %}
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     {% endif %}
     <table class="list" cellpadding="0" cellspacing="0">
         <thead>

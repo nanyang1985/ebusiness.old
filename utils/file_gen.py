@@ -509,16 +509,18 @@ def generate_quotation(project, user, company):
     return path
 
 
-def generate_request_linux(project, data, request_no, ym):
+def generate_request_linux(project, data, request_no, ym, out_path=None):
     if isinstance(project, models.Project):
-        path = common.get_request_file_path(request_no, project.client.name, ym)
+        if not out_path:
+            out_path, pdf_path = common.get_request_file_path(request_no, project.client.name, ym)
         is_lump = project.is_lump
         is_bp_request = False
     else:
-        path = common.get_subcontractor_request_file_path(request_no, unicode(project), ym)
+        if not out_path:
+            out_path, pdf_path = common.get_subcontractor_request_file_path(request_no, unicode(project), ym)
         is_lump = False
         is_bp_request = True
-    book = xlsxwriter.Workbook(path)
+    book = xlsxwriter.Workbook(out_path)
     sheet = book.add_worksheet()
 
     # タイトル設定
@@ -750,7 +752,7 @@ def generate_request_linux(project, data, request_no, ym):
     for i in range(1, 23):
         sheet.set_row(i, 15.5)
     book.close()
-    return path
+    return out_path
 
 
 def generate_request(company, project, data, request_no, ym):
@@ -799,20 +801,17 @@ def generate_request(company, project, data, request_no, ym):
         return generate_request_linux(project, data, request_no, ym)
 
 
-def generate_pay_notify(data, template_path):
+def generate_pay_notify(data, template_path, out_path):
     """openpyxlを利用してお支払通知書を作成する。
 
     :param data:
     :param template_path:
+    :param out_path:
     :return:
     """
     from django.contrib.humanize.templatetags import humanize
     book = px.load_workbook(template_path)
     sheet = book.get_sheet_by_name('支払通知書')
-
-    pay_notify_no = data['DETAIL']['PAY_NOTIFY_NO']
-    partner_name = data['DETAIL']['COMPANY_NAME']
-    path = common.get_pay_notify_file_path(pay_notify_no, partner_name, data['EXTRA']['YM'])
 
     # 電子印鑑
     from django.conf import settings
@@ -968,8 +967,8 @@ def generate_pay_notify(data, template_path):
                 args['right'] = thin
             sheet.cell(row=r, column=c).border = Border(**args)
 
-    book.save(path)
-    return path
+    book.save(out_path)
+    return out_path
 
 
 def get_excel_template(path_file):

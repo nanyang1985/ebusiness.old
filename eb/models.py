@@ -2447,7 +2447,10 @@ class SubcontractorRequest(models.Model):
     tax_amount = models.IntegerField(default=0, verbose_name=u"税金")
     expenses_amount = models.IntegerField(default=0, verbose_name=u"精算金額")
     filename = models.CharField(max_length=255, blank=True, null=True, verbose_name=u"請求書ファイル名")
+    filename_pdf = models.CharField(max_length=255, blank=True, null=True, verbose_name=u"請求書ＰＤＦ名")
     pay_notify_filename = models.CharField(max_length=255, blank=True, null=True, verbose_name=u"支払通知書ファイル名")
+    pay_notify_filename_pdf = models.CharField(max_length=255, blank=True, null=True, verbose_name=u"支払通知書ＰＤＦ名")
+    is_sent = models.BooleanField(default=False, verbose_name=u"送信")
     created_user = models.ForeignKey(User, related_name='created_subcontractor_requests', null=True,
                                      on_delete=models.PROTECT, editable=False, verbose_name=u"作成者")
     created_date = models.DateTimeField(null=True, auto_now_add=True, editable=False, verbose_name=u"作成日時")

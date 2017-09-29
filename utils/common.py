@@ -14,6 +14,8 @@ import xlsxwriter
 import StringIO
 import math
 import logging
+import traceback
+import pdfkit
 
 import constants, errors
 import jholiday
@@ -721,36 +723,42 @@ def get_request_file_path(request_no, client_name, ym):
     from django.conf import settings
 
     now = datetime.datetime.now()
-    filename = "EB請求書_%s_%s_%s.xlsx" % (str(request_no), client_name.encode('UTF-8'), now.strftime("%Y%m%d_%H%M%S%f"))
+    filename = "EB請求書_%s_%s_%s" % (str(request_no), client_name.encode('UTF-8'), now.strftime("%Y%m%d_%H%M%S%f"))
     path = os.path.join(settings.GENERATED_FILES_ROOT, "project_request", str(ym))
     if not os.path.exists(path):
         os.makedirs(path)
-    return os.path.join(path, filename).decode('UTF-8')
+    xlsx_path = "%s.xlsx" % os.path.join(path, filename).decode('UTF-8')
+    pdf_path = "%s.pdf" % os.path.join(path, filename).decode('UTF-8')
+    return xlsx_path, pdf_path
 
 
 def get_subcontractor_request_file_path(request_no, subcontractor_name, ym):
     from django.conf import settings
 
     now = datetime.datetime.now()
-    filename = "協力会社請求書_%s_%s_%s.xlsx" % (
+    filename = "協力会社請求書_%s_%s_%s" % (
         str(request_no), subcontractor_name.encode('UTF-8'), now.strftime("%Y%m%d_%H%M%S%f")
     )
     path = os.path.join(settings.GENERATED_FILES_ROOT, "subcontractor_request", str(ym))
     if not os.path.exists(path):
         os.makedirs(path)
-    return os.path.join(path, filename).decode('UTF-8')
+    xlsx_path = "%s.xlsx" % os.path.join(path, filename).decode('UTF-8')
+    pdf_path = "%s.pdf" % os.path.join(path, filename).decode('UTF-8')
+    return xlsx_path, pdf_path
 
 
 def get_pay_notify_file_path(no, client_name, ym):
     from django.conf import settings
 
     now = datetime.datetime.now()
-    name_format = "EB支払通知書_%s_%s_%s.xlsx"
+    name_format = "EB支払通知書_%s_%s_%s"
     filename = name_format % (str(no), client_name.encode('UTF-8'), now.strftime("%Y%m%d_%H%M%S%f"))
     path = os.path.join(settings.GENERATED_FILES_ROOT, "pay_notify", str(ym))
     if not os.path.exists(path):
         os.makedirs(path)
-    return os.path.join(path, filename).decode('UTF-8')
+    xlsx_path = "%s.xlsx" % os.path.join(path, filename).decode('UTF-8')
+    pdf_path = "%s.pdf" % os.path.join(path, filename).decode('UTF-8')
+    return xlsx_path, pdf_path
 
 
 def get_order_file_path(order_no, client_name, ym, is_request=False):
@@ -1120,6 +1128,21 @@ def data_frame_filter(df, param_dict=None, order_list=None):
         ascending = not order_list[0].startswith('-')
         df = df.sort_values(by=name, ascending=ascending)
     return df
+
+
+def generate_pdf_from_url(url, out_path):
+    try:
+        # config = pdfkit.configuration(wkhtmltopdf=r'C:\Program Files\wkhtmltopdf\bin\wkhtmltopdf.exe')
+        # TODO: パスに日本語があったら、エラーになる。暫定対策：英語にしてから、また日本語名に変更する。
+        path, name = os.path.split(out_path)
+        en_name = ".".join(re.findall(r"\w+", name))
+        options = {'encoding': "UTF-8"}
+        pdfkit.from_url(url, os.path.join(path, en_name), options=options)
+        os.rename(os.path.join(path, en_name), os.path.join(path, name))
+    except Exception as ex:
+        logger = get_sales_logger()
+        logger.error(ex)
+        logger.error(traceback.format_exc())
 
 
 if __name__ == "__main__":
