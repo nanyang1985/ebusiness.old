@@ -391,6 +391,18 @@ def get_organization_turnover(year, month, section=None, param_dict=None, order_
         df.set_value(related_row.index[0], 'health_insurance', df.loc[index]['health_insurance'] + related_row.iloc[0].health_insurance)
         # ＥＢの出向契約は非表示
         df = df.iloc[df.index!=index]
+    # 重複レコードを洗い出す。
+    duplicated_df = df[df.projectmember_id.duplicated(keep=False)]
+    duplicated_index = duplicated_df.groupby('projectmember_id').apply(lambda x: list(x.index))
+    for pm_id, rows in duplicated_index.iteritems():
+        basic_row = df.loc[(df.projectmember_id == pm_id) & (df.member_type != 4)]
+        basic_index = basic_row.iloc[0].name
+        for index in rows:
+            if index == basic_index:
+                continue
+            df.set_value([basic_index], 'expenses', df.loc[basic_index]['expenses'] + df.loc[index]['salary'])
+            df = df.iloc[df.index != index]
+
     return df
 
 

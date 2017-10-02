@@ -106,12 +106,12 @@ select m.id as member_id
            get_overtime_cost(IF(ma.total_hours_bp is null or ma.total_hours_bp = 0, IFNULL(ma.total_hours, 0), ma.total_hours_bp), c.allowance_time_min, c.allowance_time_max, c.is_hourly_pay, c.is_fixed_cost, p.is_reserve, c.allowance_absenteeism, c.allowance_overtime),
            IFNULL(ma.traffic_cost, 0)
        ) as health_insurance 
-	 , ma.expenses_conference		-- 会議費
-     , ma.expenses_entertainment	-- 交際費
-     , ma.expenses_travel			-- 旅費交通費
-     , ma.expenses_communication	-- 通信費
-     , ma.expenses_tax_dues			-- 租税公課
-     , ma.expenses_expendables		-- 消耗品
+	 , IFNULL(ma.expenses_conference, 0) as expenses_conference				-- 会議費
+     , IFNULL(ma.expenses_entertainment, 0) as expenses_entertainment		-- 交際費
+     , IFNULL(ma.expenses_travel, 0) as expenses_travel						-- 旅費交通費
+     , IFNULL(ma.expenses_communication, 0)	as expenses_communication		-- 通信費
+     , IFNULL(ma.expenses_tax_dues, 0) as expenses_tax_dues					-- 租税公課
+     , IFNULL(ma.expenses_expendables, 0) as expenses_expendables			-- 消耗品
   from eb_member m
   left join eb_membersectionperiod msp1 on msp1.member_id = m.id 
                                        and msp1.is_deleted = 0 
