@@ -308,17 +308,17 @@ def load_section_attendance(file_content, year, month, use_id):
         expenses = values[constants.POS_ATTENDANCE_COL_EXPENSES]
         expenses = expenses if expenses else None
         # 会議費
-        expenses_conference = values[constants.POS_ATTENDANCE_COL_EXPENSES_CONFERENCE] or None
+        expenses_conference = values[constants.POS_ATTENDANCE_COL_EXPENSES_CONFERENCE] or 0
         # 交際費
-        expenses_entertainment = values[constants.POS_ATTENDANCE_COL_EXPENSES_ENTERTAINMENT] or None
+        expenses_entertainment = values[constants.POS_ATTENDANCE_COL_EXPENSES_ENTERTAINMENT] or 0
         # 旅費交通費
-        expenses_travel = values[constants.POS_ATTENDANCE_COL_EXPENSES_TRAVEL] or None
+        expenses_travel = values[constants.POS_ATTENDANCE_COL_EXPENSES_TRAVEL] or 0
         # 通信費
-        expenses_communication = values[constants.POS_ATTENDANCE_COL_EXPENSES_COMMUNICATION] or None
+        expenses_communication = values[constants.POS_ATTENDANCE_COL_EXPENSES_COMMUNICATION] or 0
         # 租税公課
-        expenses_tax_dues = values[constants.POS_ATTENDANCE_COL_EXPENSES_TAX_DUES] or None
+        expenses_tax_dues = values[constants.POS_ATTENDANCE_COL_EXPENSES_TAX_DUES] or 0
         # 消耗品
-        expenses_expendables = values[constants.POS_ATTENDANCE_COL_EXPENSES_EXPENDABLES] or None
+        expenses_expendables = values[constants.POS_ATTENDANCE_COL_EXPENSES_EXPENDABLES] or 0
 
         if not project_member_id:
             if member_code or member_name:
