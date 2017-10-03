@@ -18,7 +18,11 @@ REG_DATE_STR2 = ur"\d{4}([-/.年])\d{1,2}([-/.月]?)"
 REG_EXCEL_REPLACEMENT = ur"\{\$([A-Z0-9_]+)\$\}"
 
 MIME_TYPE_EXCEL = 'application/excel'
+MIME_TYPE_PDF = 'application/pdf'
+MIME_TYPE_ZIP = 'application/zip'
 MIME_TYPE_HTML = 'text/html'
+
+MAIL_GROUP_SUBCONTRACTOR_PAY_NOTIFY = 'mail_subcontractor_pay_notify'
 
 NAME_SYSTEM = u"営業支援システム"
 NAME_BUSINESS_PLAN = u"%02d月営業企画"

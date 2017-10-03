@@ -11,6 +11,17 @@
             init_select("company_name");
             init_select("project_name");
             init_select("contract_type");
+
+            {% if subcontractor %}
+                $("#send_mail_form").submit(function(){
+                    ajax_post(
+                        $(this).attr('action'),
+                        $(this).serialize(),
+                        mail_callback_fn
+                    );
+                    return false;
+                });
+            {% endif %}
         };
 
         function generate_request(obj, url, is_overwrite) {
@@ -44,6 +55,16 @@
             alert("作成完了しました！");
             unmask();
         }
+
+        {% if subcontractor %}
+        function mail_callback_fn(data) {
+            if (data.result === false ) {
+                alert(data.message);
+            } else {
+                alert(data.message);
+            }
+        }
+        {% endif %}
     </script>
 {% endblock %}
 
@@ -71,34 +92,13 @@
                 <span>凡例:</span>
                 <div class="is_loan">出向社員</div>
             </div>
+            {% if has_mail_preview %}
+                <input type="button" onclick="javascript:show_dialog('preview_mail_send')" value="送信" style="padding: 0px 10px; float: right;"/>
+            {% endif %}
             <div class="clear"></div>
         </form>
     </div>
     {% if subcontractor %}
-    <!--<div class="dashboard">
-        <div class="dashboard-title">{{ subcontractor }}の請求書と支払通知書</div>
-        <form action="" method="get">
-            {% for section, subcontractor_request in sections %}
-            <div style="width: 250px; float: left; border: 1px solid lightgray; padding: 5px; border-radius: 5px; margin-right: 10px;">
-                <img src="/static/admin/img/invoice.png" width="58px;" style="float: left;">
-                <div style="padding-left: 5px; float: left; color: #ff00e7;">
-                    {{ section }}<br/>
-                    <a onclick="generate_request(this, '{% url 'generate_subcontractor_request' subcontractor.pk section.pk year month %}', {% if subcontractor_request %}true{% else %}false{% endif %})"
-                       style="font-size: 11px;" href="javascript:void(0)">{% if subcontractor_request %}再作成{% else %}新規作成{% endif %}</a>
-                    {% if subcontractor_request %}
-                        |&nbsp;<a href="{% url 'download_subcontractor_request' subcontractor_request.pk %}" target="_blank" style="font-size: 11px;">Download</a>
-                        |&nbsp;<a href="{% url 'view_subcontractor_request' subcontractor_request.pk %}" target="_blank" style="font-size: 11px;">{{ subcontractor_request.request_no }}</a>
-                        <br/>
-                        <a href="{% url 'view_subcontractor_pay_notify' subcontractor_request.pk %}" style="font-size: 11px;" target="_blank">支払通知書</a>
-                        |&nbsp;<a href="{% url 'download_subcontractor_pay_notify' subcontractor_request.pk %}" style="font-size: 11px;" target="_blank">Download</a>
-                        |&nbsp;<a href="javascript:alert('未実装です。')" style="font-size: 11px;" target="_blank">送信</a>
-                    {% endif %}
-                </div>
-            </div>
-            {% endfor %}
-            <div style="clear: both;"></div>
-        </form>
-    </div>-->
         <table class="list" cellpadding="0" cellspacing="0">
             <thead>
                 <tr>
@@ -153,6 +153,47 @@
                 {% endfor %}
             </tbody>
         </table>
+        {% if has_mail_preview %}
+        <div id="mask" onclick="hide_dialog()" class="mask">
+        </div>
+        <div class="dialog" id="preview_mail_send" style="width: 700px;">
+            <form id="send_mail_form" action="{% url 'send_mail_bp_request' subcontractor.pk year month %}" method="post">
+                <table>
+                    <tbody>
+                    <tr>
+                        <th>宛先：</th>
+                        <td>
+                            <input name="recipient_list" style="width: 500px;" value="{% for email in subcontractor.get_pay_notify_mail_list.0 %}{{email}},{% endfor %}"/>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>ＣＣ：</th>
+                        <td>
+                            <input name="cc_list" style="width: 500px;" value="{% for email in subcontractor.get_pay_notify_mail_list.1 %}{{email}},{% endfor %}"/>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>件名：</th>
+                        <td>
+                            <input name="mail_title" style="width: 500px;" value="{{ mail_group.mail_template.mail_title }}"/>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>内容：</th>
+                        <td>
+                            <textarea name="mail_body" style="width: 600px; height: 300px;">{{ mail_body }}</textarea>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="2" class="center">
+                            <input type="submit" value="送信"/>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </form>
+        </div>
+        {% endif %}
     {% endif %}
     <table class="list" cellpadding="0" cellspacing="0">
         <thead>

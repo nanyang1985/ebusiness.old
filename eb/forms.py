@@ -780,10 +780,20 @@ class MailGroupForm(forms.ModelForm):
         fields = '__all__'
 
 
-class MailListForm(forms.ModelForm):
+class MailCcListForm(forms.ModelForm):
     class Meta:
-        model = models.MailList
+        model = models.MailCcList
         fields = '__all__'
+
+    member = forms.ModelChoiceField(queryset=models.Member.objects.public_all(),
+                                    widget=SearchSelect(models.Member),
+                                    label=u"名前", required=False)
+
+    def clean(self):
+        cleaned_data = super(MailCcListForm, self).clean()
+        member = cleaned_data.get("member")
+        if member and not member.email:
+            self.add_error('member', u"メールアドレスが設定されていません。")
 
 
 class SubcontractorMemberForm(forms.ModelForm):

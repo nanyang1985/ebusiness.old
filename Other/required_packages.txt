@@ -7,6 +7,7 @@ pip install pillow
 pip install matplotlib
 pip install requests
 pip install qrcode
+pip install pyminizip
 
 # Windowsでインストールエラーの場合：http://www.codegood.com/downloads
 pip install MySQL-python

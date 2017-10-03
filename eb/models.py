@@ -6,6 +6,7 @@ Created on 2015/08/20
 """
 import datetime
 import re
+import os
 import urllib2
 import logging
 import traceback
@@ -689,6 +690,23 @@ class Subcontractor(AbstractCompany):
             # 存在する場合、そのまま使う、再発行はしません。
             return request_list[0]
 
+    def get_pay_notify_mail_list(self):
+        """支払通知書と請求書をメール送信時、の宛先リストとＣＣリストを取得する。
+
+        :return:
+        """
+        queryset = SubcontractorRequestRecipient.objects.public_filter(subcontractor=self)
+        recipient_list = []
+        cc_list = []
+        for request_recipient in queryset.filter(is_cc=False):
+            recipient_list.append(request_recipient.subcontractor_member.email)
+        for request_cc in queryset.filter(is_cc=True):
+            cc_list.append(request_cc.subcontractor_member.email)
+        # EBのＣＣリストを取得する
+        mail_group = MailGroup.get_subcontractor_pay_notify()
+        cc_list.extend(mail_group.get_cc_list())
+        return recipient_list, cc_list
+
     def delete(self, using=None, keep_parents=False):
         self.is_deleted = True
         self.deleted_date = datetime.datetime.now()
@@ -729,6 +747,21 @@ class SubcontractorMember(BaseModel):
         return "%s - %s" % (self.subcontractor.name, self.name)
 
 
+class SubcontractorRequestRecipient(BaseModel):
+    subcontractor = models.ForeignKey(Subcontractor, on_delete=models.PROTECT, verbose_name=u"所属会社")
+    subcontractor_member = models.ForeignKey(SubcontractorMember, on_delete=models.PROTECT, verbose_name=u"所属会社社員")
+    is_cc = models.BooleanField(default=False, verbose_name=u"ＣＣに入れて送信")
+
+    class Meta:
+        ordering = ['subcontractor', 'subcontractor_member']
+        unique_together = ('subcontractor', 'subcontractor_member')
+        verbose_name = u"支払通知書の宛先"
+        verbose_name_plural = u"支払通知書の宛先一覧"
+
+    def __unicode__(self):
+        return unicode(self.subcontractor_member)
+
+
 class MailTemplate(BaseModel):
     mail_title = models.CharField(max_length=50, unique=True, verbose_name=u"送信メールのタイトル")
     mail_body = models.TextField(blank=True, null=True, verbose_name=u"メール本文(Plain Text)")
@@ -751,28 +784,61 @@ class MailTemplate(BaseModel):
 
 class MailGroup(BaseModel):
     name = models.CharField(max_length=30, unique=True, verbose_name=u"名称")
+    title = models.CharField(max_length=50, blank=False, null=True, verbose_name=u"タイトル")
     mail_template = models.ForeignKey(MailTemplate, blank=True, null=True, on_delete=models.PROTECT,
                                       verbose_name=u"メールテンプレート")
 
     class Meta:
-        ordering = ['name']
+        ordering = ['title']
         verbose_name = verbose_name_plural = u"メールグループ"
 
     def __unicode__(self):
         return self.name
 
+    def get_mail_body(self, **kwargs):
+        if self.mail_template:
+            mail_body = self.mail_template.mail_body or self.mail_template.mail_html
+            t = Template(mail_body)
+            ctx = Context(kwargs)
+            body = t.render(ctx)
+            return body
+        else:
+            return None
 
-class MailList(BaseModel):
+    def get_cc_list(self):
+        carbon_copies = self.mailcclist_set.public_all()
+        cc_list = []
+        for cc in carbon_copies:
+            if cc.member and cc.member.email:
+                cc_list.append(cc.member.email)
+            if cc.email:
+                cc_list.append(cc.email)
+        return cc_list
+
+    @classmethod
+    def get_subcontractor_pay_notify(cls):
+        try:
+            return MailGroup.objects.get(name=constants.MAIL_GROUP_SUBCONTRACTOR_PAY_NOTIFY)
+        except ObjectDoesNotExist:
+            mail_group = MailGroup(name=constants.MAIL_GROUP_SUBCONTRACTOR_PAY_NOTIFY)
+            mail_group.save()
+            return mail_group
+
+
+class MailCcList(BaseModel):
     group = models.ForeignKey(MailGroup, on_delete=models.PROTECT, verbose_name=u"メールグループ")
-    member = models.ForeignKey(SubcontractorMember, on_delete=models.PROTECT, verbose_name=u"メンバー")
+    member = models.ForeignKey('Member', blank=True, null=True, on_delete=models.PROTECT, verbose_name=u"ＣＣ先の社員")
+    email = models.EmailField(blank=True, null=True, verbose_name=u"メールアドレス")
 
     class Meta:
         ordering = ['group']
-        unique_together = ('group', 'member')
-        verbose_name = verbose_name_plural = u"メールリスト"
+        verbose_name = verbose_name_plural = u"メールＣＣリスト"
 
     def __unicode__(self):
-        return unicode(self.member)
+        if self.member:
+            return unicode(self.member)
+        else:
+            return self.email
 
 
 class Section(BaseModel):
@@ -2469,6 +2535,38 @@ class SubcontractorRequest(models.Model):
 
     def __unicode__(self):
         return u"%s-%s" % (self.request_no, unicode(self.subcontractor))
+
+    def get_absolute_request_path(self):
+        """作成された請求書エクセルの絶対パスを取得する。
+
+        :return:
+        """
+        return os.path.join(common.get_subcontractor_request_root_path(), self.year + self.month, self.filename)
+
+    def get_absolute_request_pdf_path(self):
+        """作成された請求書ＰＤＦの絶対パスを取得する。
+
+        :return:
+        """
+        return os.path.join(common.get_subcontractor_request_root_path(), self.year + self.month, self.filename_pdf)
+
+    def get_absolute_pay_notify_path(self):
+        """作成された支払通知書エクセルの絶対パスを取得する。
+
+        :return:
+        """
+        return os.path.join(
+            common.get_subcontractor_pay_notify_root_path(), self.year + self.month, self.pay_notify_filename
+        )
+
+    def get_absolute_pay_notify_pdf_path(self):
+        """作成された支払通知書ＰＤＦの絶対パスを取得する。
+
+        :return:
+        """
+        return os.path.join(
+            common.get_subcontractor_pay_notify_root_path(), self.year + self.month, self.pay_notify_filename_pdf
+        )
 
     def save(self, force_insert=False, force_update=False, using=None,
              update_fields=None, other_data=None):

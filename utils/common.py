@@ -733,14 +733,28 @@ def get_request_file_path(request_no, client_name, ym):
     return xlsx_path, pdf_path
 
 
-def get_subcontractor_request_file_path(request_no, subcontractor_name, ym):
+def get_subcontractor_request_root_path():
     from django.conf import settings
+    path = os.path.join(settings.GENERATED_FILES_ROOT, "subcontractor_request")
+    if not os.path.exists(path):
+        os.makedirs(path)
+    return path
 
+
+def get_subcontractor_pay_notify_root_path():
+    from django.conf import settings
+    path = os.path.join(settings.GENERATED_FILES_ROOT, "pay_notify")
+    if not os.path.exists(path):
+        os.makedirs(path)
+    return path
+
+
+def get_subcontractor_request_file_path(request_no, subcontractor_name, ym):
     now = datetime.datetime.now()
     filename = "協力会社請求書_%s_%s_%s" % (
         str(request_no), subcontractor_name.encode('UTF-8'), now.strftime("%Y%m%d_%H%M%S%f")
     )
-    path = os.path.join(settings.GENERATED_FILES_ROOT, "subcontractor_request", str(ym))
+    path = os.path.join(get_subcontractor_request_root_path(), str(ym))
     if not os.path.exists(path):
         os.makedirs(path)
     xlsx_path = "%s.xlsx" % os.path.join(path, filename).decode('UTF-8')
@@ -749,12 +763,10 @@ def get_subcontractor_request_file_path(request_no, subcontractor_name, ym):
 
 
 def get_pay_notify_file_path(no, client_name, ym):
-    from django.conf import settings
-
     now = datetime.datetime.now()
     name_format = "EB支払通知書_%s_%s_%s"
     filename = name_format % (str(no), client_name.encode('UTF-8'), now.strftime("%Y%m%d_%H%M%S%f"))
-    path = os.path.join(settings.GENERATED_FILES_ROOT, "pay_notify", str(ym))
+    path = os.path.join(get_subcontractor_pay_notify_root_path(), str(ym))
     if not os.path.exists(path):
         os.makedirs(path)
     xlsx_path = "%s.xlsx" % os.path.join(path, filename).decode('UTF-8')
@@ -787,6 +799,14 @@ def get_order_file_path(order_no, client_name, ym, is_request=False):
 
 def get_template_pay_notify_path(company):
     return company.pay_notify_file.path
+
+
+def get_temp_path():
+    from django.conf import settings
+    path = os.path.join(settings.MEDIA_ROOT, 'temp')
+    if not os.path.exists(path):
+        os.mkdir(path)
+    return path
 
 
 def get_template_order_path(contract, is_request=False):

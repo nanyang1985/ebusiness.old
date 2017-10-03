@@ -64,6 +64,7 @@ media/request/temp/*
 media/client_order/*
 media/quotation/temp/*
 media/eb_order/temp/*
+media/temp/*
 *.DS_Store
 *.cert
 *.key

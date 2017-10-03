@@ -22,6 +22,7 @@
                 <th>{% create_order_display "案件名称" "" %}</th>
                 <th>{% create_order_display "名前" "member__first_name" %}</th>
                 <th>{% create_order_display "所属" "" %}</th>
+                <th>{% create_order_display "営業員" "" %}</th>
                 <th>{% create_order_display "稼働開始日" "start_date" %}</th>
                 <th>{% create_order_display "稼働終了日" "end_date" %}</th>
                 <th>{% create_order_display "備考" "" %}</th>
@@ -41,6 +42,7 @@
                             </a>
                         </td>
                         <td>{{ project_member.member.get_section }}</td>
+                        <td>{{ project_member.member.get_salesperson }}</td>
                         <td>{{ project_member.start_date|date:"Y-m-d" }}</td>
                         <td>{{ project_member.end_date|date:"Y-m-d" }}</td>
                         <td class="center">
@@ -66,7 +68,7 @@
         </tbody>
         <tfoot>
             <tr>
-                <td colspan="7">
+                <td colspan="8">
                     <div class="pagination">
                         <span class="step-links">
                             {% if project_members.has_previous %}

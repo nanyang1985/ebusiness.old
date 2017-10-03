@@ -181,9 +181,9 @@ class PositionShipInline(admin.TabularInline):
     extra = 0
 
 
-class MailListInline(admin.TabularInline):
-    model = models.MailList
-    form = forms.MailListForm
+class MailCcListInline(admin.TabularInline):
+    model = models.MailCcList
+    form = forms.MailCcListForm
     extra = 0
 
 
@@ -191,6 +191,11 @@ class SubcontractorMemberInline(admin.TabularInline):
     model = models.SubcontractorMember
     form = forms.SubcontractorMemberForm
     extra = 0
+
+
+class SubcontractorRequestRecipientInline(admin.TabularInline):
+    model = models.SubcontractorRequestRecipient
+    extra = 1
 
 
 class SubcontractorBankInline(admin.TabularInline):
@@ -688,7 +693,15 @@ class SubcontractorAdmin(BaseAdmin):
 
     list_display = ['name', 'is_deleted']
     list_filter = ['is_deleted']
-    inlines = (SubcontractorMemberInline, SubcontractorBankInline)
+    inlines = (SubcontractorMemberInline, SubcontractorRequestRecipientInline, SubcontractorBankInline)
+
+    def _create_formsets(self, request, obj, change):
+        formsets, inline_instances = super(SubcontractorAdmin, self)._create_formsets(request, obj, change)
+        for fm in formsets:
+            if fm.model == models.SubcontractorRequestRecipient:
+                # 支払通知書の宛先一覧のメンバーは当該する協力会社に絞り込む
+                fm.form.base_fields['subcontractor_member'].queryset = models.SubcontractorMember.objects.public_filter(subcontractor=obj)
+        return formsets, inline_instances
 
 
 class SubcontractorMemberAdmin(BaseAdmin):
@@ -978,7 +991,7 @@ class BpMemberOrderInfoAdmin(ReadonlyAdmin):
 
 class MailGroupAdmin(BaseAdmin):
     list_display = ['name']
-    inlines = (MailListInline,)
+    inlines = (MailCcListInline,)
 
 
 class MailTemplateAdmin(BaseAdmin):

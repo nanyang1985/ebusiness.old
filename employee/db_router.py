@@ -14,7 +14,7 @@ class DbRouter(object):
         """
         if model._meta.app_label == 'eboa':
             return 'auth_db'
-        return None
+        return 'default'
 
     def allow_relation(self, obj1, obj2, **hints):
         """

@@ -43,6 +43,7 @@ from eb import biz, biz_turnover, biz_config, biz_plot
 from utils import constants, common, errors, loader as file_loader, file_gen
 from . import forms, models
 from contract import models as contract_models
+from utils.mail import EbMail
 
 
 class BaseViewWithoutLogin(View, ContextMixin):
@@ -1429,9 +1430,16 @@ class CostSubcontractorMembersByMonthView(BaseTemplateView):
 
         subcontractor = None
         sections = []
+        has_mail_preview = False
+        mail_group = None
+        mail_body = ""
         if subcontractor_id:
             subcontractor = get_object_or_404(models.Subcontractor, pk=subcontractor_id)
             sections = subcontractor.get_request_sections(year, month)
+            subcontractor_requests = subcontractor.subcontractorrequest_set.filter(year=year, month=month)
+            has_mail_preview = len(sections) == subcontractor_requests.count()
+            mail_group = models.MailGroup.get_subcontractor_pay_notify()
+            mail_body = mail_group.get_mail_body(subcontractor=subcontractor)
 
         paginator = Paginator(object_list, biz_config.get_page_size())
         page = request.GET.get('page')
@@ -1457,6 +1465,9 @@ class CostSubcontractorMembersByMonthView(BaseTemplateView):
             'orders': "&o=%s" % (o,) if o else "",
             'year': year,
             'month': month,
+            'has_mail_preview': has_mail_preview,
+            'mail_group': mail_group,
+            'mail_body': mail_body,
         })
         return context
 
@@ -2085,26 +2096,6 @@ class DownloadOrganizationTurnover(BaseView):
         return response
 
 
-# class DownloadSectionAttendance(BaseView):
-#
-#     def get(self, request, *args, **kwargs):
-#         section_id = kwargs.get('section_id', 0)
-#         year = kwargs.get('year', 0)
-#         month = kwargs.get('month', 0)
-#         date = datetime.date(int(year), int(month), 21)
-#         section = get_object_or_404(models.Section, pk=section_id)
-#         batch = biz.get_batch_manage(constants.BATCH_SEND_ATTENDANCE_FORMAT)
-#         project_members = biz.get_project_members_month_section(section, date)
-#         lump_projects = biz.get_lump_projects_by_section(section, date)
-#         filename = constants.NAME_SECTION_ATTENDANCE % (section.name, int(year), int(month))
-#         output = file_gen.generate_attendance_format(
-#             request.user, batch.mail_template.attachment1.path, project_members, lump_projects, year, month
-#         )
-#         response = HttpResponse(output, content_type="application/ms-excel")
-#         response['Content-Disposition'] = "filename=" + urllib.quote(filename.encode('utf-8')) + ".xlsx"
-#         return response
-
-
 class DownloadMembersCostView(BaseView):
 
     def get(self, request, *args, **kwargs):
@@ -2181,15 +2172,12 @@ class DownloadSubcontractorRequestView(BaseView):
         ext = request.GET.get('ext', 'xlsx')
         subcontractor_request_id = kwargs.get('subcontractor_request_id')
         subcontractor_request = get_object_or_404(models.SubcontractorRequest, pk=subcontractor_request_id)
-        filename = subcontractor_request.filename
-        if ext == "pdf":
+        if ext == "xlsx":
+            filename = subcontractor_request.filename
+            path = subcontractor_request.get_absolute_request_path()
+        else:
             filename = subcontractor_request.filename_pdf
-        path = os.path.join(
-            settings.GENERATED_FILES_ROOT,
-            "subcontractor_request",
-            subcontractor_request.year + subcontractor_request.month,
-            filename
-        )
+            path = subcontractor_request.get_absolute_request_pdf_path()
         if not os.path.exists(path):
             # ファイルが存在しない場合、エラーとする。
             raise errors.FileNotExistException(constants.ERROR_REQUEST_FILE_NOT_EXISTS)
@@ -2204,15 +2192,12 @@ class DownloadSubcontractorPayNotifyView(BaseView):
         ext = request.GET.get('ext', 'xlsx')
         subcontractor_request_id = kwargs.get('subcontractor_request_id')
         subcontractor_request = get_object_or_404(models.SubcontractorRequest, pk=subcontractor_request_id)
-        filename = subcontractor_request.pay_notify_filename
+        if ext == "xlsx":
+            filename = subcontractor_request.pay_notify_filename
+        path = subcontractor_request.get_absolute_pay_notify_path()
         if ext == "pdf":
             filename = subcontractor_request.pay_notify_filename_pdf
-        path = os.path.join(
-            settings.GENERATED_FILES_ROOT,
-            "pay_notify",
-            subcontractor_request.year + subcontractor_request.month,
-            filename
-        )
+            path = subcontractor_request.get_absolute_pay_notify_pdf_path()
         if not os.path.exists(path):
             # ファイルが存在しない場合、エラーとする。
             raise errors.FileNotExistException(constants.ERROR_REQUEST_FILE_NOT_EXISTS)
@@ -2404,6 +2389,36 @@ class BusinessDaysView(BaseView):
         month = request.POST.get('month')
         business_days = common.get_business_days(year, month)
         return JsonResponse({'business_days': business_days})
+
+
+class SendMailBpRequestView(BaseView):
+
+    def post(self, request, *args, **kwargs):
+        year = kwargs.get('year')
+        month = kwargs.get('month')
+        subcontractor_id = kwargs.get(str('subcontractor_id'))
+        subcontractor = get_object_or_404(models.Subcontractor, pk=subcontractor_id)
+        organizations = subcontractor.get_request_sections(year, month)
+        subcontractor_requests = subcontractor.subcontractorrequest_set.filter(year=year, month=month)
+
+        recipient_list = request.POST.get('recipient_list', None)
+        cc_list = request.POST.get('cc_list', None)
+        mail_title = request.POST.get('mail_title', None)
+        mail_body = request.POST.get('mail_body', None)
+        attachment_list = []
+        for subcontractor_request in subcontractor_requests:
+            attachment_list.append(subcontractor_request.get_absolute_request_pdf_path())
+            attachment_list.append(subcontractor_request.get_absolute_pay_notify_pdf_path())
+        ret = {}
+        try:
+            mail = EbMail(recipient_list, cc_list, attachment_list=attachment_list, is_encrypt=True,
+                          mail_title=mail_title, mail_body=mail_body)
+            mail.send_email()
+            ret.update({'result': True, 'message': ""})
+        except Exception as ex:
+            common.get_sales_logger().error(traceback.format_exc())
+            ret.update({'result': False, 'message': ex.message})
+        return JsonResponse(ret)
 
 
 def login_user(request, qr=False):
