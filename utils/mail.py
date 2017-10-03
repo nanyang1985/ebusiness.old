@@ -7,6 +7,7 @@ import traceback
 import pyminizip
 import random
 import string
+import sys
 
 from email import encoders
 from email.header import Header
@@ -87,7 +88,11 @@ class EbMail(object):
     def zip_attachments(self):
         if self.attachment_list:
             temp_file = os.path.join(common.get_temp_path(), datetime.datetime.now().strftime('%Y%m%d%H%M%S%f.zip'))
-            file_list = [f.encode(b'shift-jis') for f in self.attachment_list]
+            # TODO: エンコードが不一致しているので、暫定対策はＯＳごとに処理する。
+            if sys.platform == "win32":
+                file_list = [f.encode('shift-jis') for f in self.attachment_list]
+            else:
+                file_list = [f.encode('utf-8') for f in self.attachment_list]
             password = self.generate_password()
             pyminizip.compress_multiple(file_list, temp_file, password, 0)
             bytes = open(temp_file, b'rb',).read()
