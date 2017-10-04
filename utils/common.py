@@ -1156,7 +1156,7 @@ def generate_pdf_from_url(url, out_path):
         # config = pdfkit.configuration(wkhtmltopdf=r'C:\Program Files\wkhtmltopdf\bin\wkhtmltopdf.exe')
         # TODO: パスに日本語があったら、エラーになる。暫定対策：英語にしてから、また日本語名に変更する。
         path, name = os.path.split(out_path)
-        en_name = ".".join(re.findall(r"\w+", name))
+        en_name = get_alpha_beta(name)
         options = {'encoding': "UTF-8"}
         pdfkit.from_url(url, os.path.join(path, en_name), options=options)
         os.rename(os.path.join(path, en_name), os.path.join(path, name))
@@ -1164,6 +1164,13 @@ def generate_pdf_from_url(url, out_path):
         logger = get_sales_logger()
         logger.error(ex)
         logger.error(traceback.format_exc())
+
+
+def get_alpha_beta(s):
+    if s and isinstance(s, basestring):
+        return ".".join(re.findall(r"\w+", s))
+    else:
+        return s
 
 
 def get_absolute_url(url):

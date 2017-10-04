@@ -9,6 +9,7 @@ import random
 import string
 import sys
 import subprocess
+import shutil
 
 from email import encoders
 from email.header import Header
@@ -88,26 +89,36 @@ class EbMail(object):
 
     def zip_attachments(self):
         if self.attachment_list:
-            temp_zip = os.path.join(common.get_temp_path(), datetime.datetime.now().strftime('%Y%m%d%H%M%S%f.zip'))
+            temp_path = common.get_temp_path()
+            temp_zip = os.path.join(temp_path, datetime.datetime.now().strftime('%Y%m%d%H%M%S%f.zip'))
             # TODO: エンコードが不一致しているので、暫定対策はＯＳごとに処理する。
-            if sys.platform == "win32":
-                file_list = [f.encode('shift-jis') for f in self.attachment_list]
-            else:
-                file_list = [f.encode('utf-8') for f in self.attachment_list]
+            # if sys.platform == "win32":
+            #     file_list = [f.encode('shift-jis') for f in self.attachment_list]
+            # else:
+            #     file_list = [f.encode('utf-8') for f in self.attachment_list]
+            file_list = []
+            if sys.platform == 'linux2':
+                for f in file_list:
+                    new_path = os.path.join(temp_path, os.path.dirname(f))
+                    shutil.copy(f, new_path)
+                    cmd = ['/usr/local/convmv-2.03/convmv', '--r', '--notest', '-f' 'utf-8' '-t', 'cp932', new_path]
+                    subprocess.call(cmd, shell=False)
+                    file_list.append(new_path)
+            file_list = [f.encode('shift-jis') for f in self.attachment_list]
             password = self.generate_password()
             pyminizip.compress_multiple(file_list, temp_zip, password, 1)
-            # 文字コード変換
-            if sys.platform != "win32":
-                try:
-                    cmd = ['7z', 'rn', temp_zip]
-                    for f in self.attachment_list:
-                        f_name = os.path.basename(f)
-                        cmd.append(f_name)
-                        cmd.append(f_name.encode('shift-jis'))
-                    subprocess.call(cmd, shell=False)
-                    logger.info("名称変更成功")
-                except Exception:
-                    logger.info("名称変更失敗")
+            # # 文字コード変換
+            # if sys.platform != "win32":
+            #     try:
+            #         cmd = ['7z', 'rn', temp_zip]
+            #         for f in self.attachment_list:
+            #             f_name = os.path.basename(f)
+            #             cmd.append(f_name)
+            #             cmd.append(f_name.encode('shift-jis'))
+            #         subprocess.call(cmd, shell=False)
+            #         logger.info("名称変更成功")
+            #     except Exception:
+            #         logger.info("名称変更失敗")
             bytes = open(temp_zip, b'rb',).read()
             os.remove(temp_zip)
             return bytes
