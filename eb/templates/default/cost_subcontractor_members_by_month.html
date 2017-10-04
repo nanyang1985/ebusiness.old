@@ -17,7 +17,14 @@
                     ajax_post(
                         $(this).attr('action'),
                         $(this).serialize(),
-                        mail_callback_fn
+                        function mail_callback_fn(data) {
+                            if (data.result === false ) {
+                                alert(data.message);
+                            } else {
+                                alert("メール送信しました。");
+                                hide_dialog();
+                            }
+                        }
                     );
                     return false;
                 });
@@ -55,16 +62,6 @@
             alert("作成完了しました！");
             unmask();
         }
-
-        {% if subcontractor %}
-        function mail_callback_fn(data) {
-            if (data.result === false ) {
-                alert(data.message);
-            } else {
-                alert(data.message);
-            }
-        }
-        {% endif %}
     </script>
 {% endblock %}
 

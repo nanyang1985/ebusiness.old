@@ -101,26 +101,14 @@ class EbMail(object):
                 for f in self.attachment_list:
                     new_path = os.path.join(temp_path, os.path.basename(f))
                     shutil.copy(f, new_path)
-                    logger.info("%sにコピーしました" % new_path)
                     cmd = ['/usr/local/convmv-2.03/convmv', '--r', '--notest', '-f' 'utf-8' '-t', 'cp932', new_path]
                     subprocess.call(cmd, shell=False)
                     file_list.append(new_path)
+            else:
+                file_list = self.attachment_list
             file_list = [f.encode('shift-jis') for f in file_list]
-            logger.info("%sを圧縮：" % ",".join(file_list))
             password = self.generate_password()
             pyminizip.compress_multiple(file_list, temp_zip, password, 1)
-            # # 文字コード変換
-            # if sys.platform != "win32":
-            #     try:
-            #         cmd = ['7z', 'rn', temp_zip]
-            #         for f in self.attachment_list:
-            #             f_name = os.path.basename(f)
-            #             cmd.append(f_name)
-            #             cmd.append(f_name.encode('shift-jis'))
-            #         subprocess.call(cmd, shell=False)
-            #         logger.info("名称変更成功")
-            #     except Exception:
-            #         logger.info("名称変更失敗")
             bytes = open(temp_zip, b'rb',).read()
             os.remove(temp_zip)
             return bytes
