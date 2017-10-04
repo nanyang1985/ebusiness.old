@@ -104,7 +104,7 @@ class EbMail(object):
                     cmd = ['/usr/local/convmv-2.03/convmv', '--r', '--notest', '-f' 'utf-8' '-t', 'cp932', new_path]
                     subprocess.call(cmd, shell=False)
                     file_list.append(new_path)
-            file_list = [f.encode('shift-jis') for f in self.attachment_list]
+            file_list = [f.encode('shift-jis') for f in file_list]
             password = self.generate_password()
             pyminizip.compress_multiple(file_list, temp_zip, password, 1)
             # # 文字コード変換
