@@ -99,7 +99,7 @@ class EbMail(object):
             file_list = []
             if sys.platform == 'linux2':
                 for f in self.attachment_list:
-                    new_path = os.path.join(temp_path, os.path.dirname(f))
+                    new_path = os.path.join(temp_path, os.path.basename(f))
                     shutil.copy(f, new_path)
                     logger.info("%sにコピーしました" % new_path)
                     cmd = ['/usr/local/convmv-2.03/convmv', '--r', '--notest', '-f' 'utf-8' '-t', 'cp932', new_path]
