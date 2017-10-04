@@ -550,6 +550,7 @@ class Subcontractor(AbstractCompany):
             viewcontract__start_date__lte=last_day,
             projectmember__start_date__lte=last_day,
             projectmember__end_date__gte=first_day,
+            projectmember__is_deleted=False,
             viewcontract__company_id=self.pk,
             viewcontract__is_old=False,
         )
