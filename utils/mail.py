@@ -100,8 +100,8 @@ class EbMail(object):
                     new_path = os.path.join(temp_path, os.path.basename(f))
                     shutil.copy(f, new_path)
                     # ファイル名をshift-jisの名前に変更する、Windowsで開く時の文字化け防止
-                    cmd = ['/usr/local/convmv-2.03/convmv', '--r', '--notest', '-f' 'utf-8' '-t', 'cp932', new_path]
-                    subprocess.call(cmd, shell=True)
+                    cmd = ['/usr/local/convmv-2.03/convmv', '--r', '--notest', '-f', 'utf8', '-t', 'cp932', new_path]
+                    subprocess.check_output(cmd, shell=False)
                     new_path = new_path.encode('shift-jis')
                     file_list.append(new_path)
                     self.temp_files.append(new_path)
@@ -142,6 +142,8 @@ class EbMail(object):
             self.send_password(mail_connection)
             log_format = u"題名: %s; TO: %s; CC: %s; 送信完了。"
             logger.info(log_format % (self.mail_title, ','.join(self.recipient_list), ','.join(self.cc_list)))
+        except subprocess.CalledProcessError as e:
+            logger.error(e.output)
         finally:
             # 一時ファイルを削除
             for path in self.temp_files:
