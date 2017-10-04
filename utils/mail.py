@@ -38,6 +38,7 @@ class EbMail(object):
         self.mail_title = mail_title
         self.mail_body = mail_body
         self.password = None
+        self.temp_files = []
 
     def check_recipient(self):
         if not self.recipient_list:
@@ -91,26 +92,24 @@ class EbMail(object):
         if self.attachment_list:
             temp_path = common.get_temp_path()
             temp_zip = os.path.join(temp_path, datetime.datetime.now().strftime('%Y%m%d%H%M%S%f.zip'))
+            self.temp_files.append(temp_zip)
             # TODO: エンコードが不一致しているので、暫定対策はＯＳごとに処理する。
-            # if sys.platform == "win32":
-            #     file_list = [f.encode('shift-jis') for f in self.attachment_list]
-            # else:
-            #     file_list = [f.encode('utf-8') for f in self.attachment_list]
             file_list = []
             if sys.platform == 'linux2':
                 for f in self.attachment_list:
                     new_path = os.path.join(temp_path, os.path.basename(f))
                     shutil.copy(f, new_path)
+                    # ファイル名をshift-jisの名前に変更する、Windowsで開く時の文字化け防止
                     cmd = ['/usr/local/convmv-2.03/convmv', '--r', '--notest', '-f' 'utf-8' '-t', 'cp932', new_path]
-                    subprocess.call(cmd, shell=False)
+                    subprocess.call(cmd, shell=True)
+                    new_path = new_path.encode('shift-jis')
                     file_list.append(new_path)
+                    self.temp_files.append(new_path)
             else:
-                file_list = self.attachment_list
-            file_list = [f.encode('shift-jis') for f in file_list]
+                file_list = [f.encode('shift-jis') for f in self.attachment_list]
             password = self.generate_password()
             pyminizip.compress_multiple(file_list, temp_zip, password, 1)
             bytes = open(temp_zip, b'rb',).read()
-            os.remove(temp_zip)
             return bytes
         else:
             return None
@@ -120,27 +119,34 @@ class EbMail(object):
         return self.password
 
     def send_email(self):
-        self.check_recipient()
-        self.check_attachment()
-        self.check_mail_title()
+        try:
+            self.check_recipient()
+            self.check_attachment()
+            self.check_mail_title()
 
-        mail_connection = self.get_mail_connection()
+            mail_connection = self.get_mail_connection()
 
-        email = EmailMultiAlternativesWithEncoding(
-            subject=self.mail_title,
-            body=self.mail_body,
-            from_email=mail_connection.username,
-            to=self.recipient_list,
-            cc=self.cc_list,
-            connection=mail_connection
-        )
-        attachments = self.zip_attachments()
-        if attachments:
-            email.attach('%s.zip' % self.mail_title, attachments, constants.MIME_TYPE_ZIP)
-        email.send()
-        self.send_password(mail_connection)
-        log_format = u"題名: %s; TO: %s; CC: %s; 送信完了。"
-        logger.info(log_format % (self.mail_title, ','.join(self.recipient_list), ','.join(self.cc_list)))
+            email = EmailMultiAlternativesWithEncoding(
+                subject=self.mail_title,
+                body=self.mail_body,
+                from_email=mail_connection.username,
+                to=self.recipient_list,
+                cc=self.cc_list,
+                connection=mail_connection
+            )
+            attachments = self.zip_attachments()
+            if attachments:
+                email.attach('%s.zip' % self.mail_title, attachments, constants.MIME_TYPE_ZIP)
+            email.send()
+            # パスワードを送信する。
+            self.send_password(mail_connection)
+            log_format = u"題名: %s; TO: %s; CC: %s; 送信完了。"
+            logger.info(log_format % (self.mail_title, ','.join(self.recipient_list), ','.join(self.cc_list)))
+        finally:
+            # 一時ファイルを削除
+            for path in self.temp_files:
+                if os.path.exists(path):
+                    os.remove(path)
 
     def send_password(self, conn):
         if self.attachment_list and self.is_encrypt:
