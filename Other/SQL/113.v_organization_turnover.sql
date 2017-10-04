@@ -64,7 +64,7 @@ select m.id as member_id
                then (pr.tax_amount - IFNULL((select sum(truncate(IFNULL(prh.tax_rate, 0) * s2.total_price, 0)) from eb_projectrequestdetail s2 where s2.project_request_id = pr.id and s2.id <> prd.id), 0))
            else truncate(IFNULL(prh.tax_rate, 0) * prd.total_price, 0)
 	   end as tax_price
-  from eb_projectrequestdetail prd
+  from eb_projectrequestdetail prd		/* １つの案件に複数の請求書が存在する場合があるので、eb_projectrequestdetailをメインとしてデータを取得されている。要員のアサインした一括案件は下のUNION部分から取得する */
   join eb_projectrequest pr on pr.id = prd.project_request_id
   join eb_projectrequestheading prh on prh.project_request_id = pr.id
   join eb_projectmember pm on pm.id = prd.project_member_id

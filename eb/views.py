@@ -2153,12 +2153,17 @@ class GenerateSubcontractorRequestView(BaseView):
         common.generate_pdf_from_url(url, pay_notify_pdf_path)
         url = common.get_absolute_url(reverse('view_subcontractor_request', args=(subcontractor_request.pk,)))
         common.generate_pdf_from_url(url, request_pdf_path)
+        changed_message = u"税込金額：%s、税抜金額：%s、精算金額：%s" % (
+            subcontractor_request.amount,
+            subcontractor_request.turnover_amount,
+            subcontractor_request.expenses_amount,
+        )
         LogEntry.objects.log_action(request.user.id,
                                     ContentType.objects.get_for_model(subcontractor_request).pk,
                                     subcontractor_request.pk,
                                     unicode(subcontractor_request),
                                     action_flag,
-                                    '' if action_flag == ADDITION else u'再作成しました。')
+                                    change_message=changed_message)
         return JsonResponse({
             'pk': subcontractor_request.pk,
             'request_no': subcontractor_request.request_no,
