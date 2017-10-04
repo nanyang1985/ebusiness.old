@@ -65,21 +65,29 @@ select m.id as member_id
      , IFNULL(ma.night_days, 0) as night_days
      , IFNULL(ma.advances_paid_client, 0) as advances_paid_client
      , IFNULL(ma.advances_paid, 0) as advances_paid
-     , IFNULL(ma.traffic_cost, 0) as traffic_cost
+     , IF(c.member_type = 4, 0, IFNULL(ma.traffic_cost, 0)) as traffic_cost
      , case 
-           when p.is_lump = 1 and prd.id is null then (select t1.amount from eb_projectrequest t1 where t1.project_id = p.id and concat(t1.year, t1.month) = get_ym())
+           when p.is_lump = 1 and prd.id is null and pm.id = (select min(s1.id) from eb_projectmember s1 where s1.project_id = p.id and s1.is_deleted = 0 and s1.status = 2)
+               then (select t1.amount from eb_projectrequest t1 where t1.project_id = p.id and concat(t1.year, t1.month) = get_ym())			-- 要員アサインした一括案件の場合、売上は１つの要員に表示され、ほかに０にする。
+		   when p.is_lump = 1 and prd.id is null then 0
            else IFNULL(prd.total_price + prd.expenses_price + prd.total_price * prh.tax_rate, 0) 
-       end as all_price
+       end as all_price				-- 売上（税込）
      , case
-           when p.is_lump = 1 and prd.id is null then (select t1.turnover_amount from eb_projectrequest t1 where t1.project_id = p.id and concat(t1.year, t1.month) = get_ym())
+           when p.is_lump = 1 and prd.id is null and pm.id = (select min(s1.id) from eb_projectmember s1 where s1.project_id = p.id and s1.is_deleted = 0 and s1.status = 2)
+               then (select t1.turnover_amount from eb_projectrequest t1 where t1.project_id = p.id and concat(t1.year, t1.month) = get_ym())	-- 要員アサインした一括案件の場合
+		   when p.is_lump = 1 and prd.id is null then 0
            else IFNULL(prd.total_price, 0) 
-       end as total_price
+       end as total_price			-- 売上（税抜）
      , case
-           when p.is_lump = 1 and prd.id is null then (select t1.expenses_amount from eb_projectrequest t1 where t1.project_id = p.id and concat(t1.year, t1.month) = get_ym())
+           when p.is_lump = 1 and prd.id is null and pm.id = (select min(s1.id) from eb_projectmember s1 where s1.project_id = p.id and s1.is_deleted = 0 and s1.status = 2)
+               then (select t1.expenses_amount from eb_projectrequest t1 where t1.project_id = p.id and concat(t1.year, t1.month) = get_ym())	-- 要員アサインした一括案件の場合
+		   when p.is_lump = 1 and prd.id is null then 0
            else IFNULL(prd.expenses_price, 0) 
-       end as expenses_price
+       end as expenses_price		-- 売上（経費）
      , case
-           when p.is_lump = 1 and prd.id is null then (select t1.tax_amount from eb_projectrequest t1 where t1.project_id = p.id and concat(t1.year, t1.month) = get_ym())
+           when p.is_lump = 1 and prd.id is null and pm.id = (select min(s1.id) from eb_projectmember s1 where s1.project_id = p.id and s1.is_deleted = 0 and s1.status = 2)
+               then (select t1.tax_amount from eb_projectrequest t1 where t1.project_id = p.id and concat(t1.year, t1.month) = get_ym())		-- 要員アサインした一括案件の場合
+		   when p.is_lump = 1 and prd.id is null then 0
            else IFNULL(prd.total_price * prh.tax_rate, 0) 
        end as tax_price
      , IFNULL(IF(c.is_hourly_pay = 0, c.cost, c.cost * get_attendance_total_hours(IF(ma.total_hours_bp is null or ma.total_hours_bp = 0, IFNULL(ma.total_hours, 0), ma.total_hours_bp))), 0) as salary
