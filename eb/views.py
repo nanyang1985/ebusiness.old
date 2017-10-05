@@ -2405,24 +2405,35 @@ class SendMailBpRequestView(BaseView):
         subcontractor = get_object_or_404(models.Subcontractor, pk=subcontractor_id)
         organizations = subcontractor.get_request_sections(year, month)
         subcontractor_requests = subcontractor.subcontractorrequest_set.filter(year=year, month=month)
-
-        recipient_list = request.POST.get('recipient_list', None)
-        cc_list = request.POST.get('cc_list', None)
-        mail_title = request.POST.get('mail_title', None)
-        mail_body = request.POST.get('mail_body', None)
-        attachment_list = []
-        for subcontractor_request in subcontractor_requests:
-            attachment_list.append(subcontractor_request.get_absolute_request_pdf_path())
-            attachment_list.append(subcontractor_request.get_absolute_pay_notify_pdf_path())
         ret = {}
-        try:
-            mail = EbMail(recipient_list, cc_list, attachment_list=attachment_list, is_encrypt=True,
-                          mail_title=mail_title, mail_body=mail_body)
-            mail.send_email()
-            ret.update({'result': True, 'message': ""})
-        except Exception as ex:
-            common.get_sales_logger().error(traceback.format_exc())
-            ret.update({'result': False, 'message': ex.message})
+        if len(organizations) == subcontractor_requests.count():
+            sender = request.POST.get('sender', None)
+            recipient_list = request.POST.get('recipient_list', None)
+            cc_list = request.POST.get('cc_list', None)
+            mail_title = request.POST.get('mail_title', None)
+            mail_body = request.POST.get('mail_body', None)
+            attachment_list = []
+            for subcontractor_request in subcontractor_requests:
+                attachment_list.append(subcontractor_request.get_absolute_request_pdf_path())
+                attachment_list.append(subcontractor_request.get_absolute_pay_notify_pdf_path())
+            try:
+                mail_data = {
+                    'sender': sender, 'recipient_list': recipient_list, 'cc_list': cc_list,
+                    'attachment_list': attachment_list, 'is_encrypt': True,
+                    'mail_title': mail_title, 'mail_body': mail_body
+                }
+                mail = EbMail(**mail_data)
+                mail.send_email()
+                mail_data['user'] = request.user
+                for subcontractor_request in subcontractor_requests:
+                    subcontractor_request.is_sent = True
+                    subcontractor_request.save(update_fields=['is_sent'], mail_data=mail_data)
+                ret.update({'result': True, 'message': ""})
+            except Exception as ex:
+                common.get_sales_logger().error(traceback.format_exc())
+                ret.update({'result': False, 'message': ex.message})
+        else:
+            ret.update({'result': False, 'message': "支払通知書とＢＰ請求書はまだ作成されていません。"})
         return JsonResponse(ret)
 
 

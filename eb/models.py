@@ -28,6 +28,9 @@ from django.core.mail import EmailMultiAlternatives, get_connection, SafeMIMETex
 from django.core.mail.message import MIMEBase
 from django.conf import settings
 from django.core.validators import validate_comma_separated_integer_list
+from django.contrib.admin.models import LogEntry, CHANGE
+from django.contrib.contenttypes.models import ContentType
+
 # from django.contrib.contenttypes.models import ContentType
 # from django.contrib.contenttypes.fields import GenericForeignKey
 
@@ -786,6 +789,7 @@ class MailTemplate(BaseModel):
 class MailGroup(BaseModel):
     name = models.CharField(max_length=30, unique=True, verbose_name=u"名称")
     title = models.CharField(max_length=50, blank=False, null=True, verbose_name=u"タイトル")
+    mail_sender = models.EmailField(blank=True, null=True, verbose_name=u"メール差出人")
     mail_template = models.ForeignKey(MailTemplate, blank=True, null=True, on_delete=models.PROTECT,
                                       verbose_name=u"メールテンプレート")
 
@@ -2570,8 +2574,32 @@ class SubcontractorRequest(models.Model):
         )
 
     def save(self, force_insert=False, force_update=False, using=None,
-             update_fields=None, other_data=None):
+             update_fields=None, other_data=None, mail_data=None):
         super(SubcontractorRequest, self).save(force_insert, force_update, using, update_fields)
+        # メールの送信履歴
+        if update_fields and len(update_fields) == 1 and 'is_sent' in update_fields \
+                and mail_data and 'user' in mail_data:
+            change_messages = []
+            if mail_data.get('sender', None):
+                change_messages.append(u'FROM:%s' % mail_data['sender'])
+            if mail_data.get('recipient_list', None):
+                change_messages.append(u'TO:%s' % mail_data['recipient_list'])
+            if mail_data.get('cc_list', None):
+                change_messages.append(u'CC:%s' % mail_data['cc_list'])
+            if mail_data.get('attachment_list', None):
+                change_messages.append(
+                    u'添付ファイル:%s' % ','.join([os.path.basename(p) for p in mail_data['attachment_list']])
+                )
+            if mail_data.get('mail_title', None):
+                change_messages.append(u'題名:%s' % mail_data['mail_title'])
+            if mail_data.get('mail_body', None):
+                change_messages.append(u'==========内容==========\n%s' % mail_data['mail_body'])
+            LogEntry.objects.log_action(mail_data['user'].id,
+                                        ContentType.objects.get_for_model(self).pk,
+                                        self.pk,
+                                        unicode(self),
+                                        CHANGE,
+                                        "\n".join(change_messages))
         # 請求書作成時、請求に関する全ての情報を履歴として保存する。
         if other_data:
             data = other_data

@@ -158,6 +158,12 @@
                 <table>
                     <tbody>
                     <tr>
+                        <th>差出人：</th>
+                        <td>
+                            <input name="sender" style="width: 500px;" readonly="readonly" value="{{ mail_group.mail_sender|default:'' }}"/>
+                        </td>
+                    </tr>
+                    <tr>
                         <th>宛先：</th>
                         <td>
                             <input name="recipient_list" style="width: 500px;" value="{% for email in subcontractor.get_pay_notify_mail_list.0 %}{{email}},{% endfor %}"/>
@@ -173,6 +179,15 @@
                         <th>件名：</th>
                         <td>
                             <input name="mail_title" style="width: 500px;" value="{{ mail_group.mail_template.mail_title }}"/>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>添付：</th>
+                        <td>
+                            {% for section, subcontractor_request in sections %}
+                                {{ subcontractor_request.filename_pdf }}<br/>
+                                {{ subcontractor_request.pay_notify_filename_pdf }}<br/>
+                            {% endfor %}
                         </td>
                     </tr>
                     <tr>

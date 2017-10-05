@@ -29,8 +29,9 @@ logger = common.get_sales_logger()
 
 class EbMail(object):
 
-    def __init__(self, recipient_list=None, cc_list=None, attachment_list=None, is_encrypt=True,
+    def __init__(self, sender=None, recipient_list=None, cc_list=None, attachment_list=None, is_encrypt=True,
                  mail_title=None, mail_body=None):
+        self.sender = sender
         self.recipient_list = EbMail.str_to_list(recipient_list)
         self.cc_list = EbMail.str_to_list(cc_list)
         self.attachment_list = attachment_list
@@ -95,18 +96,18 @@ class EbMail(object):
             self.temp_files.append(temp_zip)
             # TODO: エンコードが不一致しているので、暫定対策はＯＳごとに処理する。
             file_list = []
-            if sys.platform == 'linux2':
-                for f in self.attachment_list:
-                    new_path = os.path.join(temp_path, os.path.basename(f))
-                    shutil.copy(f, new_path)
-                    # ファイル名をshift-jisの名前に変更する、Windowsで開く時の文字化け防止
-                    cmd = ['/usr/local/convmv-2.03/convmv', '--r', '--notest', '-f', 'utf8', '-t', 'cp932', new_path]
-                    subprocess.check_output(cmd, shell=False)
-                    new_path = new_path.encode('shift-jis')
-                    file_list.append(new_path)
-                    self.temp_files.append(new_path)
-            else:
-                file_list = [f.encode('shift-jis') for f in self.attachment_list]
+            # if sys.platform == 'linux2':
+            for f in self.attachment_list:
+                new_path = os.path.join(temp_path, os.path.basename(f).encode('shift-jis'))
+                shutil.copy(f, new_path)
+                # ファイル名をshift-jisの名前に変更する、Windowsで開く時の文字化け防止
+                # cmd = ['/usr/local/convmv-2.03/convmv', '--r', '--notest', '-f', 'utf8', '-t', 'cp932', new_path]
+                # subprocess.check_output(cmd, shell=False)
+                # new_path = new_path.encode('shift-jis')
+                file_list.append(new_path)
+                self.temp_files.append(new_path)
+            # else:
+            #     file_list = [f.encode('shift-jis') for f in self.attachment_list]
             password = self.generate_password()
             pyminizip.compress_multiple(file_list, temp_zip, password, 1)
             bytes = open(temp_zip, b'rb',).read()
@@ -125,11 +126,13 @@ class EbMail(object):
             self.check_mail_title()
 
             mail_connection = self.get_mail_connection()
+            if not self.sender:
+                self.sender = mail_connection.username
 
             email = EmailMultiAlternativesWithEncoding(
                 subject=self.mail_title,
                 body=self.mail_body,
-                from_email=mail_connection.username,
+                from_email=self.sender,
                 to=self.recipient_list,
                 cc=self.cc_list,
                 connection=mail_connection
@@ -156,7 +159,7 @@ class EbMail(object):
             email = EmailMultiAlternativesWithEncoding(
                 subject=self.mail_title,
                 body=body,
-                from_email=conn.username,
+                from_email=self.sender,
                 to=self.recipient_list,
                 cc=self.cc_list,
                 connection=conn

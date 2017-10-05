@@ -990,7 +990,7 @@ class BpMemberOrderInfoAdmin(ReadonlyAdmin):
 
 
 class MailGroupAdmin(BaseAdmin):
-    list_display = ['name', 'title', 'mail_template']
+    list_display = ['name', 'title', 'mail_sender', 'mail_template']
     inlines = (MailCcListInline,)
 
 
