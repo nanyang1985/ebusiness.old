@@ -2412,11 +2412,11 @@ class SendMailBpRequestView(BaseView):
             cc_list = request.POST.get('cc_list', None)
             mail_title = request.POST.get('mail_title', None)
             mail_body = request.POST.get('mail_body', None)
-            attachment_list = []
-            for subcontractor_request in subcontractor_requests:
-                attachment_list.append(subcontractor_request.get_absolute_request_pdf_path())
-                attachment_list.append(subcontractor_request.get_absolute_pay_notify_pdf_path())
             try:
+                attachment_list = []
+                for subcontractor_request in subcontractor_requests:
+                    attachment_list.append(subcontractor_request.get_absolute_request_pdf_path())
+                    attachment_list.append(subcontractor_request.get_absolute_pay_notify_pdf_path())
                 mail_data = {
                     'sender': sender, 'recipient_list': recipient_list, 'cc_list': cc_list,
                     'attachment_list': attachment_list, 'is_encrypt': True,

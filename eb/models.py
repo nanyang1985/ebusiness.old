@@ -36,6 +36,7 @@ from django.contrib.contenttypes.models import ContentType
 
 
 from utils import common, constants
+from utils.errors import CustomException
 
 
 class AbstractCompany(models.Model):
@@ -1203,9 +1204,12 @@ class Member(AbstractMember):
         :return:
         """
         if not date:
-            date = datetime.date.today()
-        results = self.membersectionperiod_set.filter((Q(start_date__lte=date) & Q(end_date__isnull=True)) |
-                                                      (Q(start_date__lte=date) & Q(end_date__gte=date)))
+            first_day = last_day = datetime.date.today()
+        else:
+            first_day = common.get_first_day_by_month(date)
+            last_day = common.get_last_day_by_month(date)
+        results = self.membersectionperiod_set.filter((Q(start_date__lte=last_day) & Q(end_date__isnull=True)) |
+                                                      (Q(start_date__lte=last_day) & Q(end_date__gte=first_day)))
         if results.count() > 0:
             return results[0].subsection or results[0].section or results[0].division
         return self.section
@@ -2552,6 +2556,8 @@ class SubcontractorRequest(models.Model):
 
         :return:
         """
+        if self.filename_pdf is None:
+            raise CustomException(u"ＢＰ請求書のＰＤＦは作成されていません。")
         return os.path.join(common.get_subcontractor_request_root_path(), self.year + self.month, self.filename_pdf)
 
     def get_absolute_pay_notify_path(self):
@@ -2568,6 +2574,8 @@ class SubcontractorRequest(models.Model):
 
         :return:
         """
+        if self.filename_pdf is None:
+            raise CustomException(u"支払通知書のＰＤＦは作成されていません。")
         return os.path.join(
             common.get_subcontractor_pay_notify_root_path(), self.year + self.month, self.pay_notify_filename_pdf
         )
