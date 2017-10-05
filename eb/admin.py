@@ -995,6 +995,7 @@ class MailGroupAdmin(BaseAdmin):
 
 
 class MailTemplateAdmin(BaseAdmin):
+    form = forms.MailTemplateForm
     list_display = ['mail_title']
 
 

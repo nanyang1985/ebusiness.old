@@ -800,6 +800,12 @@ class MailGroup(BaseModel):
     def __unicode__(self):
         return self.name
 
+    def get_mail_title(self, **kwargs):
+        if self.mail_template and self.mail_template.mail_title:
+            return self.mail_template.mail_title.format(**kwargs)
+        else:
+            return None
+
     def get_mail_body(self, **kwargs):
         if self.mail_template:
             mail_body = self.mail_template.mail_body or self.mail_template.mail_html

@@ -1432,14 +1432,19 @@ class CostSubcontractorMembersByMonthView(BaseTemplateView):
         sections = []
         has_mail_preview = False
         mail_group = None
+        mail_title = None
         mail_body = ""
         if subcontractor_id:
             subcontractor = get_object_or_404(models.Subcontractor, pk=subcontractor_id)
             sections = subcontractor.get_request_sections(year, month)
             subcontractor_requests = subcontractor.subcontractorrequest_set.filter(year=year, month=month)
             has_mail_preview = len(sections) == subcontractor_requests.count()
+            deadline = common.get_pay_notify_deadline(year, month)
             mail_group = models.MailGroup.get_subcontractor_pay_notify()
-            mail_body = mail_group.get_mail_body(subcontractor=subcontractor)
+            mail_title = mail_group.get_mail_title(deadline=deadline, month=month)
+            mail_body = mail_group.get_mail_body(
+                subcontractor=subcontractor, deadline=deadline, month=month
+            )
 
         paginator = Paginator(object_list, biz_config.get_page_size())
         page = request.GET.get('page')
@@ -1467,6 +1472,7 @@ class CostSubcontractorMembersByMonthView(BaseTemplateView):
             'month': month,
             'has_mail_preview': has_mail_preview,
             'mail_group': mail_group,
+            'mail_title': mail_title,
             'mail_body': mail_body,
         })
         return context
@@ -2420,7 +2426,7 @@ class SendMailBpRequestView(BaseView):
                 mail_data = {
                     'sender': sender, 'recipient_list': recipient_list, 'cc_list': cc_list,
                     'attachment_list': attachment_list, 'is_encrypt': True,
-                    'mail_title': mail_title, 'mail_body': mail_body
+                    'mail_title': mail_title, 'mail_body': mail_body, 'addressee': unicode(subcontractor)
                 }
                 mail = EbMail(**mail_data)
                 mail.send_email()

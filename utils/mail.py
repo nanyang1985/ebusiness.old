@@ -30,7 +30,8 @@ logger = common.get_sales_logger()
 class EbMail(object):
 
     def __init__(self, sender=None, recipient_list=None, cc_list=None, attachment_list=None, is_encrypt=True,
-                 mail_title=None, mail_body=None):
+                 mail_title=None, mail_body=None, addressee=None):
+        self.addressee = addressee
         self.sender = sender
         self.recipient_list = EbMail.str_to_list(recipient_list)
         self.cc_list = EbMail.str_to_list(cc_list)
@@ -155,7 +156,18 @@ class EbMail(object):
 
     def send_password(self, conn):
         if self.attachment_list and self.is_encrypt:
-            body = "先ほどメールのパスワードは以下になります：\n%s" % self.password
+            # TODO: パスワードの送信もメールテンプレートに管理する。
+            body = """%s  御中
+
+いつもお世話になっております。
+株式会社イー・ビジネスでございます。
+
+先程お送りしましたファイルの解凍パスワードをご案内致します。
+
+
+PW: %s
+
+どうぞご確認の程、お願い申し上げます。""" % (self.addressee, self.password)
             email = EmailMultiAlternativesWithEncoding(
                 subject=self.mail_title,
                 body=body,

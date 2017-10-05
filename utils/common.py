@@ -1179,6 +1179,22 @@ def get_absolute_url(url):
     return urlparse.urljoin(domain_name, url)
 
 
+def get_pay_notify_deadline(year, month):
+    """支払通知書とＢＰ注文書をメール送信時の支払締切日を取得する
+
+    来月の第八営業日
+
+    :return:
+    """
+    date = get_first_day_from_ym('%04d%02d' % (int(year), int(month)))
+    next_month = add_months(date, 1)
+    business_days = get_business_days(next_month.year, next_month.month)
+    if len(business_days) > 7:
+        return business_days[7]
+    else:
+        return datetime.date(next_month.year, next_month.month, 10)
+
+
 if __name__ == "__main__":
     for it in range(1, 10):
         print u'2016年%02d月' % (it,), get_business_days(2016, it)

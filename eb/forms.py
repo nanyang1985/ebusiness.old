@@ -796,6 +796,16 @@ class MailCcListForm(forms.ModelForm):
             self.add_error('member', u"メールアドレスが設定されていません。")
 
 
+class MailTemplateForm(forms.ModelForm):
+    class Meta:
+        model = models.MailTemplate
+        fields = '__all__'
+
+    def __init__(self, *args, **kwargs):
+        super(MailTemplateForm, self).__init__(*args, **kwargs)
+        self.fields['mail_title'].widget.attrs.update({'style': 'width: 500px;'})
+
+
 class SubcontractorMemberForm(forms.ModelForm):
     class Meta:
         model = models.SubcontractorMember
