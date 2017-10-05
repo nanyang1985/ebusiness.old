@@ -10,6 +10,7 @@ import StringIO
 import matplotlib.pyplot as plt
 from matplotlib.ticker import FuncFormatter
 import pandas as pd
+import numpy as np
 
 from eb import models, biz
 from utils import common
@@ -506,11 +507,39 @@ def get_bp_cost_by_subcontractor(year, month):
     :param month:
     :return:
     """
+
+    def get_org(c):
+        if pd.isnull(c['division_id']):
+            return c['section_id']
+        else:
+            return c['division_id']
+
     df = get_bp_members_cost(year, month)
+    # 協力会社の関連部署数取得する。
+    df['organization_count'] = df.apply(get_org, axis=1)
+    df_org_count = df.groupby(['company_id']).organization_count.nunique().to_frame().reset_index()
+    # 協力会社ごとにグループする。
     s = df.groupby(['company_id', 'company_name'])['total_cost'].sum()
     df = pd.DataFrame(s.values, index=s.index, columns=['total_cost'])
     df.reset_index(inplace=True)
     df.company_id = df.company_id.astype(int)
+    df = pd.merge(df, df_org_count, how='left', on = ['company_id'])
+    # 請求数
+    df_request_count = get_subcontractor_request_count(year, month)
+    df = pd.merge(df, df_request_count, how='left', on = ['company_id'])
+    df.requested_count = df.requested_count.fillna(0).astype(int)
+    df.is_sent = df.is_sent.fillna(0).astype(int)
+    # 請求書作成作成済みフラグ
+    df['is_requested'] = np.where(df.organization_count == df.requested_count, 1, 0)
+    return df
+
+
+def get_subcontractor_request_count(year, month):
+    df = pd.read_sql("select subcontractor_id as company_id, count(1) as requested_count, max(is_sent) as is_sent "
+                     "  from eb_subcontractorrequest where year = %s and month = %s "
+                     " group by subcontractor_id" % (year, month), connection)
+    df.requested_count.astype(int)
+    df.is_sent.astype(int)
     return df
 
 

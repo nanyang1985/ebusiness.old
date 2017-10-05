@@ -549,13 +549,12 @@ class Subcontractor(AbstractCompany):
         #     projectmember__end_date__gte=first_day
         # ).distinct()
         members = Member.objects.filter(
-            Q(viewcontract__end_date__gte=first_day) | Q(viewcontract__end_date__isnull=True),
-            viewcontract__start_date__lte=last_day,
+            Q(bpcontract__end_date__gte=first_day) | Q(bpcontract__end_date__isnull=True),
+            bpcontract__start_date__lte=last_day,
             projectmember__start_date__lte=last_day,
             projectmember__end_date__gte=first_day,
             projectmember__is_deleted=False,
-            viewcontract__company_id=self.pk,
-            viewcontract__is_old=False,
+            bpcontract__company_id=self.pk,
         )
         return members
 

@@ -18,9 +18,21 @@
         <thead>
             <tr>
                 <th>会社名</th>
+                <th>部署数</th>
+                <th style="width: 70px;">請求書作成</th>
+                <th>送信</th>
                 <th style="text-align: right; padding-right: 4px; font-size: 13px; font-weight: normal;">合計：&nbsp;{{ data_frame.sum.total_cost|floatformat:0|intcomma }}</th>
             </tr>
         </thead>
+        <tfoot>
+            <tr>
+                <th>{{ data_frame.index|length }} 社</th>
+                <th>部署数</th>
+                <th>請求書作成</th>
+                <th>送信</th>
+                <th style="text-align: right; padding-right: 4px; font-size: 13px; font-weight: normal;">合計：&nbsp;{{ data_frame.sum.total_cost|floatformat:0|intcomma }}</th>
+            </tr>
+        </tfoot>
         <tbody>
             {% if data_frame is None %}
                 <tr class="row1"><td class="center red" colspan="4">協力会社がありません。</td></tr>
@@ -28,16 +40,23 @@
                 {% for idx, data_row in data_frame.iterrows %}
                     <tr class="{% cycle 'row1' 'row2' %}">
                         <td><a href="{% url 'cost_subcontractor_members_by_month' data_row.company_id year month %}">{{ data_row.company_name }}</a></td>
+                        <td>{{ data_row.organization_count }}</td>
+                        <td class="center">
+                            {% if data_row.is_requested %}
+                                <img width="12px" src="/static/{{ theme }}/img/icon-normal.png"/>
+                            {% else %}
+                                <img width="12px" src="/static/{{ theme }}/img/icon-warn.png"/>
+                            {% endif %}
+                        </td>
+                        <td class="center">
+                            {% if data_row.is_sent %}
+                                <img width="12px" src="/static/{{ theme }}/img/icon-normal.png"/>
+                            {% endif %}
+                        </td>
                         <td class="num">{{ data_row.total_cost|floatformat:0|intcomma }}</td>
                     </tr>
                 {% endfor %}
             {% endif %}
         </tbody>
-        <tfoot>
-            <tr>
-                <th>{{ data_frame.index|length }} 社</th>
-                <th style="text-align: right; padding-right: 4px; font-size: 13px; font-weight: normal;">合計：&nbsp;{{ data_frame.sum.total_cost|floatformat:0|intcomma }}</th>
-            </tr>
-        </tfoot>
     </table>
 {% endblock %}
