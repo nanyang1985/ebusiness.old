@@ -1189,10 +1189,10 @@ def get_pay_notify_deadline(year, month):
     date = get_first_day_from_ym('%04d%02d' % (int(year), int(month)))
     next_month = add_months(date, 1)
     business_days = get_business_days(next_month.year, next_month.month)
-    if len(business_days) > 7:
-        return business_days[7]
+    if len(business_days) > 5:
+        return business_days[5]
     else:
-        return datetime.date(next_month.year, next_month.month, 10)
+        return next_month
 
 
 if __name__ == "__main__":
