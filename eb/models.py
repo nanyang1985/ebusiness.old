@@ -770,6 +770,7 @@ class MailTemplate(BaseModel):
     mail_title = models.CharField(max_length=50, unique=True, verbose_name=u"送信メールのタイトル")
     mail_body = models.TextField(blank=True, null=True, verbose_name=u"メール本文(Plain Text)")
     mail_html = models.TextField(blank=True, null=True, verbose_name=u"メール本文(HTML)")
+    pass_body = models.TextField(blank=True, null=True, verbose_name=u"パスワードお知らせ本文(Plain Text)")
     attachment1 = models.FileField(blank=True, null=True, upload_to="./attachment", verbose_name=u"添付ファイル１",
                                    help_text=u"メール送信時の添付ファイルその１。")
     attachment2 = models.FileField(blank=True, null=True, upload_to="./attachment", verbose_name=u"添付ファイル２",
@@ -810,6 +811,16 @@ class MailGroup(BaseModel):
         if self.mail_template:
             mail_body = self.mail_template.mail_body or self.mail_template.mail_html
             t = Template(mail_body)
+            ctx = Context(kwargs)
+            body = t.render(ctx)
+            return body
+        else:
+            return None
+
+    def get_pass_body(self, **kwargs):
+        if self.mail_template and self.mail_template.pass_body:
+            pass_body = self.mail_template.pass_body
+            t = Template(pass_body)
             ctx = Context(kwargs)
             body = t.render(ctx)
             return body

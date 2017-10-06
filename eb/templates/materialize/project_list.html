@@ -1,0 +1,149 @@
+{% extends theme|add:"/base.html" %}
+{% load order_by_tag %}
+{% load sales_templates %}
+
+{% block header %}
+    <script type="text/javascript">
+        window.onload = function() {
+            $('select').material_select();
+            init_select("name__icontains");
+            init_select("client__name__icontains");
+            init_select("salesperson__pk");
+            init_select("status");
+            init_select("is_lump");
+        };
+    </script>
+{% endblock %}
+
+{% block content %}
+{% now 'Y-m-d' as today %}
+<div class="dashboard blue lighten-5">
+    <div class="row">
+        <form action="{% url 'project_list' %}" class="col s12">
+            <div class="row">
+                <div class="input-field col s2">
+                    <input placeholder="案件名称" id="name__icontains" name="name__icontains" type="text"
+                           class="validate">
+                    <label for="name__icontains">案件名称</label>
+                </div>
+                <div class="input-field col s2">
+                    <input placeholder="関連会社" id="client__name__icontains" name="client__name__icontains"
+                           type="text" class="validate">
+                    <label for="client__name__icontains">関連会社</label>
+                </div>
+                <div class="input-field col s2">
+                    <select id="salesperson__pk" name="salesperson__pk">
+                        <option value="">すべて</option>
+                        {% for sales in salesperson %}
+                        <option value="{{ sales.pk }}">{{ sales }}</option>
+                        {% endfor %}
+                    </select>
+                    <label>営業員</label>
+                </div>
+                <div class="input-field col s1">
+                    <select id="status" name="status">
+                        <option value="">すべて</option>
+                        <option value="1">提案</option>
+                        <option value="2">予算審査</option>
+                        <option value="3">予算確定</option>
+                        <option value="4">実施中</option>
+                        <option value="5">完了</option>
+                    </select>
+                    <label>ステータス</label>
+                </div>
+                <div class="input-field col s2">
+                    <select id="is_lump" name="is_lump">
+                        <option value="">すべて</option>
+                        <option value="1">一括</option>
+                        <option value="0">一括でない</option>
+                    </select>
+                    <label>一括</label>
+                </div>
+                <div class="input-field col s3">
+                    <button class="btn waves-effect waves-light" type="submit" name="action">検索
+                        <i class="material-icons right">search</i>
+                    </button>
+                    <a href="{% url 'project_list' %}">クリア</a>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+<table class="bordered highlight heavyTable" cellpadding="0" cellspacing="0">
+    <thead>
+        <tr>
+            <th style="width: 260px;">{% create_order_display "案件名称" "name" %}</th>
+            <th style="width: 150px;">{% create_order_display "関連会社" "client__name" %}</th>
+            <th style="width: 110px">{% create_order_display "事業分類" "business_type" %}</th>
+            <th style="width: 90px;">{% create_order_display "営業員" "salesperson__first_name" %}</th>
+            <th style="width: 50px;">{% create_order_display "総人数" "" %}</th>
+            <th style="width: 62px;">{% create_order_display "現在人数" "" %}</th>
+            <th style="width: 85px;">{% create_order_display "メンバー" "" %}</th>
+            <th style="width: 60px;">{% create_order_display "状態" "" %}</th>
+            <th style="width: 140px;">{% create_order_display "更新日" "updated_date" %}</th>
+            <th class="noprint" style="width: 65px;"></th>
+        </tr>
+    </thead>
+    <tbody>
+        {% if projects %}
+            {% for project in projects %}
+                <tr class="{% cycle 'row1' 'row2' %} {% if project.status == 5 %}finished{% endif %} {%if project.is_reserve %}reserve_project{% endif %}">
+                    <td class="fixed_cell {% if project.is_lump %}lump_project{% endif %}">
+                        <a href="{% url 'project_detail' project.pk %}" title="{{ project.name }}">
+                            {% if project.is_lump %}【一括】{% endif %}
+                            {{ project.name }}
+                        </a>
+                    </td>
+                    <td>
+                        <div style="width: 150px; overflow: hidden; white-space: nowrap;">
+                            <a title="{{ project.client.name }}">{{ project.client.name }}</a>
+                        </div>
+                    </td>
+                    <td>{{ project.get_business_type_display|default:'' }}</td>
+                    <td>
+                        {% if project.salesperson %}
+                            <a href="?salesperson__pk={{ project.salesperson.pk }}">{{ project.salesperson }}</a>
+                        {% endif %}
+                    </td>
+                    <td class="center">
+                        <a href="{% url 'project_members' project.pk %}">{{ project.projectmember_set.all.count }}</a>
+                    </td>
+                    <td class="center">
+                        <a href="{% url 'project_members' project.pk %}?start_date__lte={{ today }}&end_date__gte={{ today }}">
+                            {{ project.working_project_members|length }}
+                        </a>
+                    </td>
+                    <td>
+                        {% for project_member in project.working_project_members|slice:'1' %}
+                            <span>{{ project_member }}</span>
+                        {% endfor %}
+                    </td>
+                    <td class="center"><a href="?status={{ project.status }}">{{ project.get_status_display }}</a></td>
+                    <td>{{ project.updated_date|date:'Y/m/d H:i' }}</td>
+                    <td class="center noprint">
+                        <a href="{% url 'admin:eb_project_change' project.id %}?from=portal&_popup=1" target="_blank">編集</a>
+                        <a href="{% url 'project_end' project.id %}?{{ params }}" onclick="return confirm('案件「{{ project.name }}」の状態を完了とします、よろしいですか？')">終了</a>
+                    </td>
+                </tr>
+            {% endfor %}
+        {% else %}
+            <tr class="row1"><td class="center red" colspan="9">該当する案件がありません。</td></tr>
+        {% endif %}
+    </tbody>
+    <tfoot>
+        <tr>
+            <td colspan="10">
+                {% paging projects %}
+            </td>
+        </tr>
+    </tfoot>
+</table>
+<div class="fixed-action-btn horizontal horizontal">
+    <a class="btn-floating btn-large">
+        <i class="material-icons">menu</i>
+    </a>
+    <ul>
+        <li><a class="btn-floating red" href="{% url 'admin:eb_project_add' %}?from=portal&_popup=1" target="_blank"><i class="material-icons">add</i></a></li>
+    </ul>
+</div>
+{% endblock %}

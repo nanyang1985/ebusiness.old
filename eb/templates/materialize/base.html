@@ -22,6 +22,8 @@
     <script type="text/javascript" src="https://use.fontawesome.com/2938c96a89.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.100.2/js/materialize.min.js"></script>
 
+    <link rel="stylesheet" href="/static/{{ theme }}/css/base.css">
+
     {% block header %}{% endblock %}
 </head>
 
@@ -30,7 +32,7 @@
 <div class="navbar-fixed">
     <nav>
         <div class="nav-wrapper">
-            <a href="?" class="brand-logo"><img style="width: 100px; margin: 10px 0px -10px 0px;" src="/static/logo.gif" /></a>
+            <a href="?" class="brand-logo">&nbsp;&nbsp;営業システム</a>
             <ul id="nav-mobile" class="right hide-on-med-and-down">
                 <li><a href="javascript:$('.button-collapse').sideNav('show')"><i class="material-icons">menu</i></a></li>
                 <li><a href="{% url 'logout_view' %}">ログアウト <i class="material-icons right">exit_to_app</i></a></li>
@@ -38,26 +40,52 @@
         </div>
     </nav>
 </div>
-<div class="fixed-action-btn" style="bottom: 35px; right: 24px;">
+<div class="fixed-action-btn" style="display: none;">
     <a href="#" data-activates="slide-out" class="button-collapse btn-floating btn-large"><i class="material-icons">menu</i></a>
 </div>
-    <section>
-        <div class="container">
-        {% block content %}{% endblock %}
+<div class="main">
+    {% block content %}{% endblock %}
+</div>
+<footer style="display: none;">
+    <div class="container">
+        {% ifequal request.user.username 'admin' %}
+        <a href="{% url 'history' %}">Click here to see history&nbsp;|&nbsp;</a>
+        {% endifequal %}
+        <a href="{% url 'issues' %}">課題管理票</a>&nbsp;
+        {% if perms.eb.view_batch %}
+        |&nbsp;<a href="{% url 'batch_list' %}">バッチ一覧</a>
+        {% endif %}
+        <button disabled class="js-push-button right" style="display: none;">register</button>
+    </div>
+</footer>
+<footer class="page-footer">
+    <div class="container">
+        <div class="row">
+            <div class="col l6 s12">
+                <h5 class="white-text">営業支援システム</h5>
+                <p class="grey-text text-lighten-4">...</p>
+            </div>
+            <div class="col l4 offset-l2 s12">
+                <h5 class="white-text">Links</h5>
+                <ul>
+                    {% ifequal request.user.username 'admin' %}
+                    <li><a class="grey-text text-lighten-3" href="{% url 'history' %}">開発履歴</a></li>
+                    {% endifequal %}
+                    <li><a class="grey-text text-lighten-3" href="{% url 'issues' %}">課題管理票</a></li>
+                    {% if perms.eb.view_batch %}
+                    <li><a class="grey-text text-lighten-3" href="{% url 'batch_list' %}">バッチ一覧</a></li>
+                    {% endif %}
+                </ul>
+            </div>
         </div>
-    </section>
-	<footer>
+    </div>
+    <div class="footer-copyright">
         <div class="container">
-            {% ifequal request.user.username 'admin' %}
-                <a href="{% url 'history' %}">Click here to see history&nbsp;|&nbsp;</a>
-            {% endifequal %}
-            <a href="{% url 'issues' %}">課題管理票</a>&nbsp;
-            {% if perms.eb.view_batch %}
-                |&nbsp;<a href="{% url 'batch_list' %}">バッチ一覧</a>
-            {% endif %}
-            <button disabled class="js-push-button right" style="display: none;">register</button>
+            © 2015 Copyright E-Business Inc.
+            <a class="grey-text text-lighten-4 right" href="#!"></a>
         </div>
-    </footer>
+    </div>
+</footer>
 <ul id="slide-out" class="side-nav">
     <li>
         <div class="user-view" style="padding: 1px 32px 0;">

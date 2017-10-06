@@ -77,7 +77,15 @@ class BaseView(BaseViewWithoutLogin):
 
 
 class BaseTemplateView(TemplateResponseMixin, BaseView):
-    pass
+
+    def get_template_names(self):
+        theme = biz_config.get_theme()
+        template_names = super(BaseTemplateView, self).get_template_names()
+        other_names = []
+        if theme != 'default':
+            for name in template_names:
+                other_names.append('%s/%s' % (theme, name.replace('default/', '')))
+        return other_names + template_names
 
 
 def get_base_context():
@@ -1434,6 +1442,7 @@ class CostSubcontractorMembersByMonthView(BaseTemplateView):
         mail_group = None
         mail_title = None
         mail_body = ""
+        pass_body = ""
         if subcontractor_id:
             subcontractor = get_object_or_404(models.Subcontractor, pk=subcontractor_id)
             sections = subcontractor.get_request_sections(year, month)
@@ -1444,6 +1453,9 @@ class CostSubcontractorMembersByMonthView(BaseTemplateView):
             mail_title = mail_group.get_mail_title(deadline=deadline, month=month)
             mail_body = mail_group.get_mail_body(
                 subcontractor=subcontractor, deadline=deadline, month=month
+            )
+            pass_body = mail_group.get_pass_body(
+                subcontractor=subcontractor
             )
 
         paginator = Paginator(object_list, biz_config.get_page_size())
@@ -1474,6 +1486,7 @@ class CostSubcontractorMembersByMonthView(BaseTemplateView):
             'mail_group': mail_group,
             'mail_title': mail_title,
             'mail_body': mail_body,
+            'pass_body': pass_body,
         })
         return context
 
@@ -2418,6 +2431,7 @@ class SendMailBpRequestView(BaseView):
             cc_list = request.POST.get('cc_list', None)
             mail_title = request.POST.get('mail_title', None)
             mail_body = request.POST.get('mail_body', None)
+            pass_body = request.POST.get('pass_body', None)
             try:
                 attachment_list = []
                 for subcontractor_request in subcontractor_requests:
@@ -2426,7 +2440,8 @@ class SendMailBpRequestView(BaseView):
                 mail_data = {
                     'sender': sender, 'recipient_list': recipient_list, 'cc_list': cc_list,
                     'attachment_list': attachment_list, 'is_encrypt': True,
-                    'mail_title': mail_title, 'mail_body': mail_body, 'addressee': unicode(subcontractor)
+                    'mail_title': mail_title, 'mail_body': mail_body, 'addressee': unicode(subcontractor),
+                    'pass_body': pass_body,
                 }
                 mail = EbMail(**mail_data)
                 mail.send_email()
