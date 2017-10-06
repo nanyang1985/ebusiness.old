@@ -5,19 +5,19 @@
 {% block header %}
     <script type="text/javascript">
         window.onload = function() {
-            $('select').material_select();
             init_select("name__icontains");
             init_select("client__name__icontains");
             init_select("salesperson__pk");
             init_select("status");
             init_select("is_lump");
+            $('select').material_select();
         };
     </script>
 {% endblock %}
 
 {% block content %}
 {% now 'Y-m-d' as today %}
-<div class="dashboard blue lighten-5">
+<div class="filter-control blue lighten-5 z-depth-5">
     <div class="row">
         <form action="{% url 'project_list' %}" class="col s12">
             <div class="row">
@@ -72,6 +72,7 @@
 <table class="bordered highlight heavyTable" cellpadding="0" cellspacing="0">
     <thead>
         <tr>
+            <th style="text-align:center; width: 20px;">No.</th>
             <th style="width: 260px;">{% create_order_display "案件名称" "name" %}</th>
             <th style="width: 150px;">{% create_order_display "関連会社" "client__name" %}</th>
             <th style="width: 110px">{% create_order_display "事業分類" "business_type" %}</th>
@@ -84,20 +85,26 @@
             <th class="noprint" style="width: 65px;"></th>
         </tr>
     </thead>
+    <tfoot>
+        <tr>
+            <td colspan="11">
+                {% paging projects %}
+            </td>
+        </tr>
+    </tfoot>
     <tbody>
         {% if projects %}
             {% for project in projects %}
                 <tr class="{% cycle 'row1' 'row2' %} {% if project.status == 5 %}finished{% endif %} {%if project.is_reserve %}reserve_project{% endif %}">
+                    <td style="text-align: center;">{{ forloop.counter }}</td>
                     <td class="fixed_cell {% if project.is_lump %}lump_project{% endif %}">
                         <a href="{% url 'project_detail' project.pk %}" title="{{ project.name }}">
                             {% if project.is_lump %}【一括】{% endif %}
                             {{ project.name }}
                         </a>
                     </td>
-                    <td>
-                        <div style="width: 150px; overflow: hidden; white-space: nowrap;">
-                            <a title="{{ project.client.name }}">{{ project.client.name }}</a>
-                        </div>
+                    <td title="{{ project.client.name }}">
+                        {{ project.client.name }}
                     </td>
                     <td>{{ project.get_business_type_display|default:'' }}</td>
                     <td>
@@ -127,16 +134,9 @@
                 </tr>
             {% endfor %}
         {% else %}
-            <tr class="row1"><td class="center red" colspan="9">該当する案件がありません。</td></tr>
+            <tr class="row1"><td class="center red" colspan="11">該当する案件がありません。</td></tr>
         {% endif %}
     </tbody>
-    <tfoot>
-        <tr>
-            <td colspan="10">
-                {% paging projects %}
-            </td>
-        </tr>
-    </tfoot>
 </table>
 <div class="fixed-action-btn horizontal horizontal">
     <a class="btn-floating btn-large">

@@ -34,26 +34,46 @@ class GeneratePagingTag(template.Node):
     def render(self, context):
         paginator = context.get('paginator', None)
         page_object = context.get(self.page_object_name, None)
+        theme = context.get('theme', 'default')
         html = ''
         if paginator and page_object:
             params = context.get('params', '')
             orders = context.get('orders', '')
             nodes = list()
-            nodes.append(u'<div class="pagination">')
-            nodes.append(u'<span class="step-links">')
-            if page_object.has_previous():
-                nodes.append(u'<a href="?page={0}{1}{2}">&lt;</a>'.format(page_object.previous_page_number(), params, orders))
-            if len(paginator.page_range) > 1:
-                for page in paginator.page_range:
-                    if page == page_object.number:
-                        nodes.append(u'<span class="current">{0}</span>'.format(page))
-                    else:
-                        nodes.append(u'<a href="?page={0}{1}{2}">{0}</a>'.format(page, params, orders))
-            if page_object.has_next():
-                nodes.append(u'<a href="?page={0}{1}{2}">&gt;</a>'.format(page_object.next_page_number(), params, orders))
-            nodes.append(u'&nbsp;<span>{0} 件</span>'.format(paginator.count))
-            nodes.append(u'</span>')
-            nodes.append(u'</div>')
+            if theme == 'materialize':
+                nodes.append(u'<ul class="pagination">')
+                if page_object.has_previous():
+                    nodes.append('<li class="waves-effect"><a href="?page={0}{1}{2}"><i class="material-icons">chevron_left</i></a></li>'.format(page_object.previous_page_number(), params, orders))
+                else:
+                    nodes.append('<li class="disabled"><a href="#!"><i class="material-icons">chevron_left</i></a></li>')
+                if len(paginator.page_range) > 1:
+                    for page in paginator.page_range:
+                        if page == page_object.number:
+                            nodes.append('<li class="active"><a href="#!">{0}</a></li>'.format(page))
+                        else:
+                            nodes.append('<li class="waves-effect"><a href="?page={0}{1}{2}">{0}</a></li>'.format(page, params, orders))
+                if page_object.has_next():
+                    nodes.append('<li class="waves-effect"><a href="?page={0}{1}{2}"><i class="material-icons">chevron_right</i></a></li>'.format(page_object.next_page_number(), params, orders))
+                else:
+                    nodes.append('<li class="disabled"><a href="#!"><i class="material-icons">chevron_right</i></a></li>')
+                nodes.append(u'<li><a>{0} 件</a></li>'.format(paginator.count))
+                nodes.append(u'</ul>')
+            else:
+                nodes.append(u'<div class="pagination">')
+                nodes.append(u'<span class="step-links">')
+                if page_object.has_previous():
+                    nodes.append(u'<a href="?page={0}{1}{2}">&lt;</a>'.format(page_object.previous_page_number(), params, orders))
+                if len(paginator.page_range) > 1:
+                    for page in paginator.page_range:
+                        if page == page_object.number:
+                            nodes.append(u'<span class="current">{0}</span>'.format(page))
+                        else:
+                            nodes.append(u'<a href="?page={0}{1}{2}">{0}</a>'.format(page, params, orders))
+                if page_object.has_next():
+                    nodes.append(u'<a href="?page={0}{1}{2}">&gt;</a>'.format(page_object.next_page_number(), params, orders))
+                nodes.append(u'&nbsp;<span>{0} 件</span>'.format(paginator.count))
+                nodes.append(u'</span>')
+                nodes.append(u'</div>')
             html = "".join(nodes)
         return html
 
