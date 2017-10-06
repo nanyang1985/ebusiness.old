@@ -3457,6 +3457,8 @@ class BpMemberOrder(BaseModel):
                                            allowance_absenteeism=data['DETAIL'].get('ALLOWANCE_ABSENTEEISM', None),
                                            allowance_absenteeism_memo=data['DETAIL'].get('ALLOWANCE_ABSENTEEISM_MEMO',
                                                                                          None),
+                                           allowance_other=data['DETAIL'].get('ALLOWANCE_OTHER', None),
+                                           allowance_other_memo=data['DETAIL'].get('ALLOWANCE_OTHER_MEMO', None),
                                            comment=data['DETAIL'].get('COMMENT', None),
                                            delivery_properties_comment=data['DETAIL'].get('DELIVERY_PROPERTIES', None),
                                            payment_condition_comments=data['DETAIL'].get('PAYMENT_CONDITION', None),

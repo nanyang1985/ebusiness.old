@@ -836,6 +836,10 @@ def generate_bp_order_data(project_member, year, month, contract, user, bp_order
         allowance_base_memo = u"月額基本料金：¥%s円/月  (税金抜き)" % humanize.intcomma(allowance_base)
     data['DETAIL']['ALLOWANCE_BASE'] = allowance_base
     data['DETAIL']['ALLOWANCE_BASE_MEMO'] = allowance_base_memo
+    data['DETAIL']['ALLOWANCE_OTHER'] = contract.allowance_other
+    data['DETAIL']['ALLOWANCE_OTHER_MEMO'] = u"%s：¥%s円" % (
+        contract.allowance_other_memo, humanize.intcomma(contract.allowance_other)
+    ) if contract.allowance_other else ""
     # 固定
     data['DETAIL']['IS_FIXED_COST'] = contract.is_fixed_cost
     # 計算式を表示するか

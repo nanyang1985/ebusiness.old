@@ -208,8 +208,12 @@
                 <td colspan="7" class="left top border_right">
                     {% if data %}
                         {% if data.DETAIL.IS_HOURLY_PAY %}
-                            <br/><br/>
+                            <br/>
                             {{ data.DETAIL.ALLOWANCE_BASE_MEMO }}
+                            <br/>
+                            {% if data.DETAIL.ALLOWANCE_OTHER_MEMO %}
+                            {{ data.DETAIL.ALLOWANCE_OTHER_MEMO }}
+                            {% endif %}
                             <br/><br/>作業報告書に基づく稼動実費精算とする。<br/>
                         {% elif data.DETAIL.IS_FIXED_COST %}
                             <br/><br/>
@@ -225,8 +229,12 @@
                         {% endif %}
                     {% else %}
                         {% if bp_order.bpmemberorderheading.is_hourly_pay %}
-                            <br/><br/>
+                            <br/>
                             {{ bp_order.bpmemberorderheading.allowance_base_memo }}
+                            <br/>
+                            {% if bp_order.bpmemberorderheading.allowance_other_memo %}
+                            {{ bp_order.bpmemberorderheading.allowance_other_memo }}
+                            {% endif %}
                             <br/><br/>作業報告書に基づく稼動実費精算とする。<br/>
                         {% elif bp_order.bpmemberorderheading.is_fixed_cost %}
                             <br/><br/>
