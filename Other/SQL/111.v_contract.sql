@@ -181,7 +181,7 @@ CREATE OR REPLACE VIEW v_contract AS
         0 AS is_old,
         NULL AS join_date,
         NULL AS retired_date,
-        c.allowance_base + c.allowance_other AS cost,
+        IF(c.is_hourly_pay or c.is_fixed_cost, c.allowance_base, c.allowance_base + c.allowance_other) AS cost,
         c.created_date AS created_date,
         c.updated_date AS updated_date,
         c.is_deleted AS is_deleted,

@@ -32,7 +32,7 @@ select m.id as member_id
      , c.is_loan
      , pr.id as projectrequest_id
      , prd.id as projectrequestdetail_id
-	 , IFNULL(IF(c.is_hourly_pay = 0, c.cost, c.cost * get_attendance_total_hours(IF(ma.total_hours_bp is null or ma.total_hours_bp = 0, IFNULL(ma.total_hours, 0), ma.total_hours_bp))), 0) as salary
+	 , IFNULL(IF(c.is_hourly_pay = 0, c.cost, c.cost * get_attendance_total_hours(IF(ma.total_hours_bp is null or ma.total_hours_bp = 0, IFNULL(ma.total_hours, 0), ma.total_hours_bp)) + c.allowance_other), 0) as salary
 	 , IFNULL(ma.allowance, 0) as allowance
 	 , get_night_allowance(ma.night_days) as night_allowance
 	 , get_overtime_cost(IF(ma.total_hours_bp is null or ma.total_hours_bp = 0, IFNULL(ma.total_hours, 0), ma.total_hours_bp), c.allowance_time_min, c.allowance_time_max, c.is_hourly_pay, c.is_fixed_cost, p.is_reserve, c.allowance_absenteeism, c.allowance_overtime) as overtime_cost
