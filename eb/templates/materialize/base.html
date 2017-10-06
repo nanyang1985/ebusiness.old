@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="utf-8"/>
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Cache-Control" content="no-cache">
+    <title>{{ title }}</title>
+
+    <!--Import Google Icon Font-->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <!--Import materialize.css-->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.100.2/css/materialize.min.css">
+    <!--Let browser know website is optimized for mobile-->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
+    <link rel="manifest" href="/static/admin/manifest.json" />
+    <link rel="shortcut icon" type="image/png" href="/static/favicon.ico"/>
+
+    <script type="text/javascript" src="/static/admin/js/jquery-2.1.4.min.js"></script>
+    <script type="text/javascript" src="/static/admin/js/base.js"></script>
+    <script type="text/javascript" src="/static/admin/js/push_main.js"></script>
+    <script type="text/javascript" src="https://use.fontawesome.com/2938c96a89.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.100.2/js/materialize.min.js"></script>
+
+    {% block header %}{% endblock %}
+</head>
+
+<body>
+{% now 'Ym' as current_ym %}
+<div class="navbar-fixed">
+    <nav>
+        <div class="nav-wrapper">
+            <a href="?" class="brand-logo"><img style="width: 100px; margin: 10px 0px -10px 0px;" src="/static/logo.gif" /></a>
+            <ul id="nav-mobile" class="right hide-on-med-and-down">
+                <li><a href="javascript:$('.button-collapse').sideNav('show')"><i class="material-icons">menu</i></a></li>
+                <li><a href="{% url 'logout_view' %}">ログアウト <i class="material-icons right">exit_to_app</i></a></li>
+            </ul>
+        </div>
+    </nav>
+</div>
+<div class="fixed-action-btn" style="bottom: 35px; right: 24px;">
+    <a href="#" data-activates="slide-out" class="button-collapse btn-floating btn-large"><i class="material-icons">menu</i></a>
+</div>
+    <section>
+        <div class="container">
+        {% block content %}{% endblock %}
+        </div>
+    </section>
+	<footer>
+        <div class="container">
+            {% ifequal request.user.username 'admin' %}
+                <a href="{% url 'history' %}">Click here to see history&nbsp;|&nbsp;</a>
+            {% endifequal %}
+            <a href="{% url 'issues' %}">課題管理票</a>&nbsp;
+            {% if perms.eb.view_batch %}
+                |&nbsp;<a href="{% url 'batch_list' %}">バッチ一覧</a>
+            {% endif %}
+            <button disabled class="js-push-button right" style="display: none;">register</button>
+        </div>
+    </footer>
+<ul id="slide-out" class="side-nav">
+    <li>
+        <div class="user-view" style="padding: 1px 32px 0;">
+            <div class="background">
+                <img src="/static/{{ theme }}/img/office.jpg">
+            </div>
+            <a href="#!user"><!--<img class="circle" src="images/yuna.jpg">--><i class="material-icons" style="font-size: 48px;">person</i></a>
+            <a href="#!name"><span class="white-text name">{{ user.first_name }} {{ user.last_name }}</span></a>
+            <a href="#!email"><span class="white-text email">{{ user.email }}</span></a>
+        </div>
+    </li>
+    <li><a href="{% url 'password_change' %}"><i class="fa fa-key fa-2x" aria-hidden="true"></i>パスワードの変更</a></li>
+    <li><div class="divider"></div></li>
+    <li><a href="{% url 'employee_list' %}" class="waves-effect"><i class="material-icons">people</i>要員一覧</a></li>
+    <li><a href="{% url 'member_cost_list' %}" class="waves-effect">要員コスト一覧</a></li>
+    <li><a href="{% url 'change_list' %}" class="waves-effect">入退場リスト</a></li>
+    <li><a href="{% url 'release_list' current_ym %}" class="waves-effect">リリース状況一覧</a></li>
+    <li><div class="divider"></div></li>
+    <li><a href="{% url 'project_list' %}" class="waves-effect"><i class="material-icons">work</i>案件一覧</a></li>
+    {% if perms.eb.view_turnover %}
+    <li><a href="{% url 'project_order_list' %}" class="waves-effect"><i class="material-icons">border_color</i>案件の注文情報</a></li>
+    {% endif %}
+    <li><div class="divider"></div></li>
+    <li><a href="{% url 'section_list' %}" class="waves-effect"><i class="material-icons">dashboard</i>部署一覧</a></li>
+    {% if perms.eb.view_subcontractor %}
+    <li><div class="divider"></div></li>
+    <li><a href="{% url 'business_partner_members' %}" class="waves-effect"><i class="material-icons">contacts</i>ＢＰ契約一覧</a></li>
+    <li><a href="{% url 'cost_subcontractors_monthly' %}" class="waves-effect">協力会社コスト</a></li>
+    {% endif %}
+    {% if perms.eb.view_turnover %}
+    <li><div class="divider"></div></li>
+    <li><a href="{% url 'turnover_company_monthly' %}" class="waves-effect"><i class="material-icons">insert_chart</i>売上情報</a></li>
+    <li><a href="{% url 'turnover_company_yearly' %}" class="waves-effect"><i class="material-icons">pie_chart</i>年間売上情報</a></li>
+    {% endif %}
+    {% if user.is_staff %}
+    <li><div class="divider"></div></li>
+    <li><a href="{% url 'admin:index' %}" class="waves-effect">管理サイト</a></li>
+    {% if user.username == "admin" %}
+    <li><a href="{% url 'eboa_admin:index' %}" class="waves-effect">EBOAデータ参照</a></li>
+    {% endif %}
+    <li><a href="{% url 'del_data_admin:index' %}" class="waves-effect">削除したデータ</a></li>
+    {% endif %}
+</ul>
+<script type="text/javascript">
+  $('.button-collapse').sideNav({
+      menuWidth: 300, // Default is 300
+      edge: 'right', // Choose the horizontal origin
+      closeOnClick: true, // Closes side-nav on <a> clicks, useful for Angular/Meteor
+      draggable: true, // Choose whether you can drag to open on touch screens,
+      onOpen: function(el) { /* Do Stuff */ }, // A function to be called when sideNav is opened
+      onClose: function(el) { /* Do Stuff */ }, // A function to be called when sideNav is closed
+    }
+  );
+</script>
+</body>
+</html>
