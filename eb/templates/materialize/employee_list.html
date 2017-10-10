@@ -1,0 +1,114 @@
+{% extends theme|add:"/base.html" %}
+{% load order_by_tag %}
+{% load sales_templates %}
+
+{% block header %}
+<script type="text/javascript">
+    window.onload = function() {
+        var oTable = $("#tblMemberList").DataTable({
+            "language": {
+                "url": "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/Japanese.json"
+            },
+            "lengthChange": false,
+            "pageLength": {{ page_size }},
+        });
+
+        var oFilter = $("#tblFilters");
+        oFilter.remove();
+        $('#tblMemberList thead').append(oFilter);
+        
+        oTable.columns().eq( 0 ).each( function ( colIdx ) {
+            $( 'input', oFilter.children().eq(colIdx) ).on( 'keyup change', function () {
+                oTable.column( colIdx ).search( this.value ).draw();
+            } );
+            $( 'select', oFilter.children().eq(colIdx) ).on( 'change', function () {
+                var selectedText = $("option:selected", this).text()
+                oTable.column( colIdx ).search( selectedText ? '^'+selectedText+'$' : '', true, false ).draw();
+            } );
+        });
+        $('select').material_select();
+    };
+</script>
+{% endblock %}
+
+{% block content %}
+{% now 'Y-m-d' as ymd %}
+<div class="ribbon_box">
+    <h3 class="ribbon9">
+        要員一覧
+        <a class="btn-floating red right" href="{% url 'admin:eb_member_add' %}?from=portal&_popup=1" target="_blank"><i class="material-icons">add</i></a>
+    </h3>
+    <table id="tblMemberList" class="row-border highlight" cellpadding="0" cellspacing="0">
+        <thead>
+            <tr>
+                <th style="width: 20px;">No.</th>
+                <th>名前</th>
+                <th>事業部</th>
+                <th>部署</th>
+                <th>課</th>
+                <th>協力会社</th>
+                <th style="width: 50px;">稼働</th>
+                <th style="width: 120px;">リリース予定日</th>
+                <th style="width: 90px;">営業員</th>
+                <th>営業対象外</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tfoot>
+            <tr id="tblFilters">
+                <td><input type="text" placeholder="No."/></td>
+                <td><input type="text" placeholder="名前"/></td>
+                <td><input type="text" placeholder="事業部"/></td>
+                <td><input type="text" placeholder="部"/></td>
+                <td><input type="text" placeholder="課"/></td>
+                <td><input type="text" placeholder="協力会社"/></td>
+                <td></td>
+                <td></td>
+                <td>
+                    <select>
+                        <option value=""></option>
+                        {% for sales in salesperson %}
+                        <option value="{{ sales.pk }}">{{ sales }}</option>
+                        {% endfor %}
+                    </select>
+                </td>
+                <td></td>
+                <td></td>
+            </tr>
+        </tfoot>
+        <tbody>
+            {% if object_list %}
+                {% for idx, data_row in object_list %}
+                    <tr class="{% if data_row.is_retired %}expired{% endif %} {% if data_row.is_loan %}is_loan{% endif %}">
+                        <td class="center">{{ forloop.counter }}</td>
+                        <td>
+                            <a href="{% url 'member_detail' data_row.employee_id %}">
+                                {{ data_row.member_name }}
+                            </a>
+                        </td>
+                        <td>{{ data_row.division_name|default:'' }}</td>
+                        <td>{{ data_row.section_name|default:'' }}</td>
+                        <td>{{ data_row.subsection_name|default:'' }}</td>
+                        <td>{{ data_row.subcontractor_name|default:"" }}</td>
+                        <td class="center">
+                            {% if data_row.is_retired %}
+                                退職
+                            {% elif data_row.status_today == '01' %}
+                                <i class="material-icons green">done</i>
+                            {% else %}
+                                <i class="material-icons red">close</i>
+                            {% endif %}
+                        </td>
+                        <td>{{ data_row.release_date|date:"Y-m-d" }}</td>
+                        <td>{{ data_row.salesperson_name|default:'' }}</td>
+                        <td>{% if data_row.is_retired == 0 %}{{ data_row.salesofreason_name|default:'' }}{% endif %}</td>
+                        <td class="center"><a href="{% url 'admin:eb_member_change' data_row.member_id %}?from=portal&_popup=1" target="_blank">編集</a></td>
+                    </tr>
+                {% endfor %}
+            {% else %}
+                <tr class="row2"><td class="center red" colspan="10">該当する社員がいません。</td></tr>
+            {% endif %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

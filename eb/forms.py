@@ -440,7 +440,7 @@ class UploadFileForm(forms.Form):
 class MemberAttendanceFormSet(forms.ModelForm):
     class Meta:
         model = models.MemberAttendance
-        fields = '__all__'
+        exclude = ('expenses_conference', 'expenses_entertainment', 'expenses_travel', 'expenses_communication', 'expenses_tax_dues', 'expenses_expendables')
 
     def __init__(self, *args, **kwargs):
         forms.ModelForm.__init__(self, *args, **kwargs)
@@ -449,15 +449,15 @@ class MemberAttendanceFormSet(forms.ModelForm):
             pm = data.get('project_member', None)
             self.fields['project_member'].queryset = models.ProjectMember.objects.filter(pk=pm.pk)
 
-    basic_price = forms.CharField(widget=forms.TextInput(attrs={'style': 'width: 45px; border: 0px;'
+    basic_price = forms.CharField(widget=forms.TextInput(attrs={'style': 'width: 50px; border: 0px;'
                                                                          'background-color: transparent;',
                                                                 'readonly': 'readonly'}),
                                   required=False, label=u"単価")
-    max_hours = forms.CharField(widget=forms.TextInput(attrs={'style': 'width: 40px; border: 0px;'
+    max_hours = forms.CharField(widget=forms.TextInput(attrs={'style': 'width: 45px; border: 0px;'
                                                                        'background-color: transparent;',
                                                               'readonly': 'readonly'}),
                                 required=False, label=u"最大")
-    min_hours = forms.CharField(widget=forms.TextInput(attrs={'style': 'width: 40px; border: 0px;'
+    min_hours = forms.CharField(widget=forms.TextInput(attrs={'style': 'width: 45px; border: 0px;'
                                                                        'background-color: transparent;',
                                                               'readonly': 'readonly'}),
                                 required=False, label=u"最小")
@@ -474,6 +474,13 @@ class MemberAttendanceFormSet(forms.ModelForm):
                                                 'step': 0.25}),
                                      label=u"合計時間",
                                      required=True)
+    total_hours_bp = forms.DecimalField(max_digits=5, decimal_places=2,
+                                        widget=forms.TextInput(
+                                            attrs={'type': 'number',
+                                                   'style': 'width: 70px;',
+                                                   'step': 0.25}),
+                                        label=u"ＢＰ作業時間",
+                                        required=False)
     extra_hours = forms.DecimalField(max_digits=5, decimal_places=2, initial=0,
                                      widget=forms.TextInput(
                                          attrs={'type': 'number',
@@ -494,7 +501,7 @@ class MemberAttendanceFormSet(forms.ModelForm):
                                                                       'readonly': 'readonly'}),
                                         label=u"減（円）")
     price = forms.IntegerField(initial=0,
-                               widget=forms.TextInput(attrs={'style': 'width: 70px;',
+                               widget=forms.TextInput(attrs={'style': 'width: 75px;',
                                                              'type': 'number'}),
                                label=u"価格")
 
@@ -512,6 +519,13 @@ class MemberAttendanceFormSetHourlyPay(forms.ModelForm):
                                                 'step': 0.25}),
                                      label=u"合計時間",
                                      required=True)
+    total_hours_bp = forms.DecimalField(max_digits=5, decimal_places=2,
+                                        widget=forms.TextInput(
+                                            attrs={'type': 'number',
+                                                   'style': 'width: 70px;',
+                                                   'step': 0.25}),
+                                        label=u"ＢＰ作業時間",
+                                        required=False)
     extra_hours = forms.DecimalField(max_digits=5, decimal_places=2, initial=0,
                                      widget=forms.TextInput(
                                          attrs={'type': 'number',
@@ -521,7 +535,7 @@ class MemberAttendanceFormSetHourlyPay(forms.ModelForm):
                                      label=u"残業時間",
                                      required=True)
     price = forms.IntegerField(initial=0,
-                               widget=forms.TextInput(attrs={'style': 'width: 70px;',
+                               widget=forms.TextInput(attrs={'style': 'width: 75px;',
                                                              'type': 'number'}),
                                label=u"価格")
     hourly_pay = forms.IntegerField(initial=0,

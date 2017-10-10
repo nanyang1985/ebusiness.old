@@ -53,6 +53,7 @@ class BaseViewWithoutLogin(View, ContextMixin):
         context.update({
             'company': biz.get_company(),
             'theme': biz_config.get_theme(),
+            'page_size': biz_config.get_page_size(),
         })
         return context
 
@@ -451,13 +452,17 @@ class ProjectListView(BaseTemplateView):
         context = self.get_context_data()
         context.update({
             'title': u'案件一覧 | %s' % constants.NAME_SYSTEM,
-            'projects': projects,
-            'paginator': paginator,
+            'projects': all_projects,
             'salesperson': models.Salesperson.objects.public_all(),
             'params': params,
             'orders': "&o=%s" % (o,) if o else "",
             'dict_order': dict_order,
         })
+        if context.get('theme') == 'default':
+            context.update({
+                'projects': projects,
+                'paginator': paginator,
+            })
         return self.render_to_response(context)
 
 
@@ -513,14 +518,18 @@ class ProjectOrdersView(BaseTemplateView):
         context = self.get_context_data()
         context.update({
             'title': u'%s年%s月の注文情報一覧 | %s' % (ym[:4], ym[4:], constants.NAME_SYSTEM),
-            'project_orders': project_orders,
-            'paginator': paginator,
+            'project_orders': all_project_orders,
             'dict_order': dict_order,
             'params': params,
             'orders': "&o=%s" % (o,) if o else "",
             'year': year,
             'month': month,
         })
+        if context.get('theme') == 'default':
+            context.update({
+                'projects': project_orders,
+                'paginator': paginator,
+            })
         return self.render_to_response(context)
 
 

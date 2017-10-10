@@ -1,0 +1,109 @@
+{% extends theme|add:"/base.html" %}
+{% load humanize %}
+{% load year_month_filter %}
+{% load order_by_tag %}
+
+{% block header %}
+<script type="text/javascript">
+    window.onload = function() {
+        var oTable = $("#tblOrderList").DataTable({
+            "language": {
+                "url": "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/Japanese.json"
+            },
+            "lengthChange": false,
+            "pageLength": {{ page_size }},
+        });
+        var oFilter = $("#tblFilters");
+        oFilter.remove();
+        $('#tblOrderList thead').append(oFilter);
+        
+        oTable.columns().eq( 0 ).each( function ( colIdx ) {
+            $( 'input', oFilter.children().eq(colIdx) ).on( 'keyup change', function () {
+                oTable.column( colIdx ).search( this.value ).draw();
+            } );
+            $( 'select', oFilter.children().eq(colIdx) ).on( 'change', function () {
+                var selectedText = $("option:selected", this).text()
+                oTable.column( colIdx ).search( selectedText ? '^'+selectedText+'$' : '', true, false ).draw();
+            } );
+        });
+    };
+</script>
+{% endblock %}
+
+{% block content %}
+<div class="ribbon_box">
+    <h3 class="ribbon9">
+        {{ year }}年{{ month }}月の注文情報一覧
+    </h3>
+    <table id="tblOrderList" class="row-border highlight" cellpadding="0" cellspacing="0">
+        <thead>
+            <tr>
+                <th style="width: 20px;">No.</th>
+                <th style="width: 350px;">案件名称</th>
+                <th style="width: 250px;">関連会社</th>
+                <th>注文番号</th>
+                <th style="width: 100px;">請求番号</th>
+                <th>請求金額</th>
+                <th style="width: 40px;"></th>
+            </tr>
+        </thead>
+        <tfoot>
+            <tr id="tblFilters">
+                <td><input type="text" placeholder="No."/></td>
+                <td><input type="text" placeholder="案件名称"/></td>
+                <td><input type="text" placeholder="関連会社"/></td>
+                <td><input type="text" placeholder="注文番号"/></td>
+                <td><input type="text" placeholder="請求番号"/></td>
+                <td><input type="text" placeholder="請求金額"/></td>
+                <td></td>
+            </tr>
+        </tfoot>
+        <tbody>
+        {% if project_orders %}
+            {% for project, project_request, order in project_orders %}
+                <tr>
+                    <td class="center">{{ forloop.counter }}</td>
+                    <td>
+                        <div style="width: 350px; overflow: hidden; white-space: nowrap;">
+                            <a href="{% url 'project_detail' project.pk %}" title="{{ project.name }}">{{ project.name }}</a>
+                        </div>
+                    </td>
+                    <td>
+                        <div style="width: 250px; overflow: hidden; white-space: nowrap;">
+                            <a title="{{ project.client.name }}">{{ project.client.name }}</a>
+                        </div>
+                    </td>
+                    {% if order %}
+                        <td>{{ order.order_no }}</td>
+                        {% if project_request.pk %}
+                            <td><a href="{% url 'view_project_request' project_request.pk %}">{{ project_request.request_no }}</a></td>
+                            <td style="text-align: right;">
+                                {% if project_request.amount %}
+                                    {{ project_request.amount|intcomma }}
+                                {% else %}
+                                    {{ project_request.amount|intcomma }}
+                                {% endif %}
+                            </td>
+                        {% else %}
+                            <td><i class="material-icons red">close</i></td>
+                            <td></td>
+                        {% endif %}
+                        <td class="center">
+                            <a href="{% url 'admin:eb_clientorder_change' order.pk %}?project_id={{ project.pk }}&from=portal&_popup=1" target="_blank">編集</a>
+                        </td>
+                    {% else %}
+                        <td><i class="material-icons red">close</i></td>
+                        <td></td>
+                        <td class="center">
+                            <a href="{% url 'admin:eb_clientorder_add' %}?project_id={{ project.pk }}&from=portal&_popup=1" target="_blank">追加</a>
+                        </td>
+                    {% endif %}
+                </tr>
+            {% endfor %}
+        {% else %}
+            <tr class="row1"><td class="center red" colspan="7">該当する案件がありません。</td></tr>
+        {% endif %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

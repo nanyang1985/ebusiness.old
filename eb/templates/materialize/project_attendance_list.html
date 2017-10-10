@@ -1,0 +1,114 @@
+{% extends theme|add:"/base.html" %}
+{% load humanize %}
+
+{% block header %}
+<script type="text/javascript">
+    window.onload = function() {
+        obj_list = $("select")
+        obj_list.attr("disabled", "disabled");
+        for (i=0; i<=obj_list.length; i++) {
+            obj = $(obj_list[i])
+            obj.after("<input type='hidden' value='" + obj.val() + "' name='" + obj.attr("name") + "'/>");
+        }
+        $('select').material_select();
+        $("#formset thead th").each(function(colIdx) {
+            if (colIdx === 0) {
+                $(this).css("width", "120px");
+            } else if (colIdx === 1 ) {
+                $(this).css("width", "100px");
+            } else if (colIdx === 2 ) {
+                $(this).css("width", "100px");
+            }
+        })
+    };
+</script>
+<style type="text/css">
+table#formset td {
+    margin: 0px;
+    padding: 0px;
+}
+table#formset td input {
+    margin: 0px;
+    padding: 0px;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="ribbon_box">
+    <h3 class="ribbon9">{{ project }} - 勤怠情報入力</h3>
+    <div class="row">
+        <div class="input-field col s2">案件名称：</div>
+        <div class="input-field col s3"><a href="{% url 'project_detail' project.id %}">{{ project.name }}</a></div>
+        <div class="input-field col s2">関連会社：</div>
+        <div class="input-field col s3">{{ project.client.name }}</div>
+    </div>
+    <div class="row">
+        <div class="input-field col s2">開始日付：</div>
+        <div class="input-field col s3">{{ project.start_date|date:"Y-m-d" }}</div>
+        <div class="input-field col s2">終了日付：</div>
+        <div class="input-field col s3">{{ project.end_date|date:"Y-m-d" }}</div>
+    </div>
+    <div class="row">
+        <div class="input-field col s2">出勤の計算区分：</div>
+        <div class="input-field col s3">{{ project.get_attendance_type_display }}</div>
+        <div class="input-field col s2">税率：</div>
+        <div class="input-field col s3">{{ project.client.get_tax_rate_display }}</div>
+    </div>
+    <div class="row">
+        <div class="input-field col s2">小数の処理区分：</div>
+        <div class="input-field col s3">{{ project.client.get_decimal_type_display }}</div>
+    </div>
+</div>
+<div class="ribbon_box">
+    <h3 class="ribbon9">勤怠情報入力</h3>
+    <form method="post" action="">
+        {% csrf_token %}
+        {{ formset.management_form }}
+        <script type="text/javascript">
+            $("#id_form-INITIAL_FORMS").val({{ initial_form_count }});
+        </script>
+        <table id="formset" class="list" cellpadding="0"  cellspacing="0">
+            {% for form in formset.forms %}
+                {% if forloop.first %}
+                <thead>
+                    <tr>
+                        {% for field in form.visible_fields %}
+                            <th>{{ field.label|capfirst }}</th>
+                        {% endfor %}
+                    </tr>
+                </thead>
+                {% endif %}
+                {% if form.non_field_errors %}
+                    <tr><td colspan="{{ form.visible_fields|length }}">{{ form.non_field_errors }}</td></tr>
+                {% endif %}
+                <tr class="{% cycle 'row1' 'row2' %}" id="id_form-{{ forloop.counter0 }}">
+                    {% for field in form.visible_fields %}
+                        <td>
+                            {# Include the hidden fields in the form #}
+                            {% if forloop.first %}
+                                {% for hidden in form.hidden_fields %}
+                                    {{ hidden }}
+                                {% endfor %}
+                            {% endif %}
+                            {{ field.errors.as_ul }}
+                            {{ field }}
+                        </td>
+                    {% endfor %}
+                </tr>
+            {% endfor %}
+            <tfoot>
+                <tr>
+                    {% if formset.forms %}
+                        <td style="height: 70px;" colspan="13">
+                            <button class="btn waves-effect waves-light right" type="submit" name="action">保存
+                                <i class="material-icons left">save</i>
+                            </button>
+                        </td>
+                    {% endif %}
+                </tr>
+            </tfoot>
+        </table>
+    </form>
+</div>
+{% endblock %}

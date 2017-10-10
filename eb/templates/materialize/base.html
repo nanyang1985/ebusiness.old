@@ -20,45 +20,35 @@
     <script type="text/javascript" src="/static/admin/js/base.js"></script>
     <script type="text/javascript" src="/static/admin/js/push_main.js"></script>
     <script type="text/javascript" src="https://use.fontawesome.com/2938c96a89.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.100.2/js/materialize.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.100.2/js/materialize.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/1.10.16/js/jquery.dataTables.min.js"></script>
 
     <link rel="stylesheet" href="/static/{{ theme }}/css/base.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.10.16/css/jquery.dataTables.min.css">
 
     {% block header %}{% endblock %}
 </head>
 
 <body>
 {% now 'Ym' as current_ym %}
-<div class="navbar-fixed">
+<header>
     <nav>
         <div class="nav-wrapper">
-            <a href="?" class="brand-logo">&nbsp;&nbsp;営業システム</a>
+            <a href="{% url 'index' %}" class="brand-logo">&nbsp;&nbsp;営業システム</a>
             <ul id="nav-mobile" class="right hide-on-med-and-down">
                 <li><a href="javascript:$('.button-collapse').sideNav('show')"><i class="material-icons">menu</i></a></li>
                 <li><a href="{% url 'logout_view' %}">ログアウト <i class="material-icons right">exit_to_app</i></a></li>
             </ul>
         </div>
     </nav>
-</div>
-<div class="fixed-action-btn" style="display: none;">
-    <a href="#" data-activates="slide-out" class="button-collapse btn-floating btn-large"><i class="material-icons">menu</i></a>
-</div>
-<div class="main">
-    {% block content %}{% endblock %}
-</div>
-<footer style="display: none;">
-    <div class="container">
-        {% ifequal request.user.username 'admin' %}
-        <a href="{% url 'history' %}">Click here to see history&nbsp;|&nbsp;</a>
-        {% endifequal %}
-        <a href="{% url 'issues' %}">課題管理票</a>&nbsp;
-        {% if perms.eb.view_batch %}
-        |&nbsp;<a href="{% url 'batch_list' %}">バッチ一覧</a>
-        {% endif %}
-        <button disabled class="js-push-button right" style="display: none;">register</button>
+    <div class="eb-side-menu">
+        <a href="#" data-activates="slide-out" class="button-collapse"><i class="material-icons">menu</i></a>
     </div>
-</footer>
-<footer class="page-footer">
+</header>
+<main>
+    {% block content %}{% endblock %}
+</main>
+<footer class="page-footer" style="margin-top: 30px;">
     <div class="container">
         <div class="row">
             <div class="col l6 s12">

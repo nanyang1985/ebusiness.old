@@ -5,46 +5,27 @@ body {
     font-size: 13px;
 }
 
+main {
+    margin-top: 20px;
+}
+
+/* header, main, footer {
+    padding-left: 310px;
+}
+
+@media only screen and (max-width : 992px) {
+    header, main, footer {
+        padding-left: 0;
+    }
+} */
+
 div.nav-wrapper,
 footer.page-footer {
     background-color: #1e508c;
 }
 
-div.filter-control {
-    padding: 20px 0 0 0;
-}
-
 table.highlight>tbody>tr:hover {
     background-color: LightGreen;
-}
-
-.heavyTable {
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-    animation: float 5s infinite;
-}
-
-.heavyTable th {
-    background: steelblue;
-    width: 25%;
-    font-weight: lighter;
-    text-shadow: 0 1px 0 #38678f;
-    color: white;
-    border: 1px solid #38678f;
-    box-shadow: inset 0px 1px 2px #568ebd;
-    transition: all 0.2s;
-}
-
-table thead tr {
-    background: steelblue;
-    color: white;
-}
-
-table thead tr a {
-    color: white;
-}
-
-table tr.finished {
-    background: lightgray;
 }
 
 table thead th {
@@ -54,7 +35,71 @@ table tbody td {
     padding: 10px 5px;
 }
 
-.lump_project {
-    background-color: yellow;
+table div.fixed-width {
+    overflow: hidden;
+    white-space: nowrap;
 }
 
+/****************************** 絞り込み条件 ******************************/
+tr#tblFilters td {
+    padding: 0px;
+    background-color: white;
+}
+tr#tblFilters input{
+    margin: 0px;
+}
+.dataTables_filter {
+    display: none;
+}
+
+/****************************** Side Bar ******************************/
+div.eb-side-menu {
+    position: absolute;
+    left: 0px;
+    top: 0px;
+    display: none;
+}
+
+div.eb-side-menu a {
+    display: block;
+    padding: 20px 10px;
+    height: 64px;
+}
+
+/****************************** リボン ******************************/
+.ribbon_box {
+    display: block;
+    position: relative;
+    margin: 15px 0px 15px 22px;
+    padding: 10px 0;
+    background: #f1f1f1;
+    }
+.ribbon9 {
+    display: inline-block;
+    position: relative;
+    box-sizing: border-box;
+    padding: 10px;
+    margin: 0 0 0 -20px;
+    width: calc(100% + 20px);
+    font-size: 22px;
+    color: white;
+    background: #70a6ff;
+    box-shadow: 0 2px 2px rgba(0, 0, 0, 0.2);
+    }
+.ribbon9:before {
+    position: absolute;
+    content: '';
+    top: 100%;
+    left: 0;
+    border: none;
+    border-bottom: solid 15px transparent;
+    border-right: solid 20px #6081b7;
+}
+.ribbon9 .btn-floating {
+    width: 30px;
+    height: 30px;
+    margin-left: 10px;
+}
+.ribbon9 .btn-floating i {
+    line-height: 30px;
+}
