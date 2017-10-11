@@ -173,14 +173,19 @@ class MemberListView(BaseTemplateView):
 
         context.update({
             'title': u'要員一覧 | %s' % constants.NAME_SYSTEM,
-            'object_list': object_list,
+            'object_list': list(data_frame.iterrows()),
             'sections': biz.get_on_sales_top_org(),
             'salesperson': models.Salesperson.objects.public_all(),
-            'paginator': paginator,
+            'salesoffreason_list': models.SalesOffReason.objects.public_all(),
             'params': params,
             'dict_order': dict_order,
             'orders': "&o=%s" % (o,) if o else "",
         })
+        if context.get('theme') == 'default':
+            context.update({
+                'object_list': object_list,
+                'paginator': paginator,
+            })
         return context
 
 

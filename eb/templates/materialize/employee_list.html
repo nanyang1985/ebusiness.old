@@ -23,7 +23,7 @@
             } );
             $( 'select', oFilter.children().eq(colIdx) ).on( 'change', function () {
                 var selectedText = $("option:selected", this).text()
-                oTable.column( colIdx ).search( selectedText ? '^'+selectedText+'$' : '', true, false ).draw();
+                oTable.column( colIdx ).search( selectedText ? '^\\s*'+selectedText+'\\s*$' : '', true, false ).draw();
             } );
         });
         $('select').material_select();
@@ -43,15 +43,16 @@
             <tr>
                 <th style="width: 20px;">No.</th>
                 <th>名前</th>
-                <th>事業部</th>
-                <th>部署</th>
-                <th>課</th>
-                <th>協力会社</th>
-                <th style="width: 50px;">稼働</th>
-                <th style="width: 120px;">リリース予定日</th>
+                <th style="width: 100px;">事業部</th>
+                <th style="width: 75px;">部署</th>
+                <th style="width: 70px;">課</th>
+                <th style="width: 150px;">協力会社</th>
+                <th style="width: 40px;">稼働</th>
+                <th style="width: 40px;">退職</th>
+                <th style="width: 80px;">リリース</th>
                 <th style="width: 90px;">営業員</th>
-                <th>営業対象外</th>
-                <th></th>
+                <th style="width: 80px;">営業対象外</th>
+                <th style="width: 20px;"></th>
             </tr>
         </thead>
         <tfoot>
@@ -62,7 +63,20 @@
                 <td><input type="text" placeholder="部"/></td>
                 <td><input type="text" placeholder="課"/></td>
                 <td><input type="text" placeholder="協力会社"/></td>
-                <td></td>
+                <td>
+                    <select>
+                        <option value=""></option>
+                        <option value="1">稼働</option>
+                        <option value="0">待機</option>
+                    </select>
+                </td>
+                <td>
+                    <select>
+                        <option value=""></option>
+                        <option value="1">在職</option>
+                        <option value="0">退職</option>
+                    </select>
+                </td>
                 <td></td>
                 <td>
                     <select>
@@ -72,7 +86,14 @@
                         {% endfor %}
                     </select>
                 </td>
-                <td></td>
+                <td>
+                    <select>
+                        <option value=""></option>
+                        {% for reason in salesoffreason_list %}
+                        <option value="{{ reason.pk }}">{{ reason }}</option>
+                        {% endfor %}
+                    </select>
+                </td>
                 <td></td>
             </tr>
         </tfoot>
@@ -89,14 +110,23 @@
                         <td>{{ data_row.division_name|default:'' }}</td>
                         <td>{{ data_row.section_name|default:'' }}</td>
                         <td>{{ data_row.subsection_name|default:'' }}</td>
-                        <td>{{ data_row.subcontractor_name|default:"" }}</td>
+                        <td><div style="width: 165px;" class="fixed-width">{{ data_row.subcontractor_name|default:"" }}</div></td>
                         <td class="center">
                             {% if data_row.is_retired %}
-                                退職
                             {% elif data_row.status_today == '01' %}
-                                <i class="material-icons green">done</i>
+                                <span class="new badge green" data-badge-caption="稼働"></span>
+                                <span style="display: none;">稼働</span>
                             {% else %}
-                                <i class="material-icons red">close</i>
+                                <span class="new badge red" data-badge-caption="待機"></span>
+                                <span style="display: none;">待機</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if data_row.is_retired %}
+                            <span class="new badge grey" data-badge-caption="退職"></span>
+                            <span style="display: none;">退職</span>
+                            {% else %}
+                            <span style="display: none;">在職</span>
                             {% endif %}
                         </td>
                         <td>{{ data_row.release_date|date:"Y-m-d" }}</td>
