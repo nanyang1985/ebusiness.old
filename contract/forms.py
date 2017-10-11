@@ -8,6 +8,7 @@ import datetime
 from django import forms
 from django.contrib.admin.widgets import AdminDateWidget
 from . import models
+from eb import models as sales_models
 from utils import common
 
 
@@ -253,7 +254,10 @@ class InsuranceLevelPeriodForm(BaseForm):
             self.add_error('end_date', u"終了日は開始日の前になっている、開始日の以降に設定してください。")
         # 期間が重複されているかどうかをチェック
         dates = [(start_date, end_date)]
-        queryset = models.InsuranceLevelPeriod.objects.public_all()
+        if self.instance and self.instance.pk:
+            queryset = models.InsuranceLevelPeriod.objects.exclude(pk=self.instance.pk)
+        else:
+            queryset = models.InsuranceLevelPeriod.objects.public_all()
         for obj in queryset:
             dates.append((obj.start_date, obj.end_date))
         if len(dates) > 1:
@@ -296,3 +300,39 @@ class InsuranceLevelDetailFormset(forms.BaseInlineFormSet):
             initial.update({'level2': i - 2})
         form = super(InsuranceLevelDetailFormset, self)._construct_form(i, **kwargs)
         return form
+
+
+class MemberInsuranceLevelForm(BaseForm):
+    class Meta:
+        model = models.MemberInsuranceLevel
+        fields = '__all__'
+
+    def __init__(self, *args, **kwargs):
+        forms.ModelForm.__init__(self, *args, **kwargs)
+
+    start_date = forms.DateField(widget=AdminDateWidget, label=u"開始日")
+    end_date = forms.DateField(widget=AdminDateWidget, label=u"終了日", required=False)
+
+
+class MemberInsuranceLevelFormset(forms.BaseInlineFormSet):
+
+    def clean(self):
+        count = 0
+        dates = []
+        for form in self.forms:
+            try:
+                if form.cleaned_data:
+                    start_date = form.cleaned_data.get("start_date")
+                    end_date = form.cleaned_data.get("end_date")
+                    dates.append((start_date, end_date))
+                    count += 1
+            except AttributeError:
+                pass
+        if count > 1:
+            dates.sort(key=lambda date: date[0])
+            for i, period in enumerate(dates):
+                start_date, end_date = period
+                if common.is_cross_date(dates, start_date, i):
+                    raise forms.ValidationError(u"開始日が重複している。")
+                if end_date and common.is_cross_date(dates, end_date, i):
+                    raise forms.ValidationError(u"終了日が重複している。")

@@ -15,6 +15,8 @@ from django.utils.translation import ugettext as _
 from django.utils.text import get_text_list
 from django.contrib.admin.models import LogEntry, ADDITION, CHANGE, DELETION
 from django.contrib.contenttypes.models import ContentType
+from django.forms import inlineformset_factory
+from django.template.loader import render_to_string
 
 from . import biz, models, forms
 from eb import biz_config
@@ -355,3 +357,90 @@ class MemberDeleteView(BaseView):
             d = {'error': 1, 'msg': unicode(ex)}
         return JsonResponse(d)
 
+
+class MemberInsurancesView(BaseTemplateView):
+    template_name = 'insurances.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(MemberInsurancesView, self).get_context_data(**kwargs)
+        request = kwargs.get('request')
+        q = request.GET.get('q', None)
+        o = request.GET.get('o', None)
+        params_list, params = common.get_request_params(request.GET)
+
+        members_insurances = models.ViewMemberInsurance.objects.all()    
+        if q:
+            orm_lookups = ['member__first_name__icontains', 'member__last_name__icontains']
+            for bit in q.split():
+                or_queries = [Q(**{orm_lookup: bit}) for orm_lookup in orm_lookups]
+                members_insurances = members_insurances.filter(reduce(operator.or_, or_queries))
+
+        paginator = Paginator(members_insurances, biz_config.get_page_size())
+        page = request.GET.get('page')
+        try:
+            members_insurances = paginator.page(page)
+        except PageNotAnInteger:
+            members_insurances = paginator.page(1)
+        except EmptyPage:
+            members_insurances = paginator.page(paginator.num_pages)
+
+        context.update({
+            'members_insurances': members_insurances,
+            'paginator': paginator,
+        })
+
+        return context
+
+class MemberInsuranceEditView(BaseTemplateView):
+    template_name = 'insurance.html'
+
+    def get(self, request, *args, **kwargs):
+        member_id = kwargs.get('member_id')
+        member = get_object_or_404(sales_models.Member, pk=member_id)
+        MemberInsuranceLevelFormset = inlineformset_factory(
+            parent_model=sales_models.Member,
+            model=models.MemberInsuranceLevel,
+            form=forms.MemberInsuranceLevelForm,
+            formset=forms.MemberInsuranceLevelFormset,
+            extra=1,
+            fk_name='member',
+        )
+        formset = MemberInsuranceLevelFormset(instance=member)
+        context = self.get_context_data(**kwargs)
+        context.update({
+            'member': member,
+            'formset': formset,
+        })
+        html = render_to_string(self.template_name, context)
+        return JsonResponse({'html': html})
+
+    def post(self, request, *args, **kwargs):
+        member_id = kwargs.get('member_id')
+        member = get_object_or_404(sales_models.Member, pk=member_id)
+        MemberInsuranceLevelFormset = inlineformset_factory(
+            parent_model=sales_models.Member,
+            model=models.MemberInsuranceLevel,
+            form=forms.MemberInsuranceLevelForm,
+            formset=forms.MemberInsuranceLevelFormset,
+            extra=1,
+            fk_name='member',
+        )
+        formset = MemberInsuranceLevelFormset(request.POST, instance=member)
+        d = dict()
+        if formset.is_valid():
+            insurance_list = formset.save(commit=False)
+            if insurance_list:
+                for insurance in insurance_list:
+                    insurance.save()
+            d.update({'result': True, 'message': u"保存しました。"})
+        else:
+            context = self.get_context_data(**kwargs)
+            context.update({
+                'member': member,
+                'formset': formset,
+            })
+            html = render_to_string(self.template_name, context)
+            d.update({
+                'result': False, 'message': u"失敗しました。", 'html': html,
+            })
+        return JsonResponse(d)

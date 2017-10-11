@@ -390,7 +390,15 @@ function csrfSafeMethod(method) {
     return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
 }
 
+function ajax_get(url, data, callback) {
+    ajax_request(url, "GET", data, callback)
+}
+
 function ajax_post(url, data, callback) {
+    ajax_request(url, "POST", data, callback)
+}
+
+function ajax_request(url, method, data, callback) {
     var csrftoken = getCookie('csrftoken');
 
     $.ajaxSetup({
@@ -402,7 +410,7 @@ function ajax_post(url, data, callback) {
     });
 
     $.ajax({
-        type: "POST",
+        type: method,
         url: url,
         data: data,
         dataType: "json",

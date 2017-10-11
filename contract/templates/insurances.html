@@ -1,0 +1,84 @@
+{% extends "base_contract.html" %}
+{% load humanize %}
+{% load sales_templates %}
+{% load order_by_tag %}
+
+{% block header %}
+<script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1/jquery-ui.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1/i18n/jquery.ui.datepicker-ja.min.js"></script>
+<link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1/themes/redmond/jquery-ui.css" >
+<script type="text/javascript">
+    window.onload = function() {
+        init_select("q");
+    };
+
+    function show_insurance(obj) {
+        $("#edit_insurance").html('');
+        show_dialog('edit_insurance');
+        event.preventDefault();
+        ajax_get(
+            obj.href,
+            {},
+            function(data) {
+                $("#edit_insurance").html(data.html);
+            }
+        );
+    }
+</script>
+{% endblock %}
+
+{% block content %}
+<form method="get" action="#">
+    <input type="text" name="q" id="q" value="" style="height: 40px;width: 400px;line-height:30px;font-size:25px">
+    <input type="submit" style="height: 40px;width: 100px;line-height:30px;font-size:25px" value="確定">
+</form>
+<div id="mask" onclick="hide_dialog()" class="mask"></div>
+<div>
+    <div class="flowTit"></div>
+    <div class="flowBox" style="width: 975px;">
+        <table class="list">
+            <thead>
+                <tr>
+                    <th>{% create_single_order_display "名前" "first_name" %}</th>
+                    <th style="width: 27px;">性別</th>
+                    <th>{% create_single_order_display "生年月日" "birthday" %}</th>
+                    <th>契約番号</th>
+                    <th>適用年月</th>
+                    <th>決定後月額（健保）</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tfoot>
+                <tr>
+                    <td colspan="7">
+                        {% paging members_insurances %}
+                    </td>
+                </tr>
+            </tfoot>
+            <tbody>
+                {% for member_insurance in members_insurances %}
+                <tr>
+                    <td><a href="{% url 'member_change' member_insurance.member.pk %}">{{ member_insurance.name }}</a></td>
+                    <td class="center">{{ member_insurance.member.get_sex_display }}</td>
+                    <td>{{ member_insurance.member.birthday }}</td>
+                    <td><a href="{% url 'contract_change' member_insurance.member.id_from_api %}?ver={{ member_insurance.contract.contract_no }}">
+                        {{ member_insurance.contract.contract_no }}</a>
+                    </td>
+                    <td>{{ member_insurance.member_insurance_level.start_date }}</td>
+                    <td class="num">{{ member_insurance.member_insurance_level.salary|intcomma }}</td>
+                    <td class="center">
+                        {% if member_insurance.member_insurance_level %}
+                        <a href="{% url 'insurance_edit' member_insurance.member.pk %}" onclick="show_insurance(this);return false;"><i class="fa fa-pencil-square-o" aria-hidden="true"></i></a>
+                        {% else %}
+                        <a href="{% url 'insurance_edit' member_insurance.member.pk %}" onclick="show_insurance(this);return false;"><i class="fa fa-plus" aria-hidden="true"></i></a>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="flowBottom2"></div>
+</div>
+<div id="edit_insurance" class="dialog"></div>
+{% endblock %}

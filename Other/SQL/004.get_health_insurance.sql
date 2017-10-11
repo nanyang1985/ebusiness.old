@@ -9,14 +9,18 @@ CREATE FUNCTION get_health_insurance (
     allowance integer,
     night_allowance integer,
     overtime_cost integer,
-    traffic_cost integer
+    traffic_cost integer,
+    in_member_id integer,
+    in_ym char(6)
 ) RETURNS integer
 BEGIN
 
 	DECLARE ret_value integer;					/* 戻り値 */
-    DECLARE health_insurance_rate float;	/* 健康保険率 */
+    DECLARE health_insurance_rate float;		/* 健康保険率 */
     
-    IF endowment_insurance = '1' THEN
+    IF (select count(1) from v_member_insurance v where v.member_id = in_member_id and v.ym = in_ym) > 0 THEN
+		select health_insurance into ret_value from v_member_insurance v where v.member_id = in_member_id and v.ym = in_ym;
+    ELSEIF endowment_insurance = '1' THEN
 		/* 深夜手当をマスタテーブルから取得する */
         SELECT value INTO health_insurance_rate FROM mst_config WHERE name = 'health_insurance_rate';
         

@@ -735,3 +735,34 @@ class InsuranceLevelDetail(BaseModel):
             return '%s - %02d(%02d)' % (unicode(self.period), self.level1, self.level2)
         else:
             return '%s - %02d' % (unicode(self.period), self.level1)
+
+
+class MemberInsuranceLevel(BaseModel):
+    member = models.ForeignKey(Member, on_delete=models.PROTECT, verbose_name="社員")
+    start_date = models.DateField(verbose_name="開始日")
+    end_date = models.DateField(blank=True, null=True, verbose_name="終了日")
+    salary = models.IntegerField(verbose_name="決定後の標準報酬月額（健保）")
+
+    class Meta:
+        ordering = ['member', 'start_date']
+        verbose_name = verbose_name_plural = "被保険者標準報酬"
+        db_table = 'eb_member_insurance_level'
+
+    def __unicode__(self):
+        return self.salary
+
+
+class ViewMemberInsurance(models.Model):
+    member = models.ForeignKey(Member, verbose_name=u"社員")
+    name = models.CharField(max_length=30, verbose_name="名前")
+    contract = models.ForeignKey(Contract, verbose_name="契約")
+    member_insurance_level = models.ForeignKey(MemberInsuranceLevel, blank=True, null=True, verbose_name="被保険者標準報酬")
+    salary = models.IntegerField(blank=True, null=True, verbose_name="標準報酬月額")
+
+    class Meta:
+        managed = False
+        verbose_name = verbose_name_plural = "被保険者標準報酬"
+        db_table = 'v_member_insurance_level'
+
+    def __unicode__(self):
+        return unicode(self.member)

@@ -95,7 +95,6 @@ var timeline;
         var options = {
             template: function (item, element, data) {
                 var html;
-                debugger;
                 if (data.contract_no != undefined) {
                     html = '<a href="{% url 'contract_change' member.id_from_api %}?ver=' + item.contract_no + '">'
                         + item.content + '</a>';

@@ -1,0 +1,60 @@
+{% load humanize %}
+
+<form action="{% url 'insurance_edit' member.pk %}" method="post" id="frmInsurance">
+    <div style="min-height: 260px;">
+        {{ formset.management_form }}
+        {% if formset.non_form_errors %}
+            {{ formset.non_form_errors.as_ul }}
+        {% endif %}
+        <table>
+            <thead>
+            <tr>
+                <th>開始日</th>
+                <th>終了日</th>
+                <th>決定後の標準報酬月額（健保）</th>
+                <th>削除</th>
+            </tr>
+            </thead>
+            {% for form in formset.forms %}
+                {% if form.non_field_errors %}
+                <tr><td colspan="{{ form.visible_fields|length }}">{{ form.non_field_errors }}</td></tr>
+                {% endif %}
+                <tr class="{% cycle 'row1' 'row2' %}" id="id_form-{{ forloop.counter0 }}">
+                    {% for field in form.visible_fields %}
+                        <td>
+                            {# Include the hidden fields in the form #}
+                            {% if forloop.first %}
+                                {% for hidden in form.hidden_fields %}
+                                    {{ hidden }}
+                                {% endfor %}
+                            {% endif %}
+                            {{ field.errors.as_ul }}
+                            {{ field }}
+                        </td>
+                    {% endfor %}
+                </tr>
+            {% endfor %}
+        </table>
+    </div>
+    <div class="center">
+        <input type="submit" value="保存"/>
+    </div>
+    <script type="text/javascript">
+        $(".vDateField").datepicker({dateFormat: "yy-mm-dd"});
+        $("#frmInsurance").submit(function() {
+            ajax_post(
+                $(this).attr('action'),
+                $(this).serialize(),
+                function(data) {
+                    if (data.result === false ) {
+                        $("#edit_insurance").html(data.html);
+                    } else {
+                        alert(data.message);
+                        hide_dialog();
+                    }
+                }
+            );
+            return false;
+        });
+    </script>
+</form>

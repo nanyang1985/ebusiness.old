@@ -400,3 +400,35 @@ article table.list th span.title {
 article table.list th div.text a {
     display: block;
 }
+
+/*******************************　ダイアログ ********************************/
+div.mask {
+    position: absolute;
+    display: none;
+    width: 100%;
+    height: 100%;
+    top: 0px;
+    left: 0px;
+    background: rgba(127, 127, 127, 0.5);
+}
+
+div.dialog {
+    position: fixed;
+    display: none;
+    width: 600px;
+    min-height: 300px;
+    background-color: white;
+    z-index: 1000;
+    overflow-y: auto;
+    max-height: 600px;
+    padding: 10px 15px;
+    border-radius: 5px;
+}
+
+div.dialog .sep {
+    border-bottom: 1px solid gray;
+}
+
+div.dialog form th, div.dialog form td {
+    padding: 5px 5px;
+}

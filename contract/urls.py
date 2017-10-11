@@ -19,4 +19,6 @@ urlpatterns = [
     url(r'^member/change/(?P<member_id>[0-9]+).html$', views.MemberChangeView.as_view(), name='member_change'),
     url(r'^member/add.html$', views.MemberChangeView.as_view(), name='member_add'),
     url(r'^member/delete/(?P<member_id>[0-9]+).html$', views.MemberDeleteView.as_view(), name='member_delete'),
+    url(r'^insurances\.html$', views.MemberInsurancesView.as_view(), name='insurances'),
+    url(r'^insurance_edit/(?P<member_id>[0-9]+)\.html$', views.MemberInsuranceEditView.as_view(), name='insurance_edit'),
 ]
