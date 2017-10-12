@@ -429,10 +429,17 @@ class MemberInsuranceEditView(BaseTemplateView):
         d = dict()
         if formset.is_valid():
             insurance_list = formset.save(commit=False)
+            start_date = None
+            salary = 0
+            today = datetime.date.today()
             if insurance_list:
                 for insurance in insurance_list:
+                    if start_date is None and insurance.start_date <= today \
+                            and (insurance.end_date is None or insurance.end_date >= today):
+                        start_date = insurance.start_date
+                        salary = insurance.salary
                     insurance.save()
-            d.update({'result': True, 'message': u"保存しました。"})
+            d.update({'result': True, 'message': u"保存しました。", 'start_date': start_date, 'salary': salary})
         else:
             context = self.get_context_data(**kwargs)
             context.update({

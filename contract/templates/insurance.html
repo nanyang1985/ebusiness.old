@@ -50,6 +50,11 @@
                         $("#edit_insurance").html(data.html);
                     } else {
                         alert(data.message);
+                        if (data.start_date != null) {
+                            var row = $("#row_{{ member.pk }}");
+                            $(".start_date", row).text(data.start_date);
+                            $(".salary", row).text(data.salary);
+                        }
                         hide_dialog();
                     }
                 }

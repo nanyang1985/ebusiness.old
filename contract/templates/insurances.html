@@ -57,15 +57,15 @@
             </tfoot>
             <tbody>
                 {% for member_insurance in members_insurances %}
-                <tr>
+                <tr id="row_{{ member_insurance.member.pk }}">
                     <td><a href="{% url 'member_change' member_insurance.member.pk %}">{{ member_insurance.name }}</a></td>
                     <td class="center">{{ member_insurance.member.get_sex_display }}</td>
                     <td>{{ member_insurance.member.birthday }}</td>
                     <td><a href="{% url 'contract_change' member_insurance.member.id_from_api %}?ver={{ member_insurance.contract.contract_no }}">
                         {{ member_insurance.contract.contract_no }}</a>
                     </td>
-                    <td>{{ member_insurance.member_insurance_level.start_date }}</td>
-                    <td class="num">{{ member_insurance.member_insurance_level.salary|intcomma }}</td>
+                    <td class="start_date">{{ member_insurance.member_insurance_level.start_date }}</td>
+                    <td class="num salary">{{ member_insurance.member_insurance_level.salary|intcomma }}</td>
                     <td class="center">
                         {% if member_insurance.member_insurance_level %}
                         <a href="{% url 'insurance_edit' member_insurance.member.pk %}" onclick="show_insurance(this);return false;"><i class="fa fa-pencil-square-o" aria-hidden="true"></i></a>
