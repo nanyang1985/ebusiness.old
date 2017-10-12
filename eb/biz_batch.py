@@ -727,6 +727,9 @@ def batch_sync_contract(batch):
             if contract.member.is_retired and contract.member.retired_date is None:
                 # すでに退職で、かつ退職日が入れてない場合はスキップする。
                 continue
+            elif contract.retired_date:
+                # 退職した場合はスキップする。
+                continue
             elif contract.member_type == 1:
                 # 正社員の場合、契約終了日を再設定する。
                 if i + 1 < count and contract.member.pk == query_set[i + 1].member.pk:
@@ -746,7 +749,10 @@ def batch_sync_contract(batch):
                     continue
                 if query_set[i + 1].start_date < contract.end_date:
                     # 契約期間が重複した場合は契約終了日を再設定する。
-                    contract.end_date2 = query_set[i + 1].start_date + datetime.timedelta(days=-1)
+                    end_date = query_set[i + 1].start_date + datetime.timedelta(days=-1)
+                    if contract.end_date2 is not None and contract.end_date2 == end_date:
+                        continue
+                    contract.end_date2 = end_date
                     contract.save(update_fields=['end_date2'])
                     logger.info(u'%s: %sの雇用終了日（%s）が再設定しました。', unicode(contract.member), contract.contract_no,
                                 contract.end_date2)

@@ -114,6 +114,18 @@ def get_sales_members(year, month, param_dict=None, order_list=None):
         # df.set_value(related_row.index[0], 'health_insurance', df.loc[index]['health_insurance'] + related_row.iloc[0].health_insurance)
         # ＥＢの出向契約は非表示
         df = df.iloc[df.index!=index]
+    # 重複レコードを洗い出す。
+    # 営業支援料金として一括に振り替えで、注文書作成する必要なので、ＢＰ契約を追加することになる。
+    duplicated_df = df[df.member_id.duplicated(keep=False)]
+    duplicated_index = duplicated_df.groupby('member_id').apply(lambda x: list(x.index))
+    for m_id, rows in duplicated_index.iteritems():
+        basic_row = df.loc[(df.member_id == m_id) & (df.member_type != 4)]
+        basic_index = basic_row.iloc[0].name
+        for index in rows:
+            if index == basic_index:
+                continue
+            # df.set_value([basic_index], 'expenses', df.loc[basic_index]['expenses'] + df.loc[index]['salary'])
+            df = df.iloc[df.index != index]
     return common.data_frame_filter(df, param_dict, order_list)
 
 
@@ -392,6 +404,7 @@ def get_organization_turnover(year, month, section=None, param_dict=None, order_
         # ＥＢの出向契約は非表示
         df = df.iloc[df.index!=index]
     # 重複レコードを洗い出す。
+    # 営業支援料金として一括に振り替えで、注文書作成する必要なので、ＢＰ契約を追加することになる。
     duplicated_df = df[df.projectmember_id.duplicated(keep=False)]
     duplicated_index = duplicated_df.groupby('projectmember_id').apply(lambda x: list(x.index))
     for pm_id, rows in duplicated_index.iteritems():
@@ -1542,3 +1555,20 @@ def member_retired(member, user):
                                                 unicode(contract),
                                                 CHANGE,
                                                 change_message=change_message)
+        # 後ろに自動更新の契約しか存在しない場合、自動更新された契約を全部削除する。
+        next_contracts = member.contract_set.filter(
+            is_deleted=False,
+            start_date__gt=member.retired_date
+        ).exclude(status='04')
+        if next_contracts.count() > 0 and next_contracts.count() == next_contracts.filter(status='05').count():
+            for contract in next_contracts:
+                contract.delete()
+                change_message = u"自動更新された契約（%s(%s～)）は退職で自動削除しました。" % (
+                    contract.contract_no, contract.start_date
+                )
+                LogEntry.objects.log_action(user.id,
+                                            ContentType.objects.get_for_model(contract).pk,
+                                            contract.pk,
+                                            unicode(contract),
+                                            CHANGE,
+                                            change_message=change_message)

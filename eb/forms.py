@@ -381,7 +381,7 @@ class ProjectMemberFormset(forms.BaseInlineFormSet):
 class MemberAttendanceForm(forms.ModelForm):
     class Meta:
         model = models.MemberAttendance
-        fields = '__all__'
+        exclude = ('expenses_conference', 'expenses_entertainment', 'expenses_travel', 'expenses_communication', 'expenses_tax_dues', 'expenses_expendables')
 
     rate = forms.DecimalField(max_digits=5, decimal_places=2, initial=1,
                               widget=forms.TextInput(attrs={'style': 'width: 70px;',

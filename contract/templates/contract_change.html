@@ -80,9 +80,11 @@ var timeline;
             {% endif %}
             item_data = {
                 id: {{ c.id }},
-                content: "{% if c.status == '05' %}&nbsp;{% else %}{{ c.contract_no }}({{ c.get_member_type_display }}){% endif %}",
+                content: "{% if c.status == '05' %}&nbsp;{% else %}{% if c.contract_no %}{{ c.contract_no }}({{ c.get_member_type_display }}){% else %}{{ c.get_member_type_display }}{% endif %}{% endif %}",
+                {% if c.contract_no %}
                 title: "{{ c.contract_no }}",
-                contract_no: "{{ c.contract_no }}",
+                {% endif %}
+                contract_no: "{{ c.contract_no|default:'' }}",
                 group: "eb",
                 subgroup: "{{ c.contract_no }}",
                 start: "{{ c.start_date|date:'Y-m-d' }} 0:00:00",
@@ -95,7 +97,7 @@ var timeline;
         var options = {
             template: function (item, element, data) {
                 var html;
-                if (data.contract_no != undefined) {
+                if (data.contract_no != undefined && data.contract_no != '') {
                     html = '<a href="{% url 'contract_change' member.id_from_api %}?ver=' + item.contract_no + '">'
                         + item.content + '</a>';
                 } else {

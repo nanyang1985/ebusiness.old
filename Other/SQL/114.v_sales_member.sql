@@ -15,6 +15,7 @@ select m.id as member_id
      , msp1.subsection_id
      , (select s1.name from eb_section s1 where s1.id = msp1.subsection_id) as subsection_name
      , c.id as contract_id
+     , c.member_type
      , c.is_loan
      , c.content_type_id
      , IF(c.content_type_id = 8, c.company_id, null) as subcontactor_id

@@ -219,6 +219,7 @@ class Contract(BaseModel):
             # 既存の契約が存在しない場合、入社日は契約開始日とする。
             self.join_date = self.start_date
         else:
+            # 前の契約が存在する場合、終了日を設定する。
             prev_contracts = self.member.contract_set.filter(
                 is_deleted=False,
                 start_date__lt=self.start_date
