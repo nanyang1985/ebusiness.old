@@ -193,17 +193,12 @@
                     <tr>
                         <th>内容：</th>
                         <td>
-                            <textarea name="mail_body" style="width: 600px; height: 220px;">{{ mail_body }}</textarea>
+                            <textarea name="mail_body" style="width: 600px; height: 300px;">{{ mail_body }}</textarea>
+                            {% if pass_body %}
+                            <input type="hidden" name="pass_body" value="{{ pass_body }}"/>
+                            {% endif %}
                         </td>
                     </tr>
-                    {% if pass_body %}
-                    <tr>
-                        <th>パスワード：</th>
-                        <td>
-                            <textarea name="pass_body" style="width: 600px; height: 100px;">{{ pass_body }}</textarea>
-                        </td>
-                    </tr>
-                    {% endif %}
                     <tr>
                         <td colspan="2" class="center">
                             <input type="submit" value="送信"/>

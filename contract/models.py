@@ -746,6 +746,7 @@ class MemberInsuranceLevel(BaseModel):
 
     class Meta:
         ordering = ['member', 'start_date']
+        unique_together = ('member', 'start_date')
         verbose_name = verbose_name_plural = "被保険者標準報酬"
         db_table = 'eb_member_insurance_level'
 

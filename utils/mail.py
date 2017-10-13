@@ -99,7 +99,7 @@ class EbMail(object):
             file_list = []
             # if sys.platform == 'linux2':
             for f in self.attachment_list:
-                new_path = os.path.join(temp_path, os.path.basename(f).encode('shift-jis'))
+                new_path = os.path.join(temp_path, self.escape(os.path.basename(f)).encode('shift-jis'))
                 shutil.copy(f, new_path)
                 # ファイル名をshift-jisの名前に変更する、Windowsで開く時の文字化け防止
                 # cmd = ['/usr/local/convmv-2.03/convmv', '--r', '--notest', '-f', 'utf8', '-t', 'cp932', new_path]
@@ -115,6 +115,22 @@ class EbMail(object):
             return bytes
         else:
             return None
+
+    def escape(self, name):
+        """Shift_JISのダメ文字対策
+
+        2バイト目に「5C」のコードが使われている文字は、次のようなものがあります。
+        ―ソЫⅨ噂浬欺圭構蚕十申曾箪貼能表暴予禄兔喀媾彌拿杤歃濬畚秉綵臀藹觸軆鐔饅鷭偆砡
+
+        :param name:
+        :return:
+        """
+        chars = u"ソЫⅨ噂浬欺圭構蚕十申曾箪貼能表暴予禄兔喀媾彌拿杤歃濬畚秉綵臀藹觸軆鐔饅鷭偆砡"
+        s = name
+        for c in chars:
+            if c in s:
+                s = s.replace(c, u"＿")
+        return s
 
     def generate_password(self, length=8):
         self.password = ''.join(random.choice(string.ascii_lowercase + string.digits) for _ in range(length))

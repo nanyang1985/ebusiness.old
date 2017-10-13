@@ -2391,35 +2391,6 @@ class BatchLogView(BaseView):
         return HttpResponse(log)
 
 
-class AutoSendMailView(BaseTemplateView):
-    template_name = 'default/auto_send_mail.html'
-
-    def get_context_data(self, **kwargs):
-        context = super(AutoSendMailView, self).get_context_data(**kwargs)
-        # request = kwargs.get('request')
-        groups = models.MailGroup.objects.public_all().annotate(member_count=Count('maillist'))
-        context.update({
-            'groups': groups,
-        })
-
-        return context
-
-
-class AutoMailEditView(BaseTemplateView):
-    template_name = 'default/auto_mail_edit.html'
-
-    def get_context_data(self, **kwargs):
-        context = super(AutoMailEditView, self).get_context_data(**kwargs)
-        group_id = kwargs.get('group_id')
-        group = get_object_or_404(models.MailGroup, pk=group_id)
-        # request = kwargs.get('request')
-        context.update({
-            'group': group,
-        })
-
-        return context
-
-
 class BusinessDaysView(BaseView):
 
     def post(self, request, *args, **kwargs):
