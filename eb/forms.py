@@ -291,6 +291,26 @@ class ProjectMemberForm(forms.ModelForm):
                     self.fields[name].widget = EncryptField()
                     self.fields[name].required = False
                 self.is_encrypted = True
+        self.fields['start_date'].widget.attrs.update({'style': 'width: 72px; min-width: 72px;'})
+        self.fields['end_date'].widget.attrs.update({'style': 'width: 72px; min-width: 72px;'})
+        self.fields['price'].widget.attrs.update({
+            'style': 'width: 70px;',
+            'type': 'number',
+            'onchange': "calc_plus_minus(this)"
+        })
+        self.fields['min_hours'].widget.attrs.update({
+            'style': 'width: 60px;',
+            'type': 'number',
+            'onchange': "calc_minus_from_min_hour(this)"
+        })
+        self.fields['max_hours'].widget.attrs.update({
+            'style': 'width: 60px;',
+            'type': 'number',
+            'onchange': "calc_plus_from_max_hour(this)"
+        })
+        self.fields['plus_per_hour'].widget.attrs.update({'style': 'width: 50px;', 'type': 'number'})
+        self.fields['minus_per_hour'].widget.attrs.update({'style': 'width: 50px;', 'type': 'number'})
+        self.fields['role'].widget.attrs.update({'style': 'width: 72px; min-width: 72px;'})
 
     @cached_property
     def changed_data(self):
@@ -304,27 +324,6 @@ class ProjectMemberForm(forms.ModelForm):
     member = forms.ModelChoiceField(queryset=models.Member.objects.public_all(),
                                     widget=SearchSelect(models.Member),
                                     label=u"名前")
-    price = forms.IntegerField(initial=0,
-                               widget=forms.TextInput(attrs={'style': 'width: 70px;',
-                                                             'type': 'number',
-                                                             'onblur': "calc_plus_minus(this)"}),
-                               label=u"単価")
-    min_hours = forms.DecimalField(max_digits=5, decimal_places=2, initial=160,
-                                   widget=forms.TextInput(attrs={'style': 'width: 60px;',
-                                                                 'type': 'number',
-                                                                 'onblur': 'calc_minus_from_min_hour(this)'}),
-                                   label=u"基準時間", required=True)
-    max_hours = forms.DecimalField(max_digits=5, decimal_places=2, initial=180,
-                                   widget=forms.TextInput(attrs={'style': 'width: 60px;',
-                                                                 'type': 'number',
-                                                                 'onblur': 'calc_plus_from_max_hour(this)'}),
-                                   label=u"最大時間", required=True)
-    plus_per_hour = forms.IntegerField(widget=forms.TextInput(attrs={'style': 'width: 60px;',
-                                                                     'type': 'number'}),
-                                       label=u"増（円）")
-    minus_per_hour = forms.IntegerField(widget=forms.TextInput(attrs={'style': 'width: 60px;',
-                                                                      'type': 'number'}),
-                                        label=u"減（円）")
 
 
 class ProjectMemberFormset(forms.BaseInlineFormSet):

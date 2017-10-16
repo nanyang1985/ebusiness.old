@@ -17,7 +17,7 @@ from django.contrib import admin
 from django.contrib.auth import logout, authenticate, login
 from django.contrib.auth.decorators import login_required, permission_required
 from django.utils.decorators import method_decorator
-from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
+from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned, PermissionDenied
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.core.urlresolvers import reverse
 from django.forms.models import modelformset_factory
@@ -277,6 +277,28 @@ class MemberCostListView(BaseTemplateView):
             'members': members,
             'paginator': paginator,
             'params': params,
+        })
+        return context
+
+
+class DispatchMembersView(BaseTemplateView):
+    template_name = 'default/dispatch_members.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(DispatchMembersView, self).get_context_data(**kwargs)
+        request = kwargs.get('request')
+        if not request.user.is_superuser:
+            raise PermissionDenied
+        today = datetime.date.today()
+        year = request.GET.get('_year', '%04d' % today.year)
+        month = request.GET.get('_month', '%02d' % today.month)
+
+        data_frame = biz.get_dispatch_members(year, month)
+        context.update({
+            'title': u'派遣社員一覧 | %s' % constants.NAME_SYSTEM,
+            'data_frame': list(data_frame.iterrows()),
+            'year': year,
+            'month': month,
         })
         return context
 
@@ -2139,6 +2161,25 @@ class DownloadMembersCostView(BaseView):
         now = datetime.datetime.now()
         filename = constants.NAME_MEMBERS_COST % now.strftime('%Y%m%d')
         output = file_gen.generate_members_cost(request.user, all_members)
+        response = HttpResponse(output, content_type="application/ms-excel")
+        response['Content-Disposition'] = "filename=" + urllib.quote(filename.encode('utf-8')) + ".xlsx"
+        return response
+
+
+class DownloadDispatchMembers(BaseView):
+
+    def get(self, request, *args, **kwargs):
+        if not request.user.is_superuser:
+            return PermissionDenied
+        context = self.get_context_data(**kwargs)
+        year = kwargs.get('year')
+        month = kwargs.get('month')
+        company = context.get('company')
+        data_frame = biz.get_dispatch_members(year, month)
+        output = file_gen.generate_dispatch_members(
+            request.user, data_frame, company.dispatch_file.path if company.dispatch_file else None
+        )
+        filename = "%s派遣（月別）" % common.to_wareki(common.get_first_day_from_ym(year + month))
         response = HttpResponse(output, content_type="application/ms-excel")
         response['Content-Disposition'] = "filename=" + urllib.quote(filename.encode('utf-8')) + ".xlsx"
         return response

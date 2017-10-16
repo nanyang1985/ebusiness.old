@@ -419,6 +419,17 @@ def get_organization_turnover(year, month, section=None, param_dict=None, order_
     return df
 
 
+def get_dispatch_members(year, month):
+    """指定年月の派遣社員一覧
+
+    :param year:
+    :param month:
+    :return:
+    """
+    df = pd.read_sql("call sp_dispatch_members('%s%s')" % (year, month), connection)
+    return df
+
+
 def get_cost_by_month(year, month, param_dict=None, order_list=None):
     """指定年月の経営データを取得する。
 

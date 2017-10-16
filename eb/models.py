@@ -369,6 +369,7 @@ class Company(AbstractCompany):
                                        verbose_name=u"支払通知書テンプレート")
     order_file = models.FileField(blank=True, null=True, upload_to="./eb_order", verbose_name=u"註文書テンプレート",
                                   help_text=u"協力会社への註文書。")
+    dispatch_file = models.FileField(blank=True, null=True, upload_to="./attachment", verbose_name=u"派遣社員一覧")
 
     class Meta:
         verbose_name = verbose_name_plural = u"会社"
@@ -2311,6 +2312,8 @@ class ProjectMember(BaseModel):
                                  choices=constants.CHOICE_PROJECT_MEMBER_STATUS, verbose_name=u"ステータス")
     role = models.CharField(default="PG", max_length=2, choices=constants.CHOICE_PROJECT_ROLE, verbose_name=u"作業区分")
     stages = models.ManyToManyField(ProjectStage, blank=True, verbose_name=u"作業工程")
+    contract_type = models.CharField(max_length=2, blank=True, null=True, choices=constants.CHOICE_CLIENT_CONTRACT_TYPE,
+                                     verbose_name=u"契約形態")
 
     objects = PublicManager(is_deleted=False, project__is_deleted=False, member__is_deleted=False)
 

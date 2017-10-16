@@ -1,0 +1,66 @@
+{% extends theme|add:"/base.html" %}
+{% load year_month_filter %}
+{% load humanize %}
+
+{% block header %}
+    <script type="text/javascript">
+        window.onload = function() {
+        };
+    </script>
+{% endblock %}
+
+{% block content %}
+{% now 'Y-m-d' as ymd %}
+    <div class="dashboard">
+        <div class="dashboard-title">{{ title }}</div>
+        <form action="" method="get">
+            {% year_month_filter year month %}
+            <input type="submit" value="Filter" />
+            <a href="{{ request.path }}">クリア</a>
+            <a href="{% url 'download_dispatch_members' year month %}" target="_blank" class="button"><i class="fa fa-download" aria-hidden="true"></i> ダウンロード</a>
+        </form>
+    </div>
+    <table class="list" cellpadding="0" cellspacing="0">
+        <thead>
+            <tr>
+                <th>番号</th>
+                <th>氏名</th>
+                <th>派遣期間</th>
+                <th>会社名</th>
+                <th>所属</th>
+                <th>社会保険加入有無</th>
+                <th>派遣料金の総額</th>
+                <th>売上</th>
+                <th>労働時間数</th>
+                <th>労働賃金</th>
+            </tr>
+        </thead>
+        <tfoot>
+            <tr>
+                <td colspan="10">
+                    {{ data_frame|length }} 件
+                </td>
+            </tr>
+        </tfoot>
+        <tbody>
+            {% if data_frame %}
+                {% for idx, data_row in data_frame %}
+                    <tr class="{% cycle 'row1' 'row2' %} {% if data_row.is_retired %}expired{% endif %} {% if data_row.is_loan %}is_loan{% endif %}">
+                        <td class="center">{{ forloop.counter }}</td>
+                        <td>{{ data_row.member_name|default:'' }}</td>
+                        <td>{{ data_row.start_date|date:'Y-m-d' }}～{{ data_row.end_date|date:'Y-m-d' }}</td>
+                        <td>{{ data_row.client_name|default:'' }}</td>
+                        <td class="center">{{ data_row.member_type_name|default:"" }}</td>
+                        <td class="center">{{ data_row.endowment_insurance|default:'' }}</td>
+                        <td class="num">{{ data_row.basic_price|intcomma|default:'' }}</td>
+                        <td class="num">{{ data_row.total_price|intcomma|default:'' }}</td>
+                        <td class="num">{{ data_row.total_hours|intcomma|floatformat:'2' }}</td>
+                        <td class="num">{{ data_row.salary|intcomma|default:'' }}</td>
+                    </tr>
+                {% endfor %}
+            {% else %}
+                <tr class="row2"><td class="center red" colspan="10">該当する社員がいません。</td></tr>
+            {% endif %}
+        </tbody>
+    </table>
+{% endblock %}

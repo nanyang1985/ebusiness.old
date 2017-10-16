@@ -22,6 +22,7 @@ member_patterns = [
     url(r'^project_list/(?P<employee_id>[^,/]+).html$', views.MemberProjectsView.as_view(),
         name='member_project_list'),
     url(r'^cost_list\.html$', views.MemberCostListView.as_view(), name='member_cost_list'),
+    url(r'^dispatch_members\.html', views.DispatchMembersView.as_view(), name='dispatch_members'),
 ]
 
 section_patterns = [
@@ -71,6 +72,8 @@ download_patterns = [
         views.DownloadSubcontractorRequestView.as_view(), name='download_subcontractor_request'),
     url(r'^subcontractor_pay_notify/(?P<subcontractor_request_id>[0-9]+).html$',
         views.DownloadSubcontractorPayNotifyView.as_view(), name='download_subcontractor_pay_notify'),
+    url(r'^dispatch_members/(?P<year>[0-9]{4})/(?P<month>[0-9]{2}).html$', views.DownloadDispatchMembers.as_view(),
+        name='download_dispatch_members')
 ]
 
 upload_patterns = [

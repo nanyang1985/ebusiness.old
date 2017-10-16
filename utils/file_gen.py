@@ -1405,6 +1405,45 @@ def generate_members_cost(user, members):
     return save_virtual_workbook(book)
 
 
+def generate_dispatch_members(user, data_frame, template_path):
+    if not os.path.exists(template_path):
+        raise errors.CustomException("テンプレートファイルが見つかりません。")
+    book = px.load_workbook(template_path)
+    sheet = book.get_sheet_by_name('Sheet1')
+
+    start_row = constants.POS_DISPATCH_START_ROW
+    count = data_frame.shape[0]
+    set_openpyxl_styles(sheet, 'A%s:K%s' % (start_row, start_row + count), start_row)
+
+    for i, data_row in data_frame.iterrows():
+        # NO
+        sheet.cell(row=start_row, column=1).value = "=ROW() - 1"
+        # 氏名
+        sheet.cell(row=start_row, column=2).value = data_row.member_name or ''
+        # 派遣期間
+        sheet.cell(row=start_row, column=3).value = '%s～%s' % (data_row.start_date, data_row.end_date) or ''
+        # 会社名
+        sheet.cell(row=start_row, column=4).value = data_row.client_name or ''
+        # 所属
+        sheet.cell(row=start_row, column=5).value = data_row.member_type_name or ''
+        # 社会保険加入有無
+        sheet.cell(row=start_row, column=6).value = data_row.endowment_insurance or ''
+        # 派遣料金の総額
+        sheet.cell(row=start_row, column=7).value = data_row.basic_price or ''
+        # 売上
+        sheet.cell(row=start_row, column=8).value = data_row.total_price or ''
+        # 労働時間数
+        sheet.cell(row=start_row, column=9).value = data_row.total_hours or ''
+        # 労働賃金
+        sheet.cell(row=start_row, column=10).value = data_row.salary or ''
+        # 氏名
+        sheet.cell(row=start_row, column=11).value = data_row.member_name or ''
+
+        start_row += 1
+
+    return save_virtual_workbook(book)
+
+
 def generate_eboa_members(members):
     book = px.Workbook()
     sheet = book.create_sheet(title=u"社員一覧", index=0)
@@ -1465,7 +1504,7 @@ def set_openpyxl_styles(ws, cell_range, start_row):
                                    cell.alignment.copy(),
                                    cell.number_format))
                 # フォーミュラ
-                if cell.value and cell.value[0] == '=':
+                if cell.value and unicode(cell.value)[0] == '=':
                     lst = reg.findall(cell.value)
                     if lst and lst.count(lst[0]) == len(lst) and int(lst[0]) == start_row:
                         dict_formulae[col_index] = cell.value.replace(lst[0], '{0}')

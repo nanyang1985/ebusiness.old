@@ -25,6 +25,7 @@
                 <th>{% create_order_display "営業員" "" %}</th>
                 <th>{% create_order_display "稼働開始日" "start_date" %}</th>
                 <th>{% create_order_display "稼働終了日" "end_date" %}</th>
+                <th>契約形態</th>
                 <th>{% create_order_display "備考" "" %}</th>
                 <th></th>
             </tr>
@@ -45,6 +46,7 @@
                         <td>{{ project_member.member.get_salesperson }}</td>
                         <td>{{ project_member.start_date|date:"Y-m-d" }}</td>
                         <td>{{ project_member.end_date|date:"Y-m-d" }}</td>
+                        <td>{{ project_member.get_contract_type_display|default:'' }}</td>
                         <td class="center">
                             {% if project_member.member.is_retired %}
                                 退職
@@ -68,7 +70,7 @@
         </tbody>
         <tfoot>
             <tr>
-                <td colspan="8">
+                <td colspan="9">
                     <div class="pagination">
                         <span class="step-links">
                             {% if project_members.has_previous %}
