@@ -27,6 +27,8 @@ DEBUG = True
 ALLOWED_HOSTS = ['sales', 'localhost', '127.0.0.1', 'sales.e-business.co.jp']
 NUMBER_GROUPING = 3
 
+DATA_UPLOAD_MAX_NUMBER_FIELDS = None
+
 # Application definition
 
 INSTALLED_APPS = (
