@@ -47,17 +47,6 @@
                 <th style="width: 40px;"></th>
             </tr>
         </thead>
-        <tfoot>
-            <tr id="tblFilters">
-                <td><input type="text" placeholder="No."/></td>
-                <td><input type="text" placeholder="案件名称"/></td>
-                <td><input type="text" placeholder="関連会社"/></td>
-                <td><input type="text" placeholder="注文番号"/></td>
-                <td><input type="text" placeholder="請求番号"/></td>
-                <td><input type="text" placeholder="請求金額"/></td>
-                <td></td>
-            </tr>
-        </tfoot>
         <tbody>
         {% if project_orders %}
             {% for project, project_request, order in project_orders %}
@@ -85,14 +74,14 @@
                                 {% endif %}
                             </td>
                         {% else %}
-                            <td><i class="material-icons red">close</i></td>
+                            <td><span class="new badge grey left" data-badge-caption="未作成"></span></td>
                             <td></td>
                         {% endif %}
                         <td class="center">
                             <a href="{% url 'admin:eb_clientorder_change' order.pk %}?project_id={{ project.pk }}&from=portal&_popup=1" target="_blank">編集</a>
                         </td>
                     {% else %}
-                        <td><i class="material-icons red">close</i></td>
+                        <td><span class="new badge grey left" data-badge-caption="未入力"></span></td>
                         <td></td>
                         <td class="center">
                             <a href="{% url 'admin:eb_clientorder_add' %}?project_id={{ project.pk }}&from=portal&_popup=1" target="_blank">追加</a>
@@ -104,6 +93,17 @@
             <tr class="row1"><td class="center red" colspan="7">該当する案件がありません。</td></tr>
         {% endif %}
         </tbody>
+    </table>
+    <table style="display: none;">
+        <tr id="tblFilters">
+            <td><input type="text" placeholder="No."/></td>
+            <td><input type="text" placeholder="案件名称"/></td>
+            <td><input type="text" placeholder="関連会社"/></td>
+            <td><input type="text" placeholder="注文番号"/></td>
+            <td><input type="text" placeholder="請求番号"/></td>
+            <td><input type="text" placeholder="請求金額"/></td>
+            <td></td>
+        </tr>
     </table>
 </div>
 {% endblock %}

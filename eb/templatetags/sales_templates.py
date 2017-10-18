@@ -99,7 +99,7 @@ class GenerateOrganizationFilter(template.Node):
     def render(self, context):
         top_org_list = biz.get_on_sales_top_org()
         nodes = list()
-        nodes.append('<select id="{0}" name="{0}">'.format(self.ele_name))
+        nodes.append('<select id="{0}" class="browser-default" name="{0}">'.format(self.ele_name))
         nodes.append('<option value="">======部署======</option>')
         for org in top_org_list:
             if org.children.count() == 0:

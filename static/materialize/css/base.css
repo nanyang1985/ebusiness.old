@@ -83,7 +83,7 @@ div.eb-side-menu a {
     width: calc(100% + 20px);
     font-size: 22px;
     color: white;
-    background: #70a6ff;
+    background: #5682ca;
     box-shadow: 0 2px 2px rgba(0, 0, 0, 0.2);
     }
 .ribbon9:before {
@@ -102,4 +102,75 @@ div.eb-side-menu a {
 }
 .ribbon9 .btn-floating i {
     line-height: 30px;
+}
+
+/****************************** 明細テーブル ******************************/
+table.detail {
+    margin: 0 auto;
+    border-collapse: separate;
+    border-spacing: 0px 15px;
+    font-size: 12px;
+}
+
+table.detail th,
+table.detail td {
+    padding: 10px;
+}
+
+table.detail th {
+    background: #295890;
+    vertical-align: middle;
+    text-align: left;
+    width: 100px;
+    overflow: visible;
+    position: relative;
+    color: #fff;
+    font-weight: normal;
+    font-size: 15px;
+}
+
+table.detail th:after {
+    left: 100%;
+    top: 50%;
+    border: solid transparent;
+    content: " ";
+    height: 0;
+    width: 0;
+    position: absolute;
+    pointer-events: none;
+    border-color: rgba(136, 183, 213, 0);
+    border-left-color: #295890;
+    border-width: 10px;
+    margin-top: -10px;
+}
+/* firefox */
+@-moz-document url-prefix() {
+    table.detail th::after {
+        float: right;
+        padding: 0;
+        left: 30px;
+        top: 10px;
+        content: " ";
+        height: 0;
+        width: 0;
+        position: relative;
+        pointer-events: none;
+        border: 10px solid transparent;
+        border-left: #295890 10px solid;
+        margin-top: -10px;
+    }
+}
+
+table.detail td {
+    background: #f8f8f8;
+    width: 360px;
+    padding-left: 20px;
+}
+
+/****************************** 部署選択 ******************************/
+select.browser-default {
+    height: 20px;
+    color: black;
+    padding: 0px;
+    width: inherit;
 }

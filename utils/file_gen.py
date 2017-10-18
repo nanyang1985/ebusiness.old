@@ -1406,7 +1406,7 @@ def generate_members_cost(user, members):
 
 
 def generate_dispatch_members(user, data_frame, template_path):
-    if not os.path.exists(template_path):
+    if not template_path or not os.path.exists(template_path):
         raise errors.CustomException("テンプレートファイルが見つかりません。")
     book = px.load_workbook(template_path)
     sheet = book.get_sheet_by_name('Sheet1')

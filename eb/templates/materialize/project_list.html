@@ -54,47 +54,6 @@
                 <th class="noprint" style="width: 20px;"></th>
             </tr>
         </thead>
-        <tfoot>
-            <tr id="tblFilters">
-                <td><input type="text" placeholder="No."/></td>
-                <td><input type="text" placeholder="案件名称"/></td>
-                <td><input type="text" placeholder="関連会社"/></td>
-                <td>
-                    <select>
-                        <option value=""></option>
-                        <option value="01">金融（銀行）</option>
-                        <option value="02">金融（保険）</option>
-                        <option value="03">金融（証券）</option>
-                        <option value="04">製造</option>
-                        <option value="05">サービス</option>
-                        <option value="06">その他</option>
-                    </select>
-                </td>
-                <td>
-                    <select>
-                        <option value=""></option>
-                        {% for sales in salesperson %}
-                        <option value="{{ sales.pk }}">{{ sales }}</option>
-                        {% endfor %}
-                    </select>
-                </td>
-                <td><input type="text" placeholder="総人数"/></td>
-                <td><input type="text" placeholder="現在人数"/></td>
-                <td><input type="text" placeholder="メンバー"/></td>
-                <td>
-                    <select>
-                        <option value=""></option>
-                        <option value="1">提案</option>
-                        <option value="2">予算審査</option>
-                        <option value="3">予算確定</option>
-                        <option value="4">実施中</option>
-                        <option value="5">完了</option>
-                    </select>
-                </td>
-                <td><input type="text" placeholder="更新日"/></td>
-                <td></td>
-            </tr>
-        </tfoot>
         <tbody>
             {% if projects %}
                 {% for project in projects %}
@@ -140,6 +99,47 @@
                 <tr class="row1"><td class="center red" colspan="11">該当する案件がありません。</td></tr>
             {% endif %}
         </tbody>
+    </table>
+    <table style="display: none;">
+        <tr id="tblFilters">
+            <td><input type="text" placeholder="No."/></td>
+            <td><input type="text" placeholder="案件名称"/></td>
+            <td><input type="text" placeholder="関連会社"/></td>
+            <td>
+                <select>
+                    <option value=""></option>
+                    <option value="01">金融（銀行）</option>
+                    <option value="02">金融（保険）</option>
+                    <option value="03">金融（証券）</option>
+                    <option value="04">製造</option>
+                    <option value="05">サービス</option>
+                    <option value="06">その他</option>
+                </select>
+            </td>
+            <td>
+                <select>
+                    <option value=""></option>
+                    {% for sales in salesperson %}
+                    <option value="{{ sales.pk }}">{{ sales }}</option>
+                    {% endfor %}
+                </select>
+            </td>
+            <td><input type="text" placeholder="総人数"/></td>
+            <td><input type="text" placeholder="現在人数"/></td>
+            <td><input type="text" placeholder="メンバー"/></td>
+            <td>
+                <select>
+                    <option value=""></option>
+                    <option value="1">提案</option>
+                    <option value="2">予算審査</option>
+                    <option value="3">予算確定</option>
+                    <option value="4">実施中</option>
+                    <option value="5">完了</option>
+                </select>
+            </td>
+            <td><input type="text" placeholder="更新日"/></td>
+            <td></td>
+        </tr>
     </table>
 </div>
 {% endblock %}

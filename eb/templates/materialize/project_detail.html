@@ -277,58 +277,63 @@
         &nbsp;&nbsp;
         <a class="btn-floating red right" href="{% url 'admin:eb_projectmember_add' %}?project_id={{ project.pk }}&from=portal&_popup=1" target="_blank"><i class="material-icons">add</i></a>
     </h3>
+    <div class="row"></div>
     <div class="row">
-        <form class="col s12">
-            <div class="row">
-                <div class="input-field col s1">案件名称：</div>
-                <div class="input-field col s3">{{ project.name }}</div>
-                <div class="input-field col s1">関連会社：</div>
-                <div class="input-field col s3">
-                    {{ project.client }}
-                    <a style="font-size: 9px; float: right;" target="_blank" href="{% url 'admin:eb_client_change' project.client.pk %}?from=portal&_popup=1"><i class="material-icons">edit</i></a>
-                </div>
-            </div>
-            <div class="row">
-                <div class="input-field col s1">顧客責任者：</div>
-                <div class="input-field col s3">{{ project.boss.name|default:'' }}</div>
-                <div class="input-field col s1">顧客連絡者：</div>
-                <div class="input-field col s3">{{ project.middleman.name|default:'' }}</div>
-            </div>
-            <div class="row">
-                <div class="input-field col s1">作業場所：</div>
-                <div class="input-field col s3">{{ project.address|default:'' }}</div>
-                <div class="input-field col s1">最寄駅：</div>
-                <div class="input-field col s3">{{ project.nearest_station|default:'' }}</div>
-                <div class="input-field col s1">事業分類：</div>
-                <div class="input-field col s3">{{ project.get_business_type_display|default:'' }}</div>
-            </div>
-            <div class="row">
-                <div class="input-field col s1">開始日付：</div>
-                <div class="input-field col s3">{{ project.start_date|date:"Y-m-d" }}</div>
-                <div class="input-field col s1">終了日付：</div>
-                <div class="input-field col s3">{{ project.end_date|date:"Y-m-d" }}</div>
-                <div class="input-field col s1">アサイン人数：</div>
-                <div class="input-field col s3"><a href="{% url 'project_members' project.pk %}">{{ project.get_project_members.count }}</a></div>
-            </div>
-            <div class="row">
-                <div class="input-field col s1">概要：</div>
-                <div class="input-field col s8"><pre>{{ project.description }}</pre></div>
-            </div>
-            <div class="row">
-                <div class="input-field col s1">スキル要求：</div>
-                <div class="input-field col s8">
-                {% for project_skill in project.projectskill_set.all %}
-                    <div>{{ project_skill.skill.name }}, {{ project_skill.get_period_display }}, {{project_skill.description }}</div>
-                {% endfor %}
-                </div>
-            </div>
-            <div class="row">
-                <div class="input-field col s1">状態：</div>
-                <div class="input-field col s1">{{ project.get_status_display|default:'' }}</div>
-                <div class="input-field col s1">{% if project.is_lump %}<span class="new badge" data-badge-caption="【一括】"></span>{% endif %}</div>
-                <div class="input-field col s1">{%if project.is_reserve %}<span class="new badge deep-orange accent-3" data-badge-caption="【待機案件】"></span>{% endif %}</div>
-            </div>
-        </form>
+        <div class="col s1">案件名称：</div>
+        <div class="col s3">{{ project.name }}</div>
+        <div class="col s1">関連会社：</div>
+        <div class="col s3">
+            {{ project.client }}
+            <a style="font-size: 9px; float: right;" target="_blank" href="{% url 'admin:eb_client_change' project.client.pk %}?from=portal&_popup=1"><i class="material-icons">edit</i></a>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col s1">顧客責任者：</div>
+        <div class="col s3">{{ project.boss.name|default:'' }}</div>
+        <div class="col s1">顧客連絡者：</div>
+        <div class="col s3">{{ project.middleman.name|default:'' }}</div>
+    </div>
+    <div class="row">
+        <div class="col s1">作業場所：</div>
+        <div class="col s3">{{ project.address|default:'' }}</div>
+        <div class="col s1">最寄駅：</div>
+        <div class="col s3">{{ project.nearest_station|default:'' }}</div>
+        <div class="col s1">事業分類：</div>
+        <div class="col s3">{{ project.get_business_type_display|default:'' }}</div>
+    </div>
+    <div class="row">
+        <div class="col s1">開始日付：</div>
+        <div class="col s3">{{ project.start_date|date:"Y-m-d" }}</div>
+        <div class="col s1">終了日付：</div>
+        <div class="col s3">{{ project.end_date|date:"Y-m-d" }}</div>
+    </div>
+    <div class="row">
+        <div class="col s1">概要：</div>
+        <div class="col s8"><pre>{{ project.description }}</pre></div>
+    </div>
+    <div class="row">
+        <div class="col s1">スキル要求：</div>
+        <div class="col s8">
+        {% for project_skill in project.projectskill_set.all %}
+            <div>{{ project_skill.skill.name }}, {{ project_skill.get_period_display }}, {{project_skill.description }}</div>
+        {% endfor %}
+        </div>
+    </div>
+    <div class="row">
+        <div class="col s1">現在人数：</div>
+        <div class="col s3"><a href="{% url 'project_members' project.pk %}">{{ project.get_project_members.count }}</a></div>
+    </div>
+    <div class="row">
+        <div class="col s1">状態：</div>
+        <div class="col s1">
+            {% if project.get_status_display == "完了" %}
+                <span class="new badge grey left" data-badge-caption="【完了】"></span>
+            {% else %}
+                {{ project.get_status_display|default:'' }}
+            {% endif %}
+        </div>
+        <div class="col s1">{% if project.is_lump %}<span class="new badge" data-badge-caption="【一括】"></span>{% endif %}</div>
+        <div class="col s1">{%if project.is_reserve %}<span class="new badge deep-orange accent-3" data-badge-caption="【待機案件】"></span>{% endif %}</div>
     </div>
 </div>
 <div class="ribbon_box">
@@ -402,7 +407,7 @@
                                 {% if client_order.order_file %}
                                     <a href="{% url 'download_client_order'%}?path={{ client_order.order_file }}" target="_blank">ダウンロード</a>
                                 {% else %}
-                                    <i class="material-icons red">close</i>
+                                    <span class="new badge grey left" data-badge-caption="なし"></span>
                                 {% endif %}
                             </td>
                             <td class="center">
@@ -464,7 +469,7 @@
                                 {% endif %}
                             </td>
                         {% else %}
-                            <td><i class="material-icons red">close</i></td>
+                            <td><span class="new badge grey left" data-badge-caption="未入力"></span></td>
                             <td></td>
                             <td></td>
                             <td></td>
@@ -502,9 +507,9 @@
                         <td>{{ ym }}</td>
                         <td>
                             {% if is_finished %}
-                                <i class="material-icons green">done</i>
+                                <span class="new badge green left" data-badge-caption="完了"></span>
                             {% else %}
-                                <i class="material-icons red">close</i>
+                                <span class="new badge grey left" data-badge-caption="未入力"></span>
                             {% endif %}
                         </td>
                         <td>

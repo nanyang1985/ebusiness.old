@@ -55,48 +55,6 @@
                 <th style="width: 20px;"></th>
             </tr>
         </thead>
-        <tfoot>
-            <tr id="tblFilters">
-                <td><input type="text" placeholder="No."/></td>
-                <td><input type="text" placeholder="名前"/></td>
-                <td><input type="text" placeholder="事業部"/></td>
-                <td><input type="text" placeholder="部"/></td>
-                <td><input type="text" placeholder="課"/></td>
-                <td><input type="text" placeholder="協力会社"/></td>
-                <td>
-                    <select>
-                        <option value=""></option>
-                        <option value="1">稼働</option>
-                        <option value="0">待機</option>
-                    </select>
-                </td>
-                <td>
-                    <select>
-                        <option value=""></option>
-                        <option value="1">在職</option>
-                        <option value="0">退職</option>
-                    </select>
-                </td>
-                <td></td>
-                <td>
-                    <select>
-                        <option value=""></option>
-                        {% for sales in salesperson %}
-                        <option value="{{ sales.pk }}">{{ sales }}</option>
-                        {% endfor %}
-                    </select>
-                </td>
-                <td>
-                    <select>
-                        <option value=""></option>
-                        {% for reason in salesoffreason_list %}
-                        <option value="{{ reason.pk }}">{{ reason }}</option>
-                        {% endfor %}
-                    </select>
-                </td>
-                <td></td>
-            </tr>
-        </tfoot>
         <tbody>
             {% if object_list %}
                 {% for idx, data_row in object_list %}
@@ -139,6 +97,48 @@
                 <tr class="row2"><td class="center red" colspan="10">該当する社員がいません。</td></tr>
             {% endif %}
         </tbody>
+    </table>
+    <table style="display: none;">
+        <tr id="tblFilters">
+            <td><input type="text" placeholder="No."/></td>
+            <td><input type="text" placeholder="名前"/></td>
+            <td><input type="text" placeholder="事業部"/></td>
+            <td><input type="text" placeholder="部"/></td>
+            <td><input type="text" placeholder="課"/></td>
+            <td><input type="text" placeholder="協力会社"/></td>
+            <td>
+                <select>
+                    <option value=""></option>
+                    <option value="1">稼働</option>
+                    <option value="0">待機</option>
+                </select>
+            </td>
+            <td>
+                <select>
+                    <option value=""></option>
+                    <option value="1">在職</option>
+                    <option value="0">退職</option>
+                </select>
+            </td>
+            <td></td>
+            <td>
+                <select>
+                    <option value=""></option>
+                    {% for sales in salesperson %}
+                    <option value="{{ sales.pk }}">{{ sales }}</option>
+                    {% endfor %}
+                </select>
+            </td>
+            <td>
+                <select>
+                    <option value=""></option>
+                    {% for reason in salesoffreason_list %}
+                    <option value="{{ reason.pk }}">{{ reason }}</option>
+                    {% endfor %}
+                </select>
+            </td>
+            <td></td>
+        </tr>
     </table>
 </div>
 {% endblock %}
