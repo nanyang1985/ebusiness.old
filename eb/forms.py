@@ -293,23 +293,28 @@ class ProjectMemberForm(forms.ModelForm):
                 self.is_encrypted = True
         self.fields['start_date'].widget.attrs.update({'style': 'width: 72px; min-width: 72px;'})
         self.fields['end_date'].widget.attrs.update({'style': 'width: 72px; min-width: 72px;'})
-        self.fields['price'].widget.attrs.update({
-            'style': 'width: 70px;',
-            'type': 'number',
-            'onchange': "calc_plus_minus(this)"
-        })
-        self.fields['min_hours'].widget.attrs.update({
-            'style': 'width: 60px;',
-            'type': 'number',
-            'onchange': "calc_minus_from_min_hour(this)"
-        })
-        self.fields['max_hours'].widget.attrs.update({
-            'style': 'width: 60px;',
-            'type': 'number',
-            'onchange': "calc_plus_from_max_hour(this)"
-        })
-        self.fields['plus_per_hour'].widget.attrs.update({'style': 'width: 50px;', 'type': 'number'})
-        self.fields['minus_per_hour'].widget.attrs.update({'style': 'width: 50px;', 'type': 'number'})
+        if 'price' in self.fields:
+            self.fields['price'].widget.attrs.update({
+                'style': 'width: 70px;',
+                'type': 'number',
+                'onchange': "calc_plus_minus(this)"
+            })
+        if 'min_hours' in self.fields:
+            self.fields['min_hours'].widget.attrs.update({
+                'style': 'width: 60px;',
+                'type': 'number',
+                'onchange': "calc_minus_from_min_hour(this)"
+            })
+        if 'max_hours' in self.fields:
+            self.fields['max_hours'].widget.attrs.update({
+                'style': 'width: 60px;',
+                'type': 'number',
+                'onchange': "calc_plus_from_max_hour(this)"
+            })
+        if 'plus_per_hour' in self.fields:
+            self.fields['plus_per_hour'].widget.attrs.update({'style': 'width: 50px;', 'type': 'number'})
+        if 'minus_per_hour' in self.fields:
+            self.fields['minus_per_hour'].widget.attrs.update({'style': 'width: 50px;', 'type': 'number'})
         self.fields['role'].widget.attrs.update({'style': 'width: 72px; min-width: 72px;'})
 
     @cached_property

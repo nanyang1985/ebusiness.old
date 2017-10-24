@@ -757,11 +757,16 @@ class ProjectMemberAdmin(BaseAdmin):
         if employee_id:
             form.base_fields['member'].initial = models.Member.objects.get(employee_id=employee_id)
         if obj and not obj.member.is_belong_to(request.user, datetime.date.today()):
-            del form.base_fields['price']
-            del form.base_fields['min_hours']
-            del form.base_fields['max_hours']
-            del form.base_fields['plus_per_hour']
-            del form.base_fields['minus_per_hour']
+            if 'price' in form.base_fields:
+                del form.base_fields['price']
+            if 'min_hours' in form.base_fields:
+                del form.base_fields['min_hours']
+            if 'max_hours' in form.base_fields:
+                del form.base_fields['max_hours']
+            if 'plus_per_hour' in form.base_fields:
+                del form.base_fields['plus_per_hour']
+            if 'minus_per_hour' in form.base_fields:
+                del form.base_fields['minus_per_hour']
             if 'hourly_pay' in form.base_fields:
                 del form.base_fields['hourly_pay']
         return form
