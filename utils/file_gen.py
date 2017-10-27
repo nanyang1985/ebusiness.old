@@ -1452,7 +1452,7 @@ def generate_eboa_members(members):
                                u"性別", u"生年月日", u"郵便番号", u"住所", u"個人携帯番号", u"会社メールアドレス",
                                u"在留資格", u"在留カード番号", u"在留期間", u"入社年月日", u"雇用保険加入状況",
                                u"雇用保険番号", u"社会保険加入状況", u"社会保険番号", u"厚生年金加入状況",
-                               u"厚生年金番号"], start=1):
+                               u"厚生年金番号", u"給料王ＩＤ"], start=1):
         sheet.cell(row=1, column=i).value = title
     # １列目はＩＤなので、非表示にする。
     sheet.column_dimensions['A'].hidden = True
@@ -1483,6 +1483,10 @@ def generate_eboa_members(members):
         sheet.cell(row=row, column=19).value = ''
         sheet.cell(row=row, column=20).value = ''
         sheet.cell(row=row, column=21).value = ''
+        if member.user:
+            sales_member = member.user.get_sales_member()
+            if sales_member:
+                sheet.cell(row=row, column=22).value = sales_member.employee_id
 
     return save_virtual_workbook(book)
 
