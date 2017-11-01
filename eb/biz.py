@@ -194,7 +194,15 @@ def get_release_info():
         count=Count(1),
         bp_count=Count(Case(When(subcontractor_id__isnull=False, then=1), output_field=IntegerField)),
     ).order_by('release_ym')
-    return list(query_set)
+    release_list = list(query_set)
+    today = datetime.date.today()
+    current_ym = today.strftime('%Y%m')
+    next_ym = common.add_months(today, 1).strftime('%Y%m')
+    next_2_ym = common.add_months(today, 2).strftime('%Y%m')
+    for ym in [current_ym, next_ym, next_2_ym]:
+        if ym not in [item.get('release_ym') for item in release_list]:
+            release_list.append({'release_ym': ym, 'count':0, 'bp_count': 0})
+    return sorted(release_list, key=lambda x: x.get('release_ym'))
 
 
 def get_members_by_section(all_members, section_id):
