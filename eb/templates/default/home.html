@@ -235,8 +235,11 @@
                         {{ release_info.1.count }}</a></td>
                 <th>再来月リリース:</th>
                 <td class="num">
+                    {% if release_info|length > 2 %}
                     <a href="{% url 'release_list' release_info.2.release_ym %}">
-                        {{ release_info.2.count }}</a></td>
+                        {{ release_info.2.count }}</a>
+                    {% endif %}
+                </td>
             </tr>
         </table>
         <div class="center">
@@ -273,8 +276,11 @@
                         {{ release_info.1.bp_count }}</a></td>
                 <th>再来月リリース:</th>
                 <td class="num">
+                    {% if release_info|length > 2 %}
                     <a href="{% url 'release_list' release_info.2.release_ym %}?subcontractor__isnull=False">
-                        {{ release_info.2.bp_count }}</a></td>
+                        {{ release_info.2.bp_count }}</a>
+                    {% endif %}
+                </td>
             </tr>
         </table>
     </div>
