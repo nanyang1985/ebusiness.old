@@ -1,5 +1,5 @@
 CREATE OR REPLACE VIEW v_release_list AS
-select null as id
+select distinct null as id
      , m.id as member_id
      , concat(m.first_name, ' ', m.last_name) as member_name
      , pm.start_date
