@@ -110,12 +110,12 @@ class ContractForm(BaseForm):
     def clean(self):
         cleaned_data = super(ContractForm, self).clean()
         member_type = cleaned_data.get('member_type', None)
-        start_date = cleaned_data.get('start_date', None)
+        # start_date = cleaned_data.get('start_date', None)
         end_date = cleaned_data.get('end_date', None)
         if member_type == 1 and end_date is not None:
             self.add_error('end_date', u"正社員の場合雇用終了日は入れないでください。")
-        elif member_type == 2 and end_date is None:
-            self.add_error('end_date', u"契約社員の場合雇用終了日は入力してください。")
+        # elif member_type == 2 and end_date is None:
+        #     self.add_error('end_date', u"契約社員の場合雇用終了日は入力してください。")
 
 
 class BpContractForm(BaseForm):
