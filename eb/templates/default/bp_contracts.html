@@ -97,7 +97,7 @@
                         {% elif bp_contract.is_fixed_cost %}
                             <td colspan="3" class="center">固定</td>
                         {% else %}
-                            <td>{{ bp_contract.allowance_time_min }}-{{ bp_contract.allowance_time_max }}</td>
+                            <td>{{ bp_contract.get_bp_contract.get_allowance_time_min_now }}-{{ bp_contract.allowance_time_max }}</td>
                             <td class="num">
                                 {% if bp_contract.allowance_overtime_memo %}
                                     {{ bp_contract.allowance_overtime_memo|slice:'5:' }}
@@ -106,8 +106,8 @@
                                 {% endif %}
                             </td>
                             <td class="num">
-                                {% if bp_contract.allowance_absenteeism_memo %}
-                                    {{ bp_contract.allowance_absenteeism_memo|slice:'5:' }}
+                                {% if bp_contract.get_bp_contract.get_allowance_absenteeism_memo_now %}
+                                    {{ bp_contract.get_bp_contract.get_allowance_absenteeism_memo_now|slice:'5:' }}
                                 {% else %}
                                     ¥{{ bp_contract.get_cost|intcomma }}/{{ bp_contract.calculate_time_min }}h=¥{{ bp_contract.allowance_absenteeism|intcomma }}/h
                                 {% endif %}

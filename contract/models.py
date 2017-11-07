@@ -345,6 +345,12 @@ class BpContract(BaseModel):
         """
         return '0'
 
+    def get_allowance_time_min_now(self):
+        return self.get_allowance_time_min(datetime.date.today().year, datetime.date.today().month)
+
+    def get_allowance_absenteeism_memo_now(self):
+        return self.get_allowance_absenteeism_memo(datetime.date.today().year, datetime.date.today().month)
+
     def get_allowance_time_min(self, year, month):
         if self.is_hourly_pay or self.is_fixed_cost:
             return 0
@@ -693,6 +699,11 @@ class ViewLatestBpContract(models.Model):
         """
         cost = self.allowance_base + self.allowance_other
         return cost
+
+    def get_bp_contract(self):
+        if not self.lump_order:
+            return BpContract.objects.get(pk=self.pk)
+        return None
 
 
 class InsuranceLevelPeriod(BaseModel):
