@@ -2981,7 +2981,7 @@ class MemberAttendance(BaseModel):
         contract = self.get_contract()
         if contract:
             if contract.is_hourly_pay:
-                return int(contract.get_cost() * self.get_total_hours_cost())
+                return int(contract.get_cost() * self.get_total_hours_cost() + contract.allowance_other)
             else:
                 return contract.get_cost()
         return 0

@@ -334,7 +334,10 @@ class BpContract(BaseModel):
 
         :return:
         """
-        cost = self.allowance_base + self.allowance_other
+        if self.is_hourly_pay:
+            cost = self.allowance_base
+        else:
+            cost = self.allowance_base + self.allowance_other
         return cost
 
     @property
