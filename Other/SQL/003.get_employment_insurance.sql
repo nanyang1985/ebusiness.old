@@ -16,7 +16,7 @@ BEGIN
 	DECLARE ret_value float;			/* 戻り値 */
     DECLARE employment_insurance_rate float;	/* 雇用保険率 */
     
-    IF member_type = 1 or member_type = 2 THEN
+    IF member_type = 1 or member_type = 2 or member_type = 7 THEN
 		/* 深夜手当をマスタテーブルから取得する */
         SELECT value INTO employment_insurance_rate FROM mst_config WHERE name = 'employment_insurance_rate';
         
