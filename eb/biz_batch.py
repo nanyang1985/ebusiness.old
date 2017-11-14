@@ -709,7 +709,7 @@ def batch_sync_contract(batch):
             ).values('start_date')[:1],
             output_field=DateField()
         ),
-    ).exclude(status__in=['04', '05']).order_by('member_id', 'contract_no', 'start_date').prefetch_related(
+    ).exclude(status__in=['04', '05']).order_by('member_id', 'start_date', 'contract_no').prefetch_related(
         Prefetch('member'),
     )
     today = datetime.date.today()
