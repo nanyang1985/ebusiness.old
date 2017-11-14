@@ -216,6 +216,28 @@ class ContractView(BaseTemplateView):
         return context
 
 
+class ContractRetire(BaseView):
+
+    def post(self, request, *args, **kwargs):
+        contract_id = kwargs.get('contract_id')
+        date = request.POST.get('retired_date')
+        d = dict()
+        if date:
+            contract = get_object_or_404(models.Contract, pk=contract_id)
+            contract.retired_date = date
+            contract.save()
+            d.update({
+                'result': True,
+                'message': '成功しました。'
+            })
+        else:
+            d.update({
+                'result': False,
+                'message': '退職年月日を設定してください。'
+            })
+        return JsonResponse(d)
+
+
 class CertificateView(BaseTemplateView):
     template_name = 'certificate.html'
 

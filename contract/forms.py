@@ -106,6 +106,7 @@ class ContractForm(BaseForm):
     employment_date = forms.DateField(widget=AdminDateWidget, label=u"雇用日")
     start_date = forms.DateField(widget=AdminDateWidget, label=u"雇用開始日")
     end_date = forms.DateField(widget=AdminDateWidget, label=u"雇用終了日", required=False)
+    retired_date = forms.DateField(widget=AdminDateWidget(attrs={'style': 'width: 100px;'}), label=u"退職年月日", required=False)
 
     def clean(self):
         cleaned_data = super(ContractForm, self).clean()

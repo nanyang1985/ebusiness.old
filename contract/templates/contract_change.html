@@ -136,6 +136,28 @@ var timeline;
             $("#span_business_type_other").css("display", "none");
         }
     }
+
+    function contract_retire(obj, date) {
+        if (date == "") {
+            alert("退職年月日を選択してください。");
+            return false;
+        }
+        if (confirm('{{ member }}が「' + date + '」に退職してもよろしいですか？')) {
+            ajax_post(
+                '{% url 'contract_retire' contract.pk %}',
+                {retired_date: date},
+                function(data) {
+                    alert(data.message);
+                    if (data.result == true) {
+                        window.location.reload();
+                    }
+                }
+            );
+            return true;
+        } else {
+            return false;
+        }
+    }
 </script>
 <script type="text/javascript" src="/static/admin/js/admin/RelatedObjectLookups.js"></script>
 {% endblock %}
@@ -420,6 +442,17 @@ var timeline;
                 <tr>
                     <th>{{ form.comment.label_tag }}</th>
                     <td colspan="3">{{ form.comment.errors }}{{ form.comment }}</td>
+                </tr>
+                <tr>
+                    <th>{{ form.retired_date.label_tag }}</th>
+                    <td colspan="3">
+                        {% if contract.retired_date %}
+                            退職済み
+                        {% else %}
+                            {{ form.retired_date.errors }}{{ form.retired_date }}&nbsp;&nbsp;
+                            <input type="button" onclick="contract_retire(this, $('#id_retired_date').val())" value="退職" />
+                        {% endif %}
+                    </td>
                 </tr>
             </table>
             <div style="margin: auto; margin-top: 30px; margin-bottom: 15px; width: 700px; display: block;">

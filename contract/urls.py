@@ -13,6 +13,8 @@ urlpatterns = [
     url(r'^contract_change/(?P<api_id>[0-9]+).html$', views.ContractChangeView.as_view(), name='contract_change'),
     url(r'^contract/(?P<contract_id>[0-9]+).html$', views.ContractView.as_view(),
         name='contract'),
+    url(r'^contract_retire/(?P<contract_id>[0-9]+).html$', views.ContractRetire.as_view(),
+        name='contract_retire'),
     url(r'^contract/(?P<member_id>[0-9]+)/certificate.html$', views.CertificateView.as_view(), name='certificate'),
     url(r'^contract/(?P<member_id>[0-9]+)/income.html$', views.IncomeView.as_view(), name='income'),
     url(r'^member/(?P<member_id>[0-9]+)/gen_api_id.html$', views.GenerateApiIdView.as_view(), name='gen_api_id'),
