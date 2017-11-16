@@ -172,6 +172,27 @@
             </tbody>
         </table>
     </div>
+    {% if members_without_contract %}
+    <div class="dashboard">
+        <div class="dashboard-title">契約のないメンバー一覧</div>
+        <table cellspacing="0" cellpadding="0" class="status_list">
+            <thead>
+                <tr class="row1">
+                    <th style="text-align: center;">メンバー</th>
+                    <th style="text-align: center;">営業担当</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for item in members_without_contract %}
+                <tr>
+                    <td>{{ item.member }}</td>
+                    <td>{{ item.salesperson|default:'（なし）' }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
     {% endif %}
     <div class="dashboard">
         <div class="dashboard-title">社員状況</div>

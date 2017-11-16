@@ -715,7 +715,7 @@ def batch_sync_contract(batch):
     today = datetime.date.today()
     count = query_set.count()
     for i, contract in enumerate(query_set):
-        if contract.member.pk == 403:
+        if contract.member.pk == 609:
             pass
         if contract.contract_no == contract.max_contract_no:
             if contract.start_date == contract.first_start_date and contract.join_date is None:

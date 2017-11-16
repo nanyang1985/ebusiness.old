@@ -680,6 +680,14 @@ def get_activities_incoming():
     return activities[:5]
 
 
+def get_members_without_contract():
+    """契約のないメンバーまたは契約期間が切れましたメンバーを洗い出す。
+
+    :return:
+    """
+    return models.VMemberWithoutContract.objects.all()
+
+
 def get_user_profile(user):
     """ログインしているユーザの詳細情報を取得する。
 

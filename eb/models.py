@@ -3950,6 +3950,23 @@ class ViewStatusMonthly(models.Model):
         return self.ym
 
 
+class VMemberWithoutContract(models.Model):
+    member = models.ForeignKey(Member)
+    employee_id = models.CharField(max_length=30, verbose_name=u"社員ID")
+    name = models.CharField(max_length=30, verbose_name=u"名前")
+    salesperson = models.ForeignKey(Salesperson, blank=True, null=True, verbose_name=u"営業員")
+
+    class Meta:
+        managed = False
+        db_table = 'v_member_without_contract'
+        ordering = ['salesperson']
+        verbose_name = verbose_name_plural = u"契約未作成"
+        default_permissions = ()
+
+    def __unicode__(self):
+        return unicode(self.member)
+
+
 class EmailMultiAlternativesWithEncoding(EmailMultiAlternatives):
     def _create_attachment(self, filename, content, mimetype=None):
         """

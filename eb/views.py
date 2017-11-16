@@ -118,6 +118,7 @@ class IndexView(BaseTemplateView):
         release_info = biz.get_release_info()
         salesperson_status_list = models.ViewSalespersonStatus.objects.all()
         activities = biz.get_activities_incoming()
+        members_without_contract = biz.get_members_without_contract()
 
         own_member_status = False
         show_warning_projects = False
@@ -141,6 +142,7 @@ class IndexView(BaseTemplateView):
             'own_member_status': own_member_status,
             'show_warning_projects': show_warning_projects,
             'salesperson_status_list': salesperson_status_list,
+            'members_without_contract': members_without_contract,
         })
         return self.render_to_response(context)
 

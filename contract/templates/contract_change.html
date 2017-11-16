@@ -137,6 +137,7 @@ var timeline;
         }
     }
 
+    {% if contract.pk %}
     function contract_retire(obj, date) {
         if (date == "") {
             alert("退職年月日を選択してください。");
@@ -158,6 +159,7 @@ var timeline;
             return false;
         }
     }
+    {% endif %}
 </script>
 <script type="text/javascript" src="/static/admin/js/admin/RelatedObjectLookups.js"></script>
 {% endblock %}
@@ -443,6 +445,7 @@ var timeline;
                     <th>{{ form.comment.label_tag }}</th>
                     <td colspan="3">{{ form.comment.errors }}{{ form.comment }}</td>
                 </tr>
+                {% if contract.pk %}
                 <tr>
                     <th>{{ form.retired_date.label_tag }}</th>
                     <td colspan="3">
@@ -454,6 +457,7 @@ var timeline;
                         {% endif %}
                     </td>
                 </tr>
+                {% endif %}
             </table>
             <div style="margin: auto; margin-top: 30px; margin-bottom: 15px; width: 700px; display: block;">
                 <input type="submit" class="add" value="" />
