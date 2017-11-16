@@ -135,10 +135,15 @@ select m.id as member_id
                           and pm.status = 2 
                           and extract(year_month from(pm.start_date)) <= get_ym()
                           and (extract(year_month from(pm.end_date)) >= get_ym() or pm.end_date is null)
+  left join eb_projectmember prev_pm on prev_pm.member_id = m.id and prev_pm.is_deleted = 0 
+                          and prev_pm.status = 2
+                          and extract(year_month from(prev_pm.start_date)) <= DATE_FORMAT(STR_TO_DATE(concat(get_ym(), '01'), '%Y%m%d') - INTERVAL 1 MONTH, '%Y%m')
+                          and (extract(year_month from(prev_pm.end_date)) >= DATE_FORMAT(STR_TO_DATE(concat(get_ym(), '01'), '%Y%m%d') - INTERVAL 1 MONTH, '%Y%m') or prev_pm.end_date is null)
+                          and not exists(select 1 from eb_project s1 where s1.id = prev_pm.project_id and s1.is_reserve = 1)
   join eb_project p on p.id = pm.project_id
   join eb_client c1 on c1.id = p.client_id
   left join eb_memberattendance ma on ma.project_member_id = pm.id and concat(ma.year, ma.month) = get_ym()
-  left join eb_memberattendance prev_ma on prev_ma.project_member_id = pm.id 
+  left join eb_memberattendance prev_ma on prev_ma.project_member_id = prev_pm.id
                                        and concat(prev_ma.year, prev_ma.month) = DATE_FORMAT(STR_TO_DATE(concat(get_ym(), '01'), '%Y%m%d') - INTERVAL 1 MONTH, '%Y%m')
   left join eb_projectrequestdetail prd on prd.project_member_id = pm.id and concat(prd.year, prd.month) = get_ym()
   left join eb_projectrequest pr on pr.id = prd.project_request_id and concat(pr.year, pr.month) = get_ym()

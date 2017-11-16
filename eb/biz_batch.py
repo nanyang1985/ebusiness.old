@@ -695,7 +695,7 @@ def batch_sync_contract(batch):
     query_set = contract_models.Contract.objects.public_all().annotate(
         max_contract_no=Subquery(
             contract_models.Contract.objects.public_filter(
-                is_deleted=False, member=OuterRef('member'), start_date=OuterRef('start_date')
+                is_deleted=False, member=OuterRef('member'), start_date__lte=OuterRef('start_date')
             ).exclude(status__in=['04', '05']).order_by(
                 '-contract_no'
             ).values('contract_no')[:1],
@@ -709,12 +709,14 @@ def batch_sync_contract(batch):
             ).values('start_date')[:1],
             output_field=DateField()
         ),
-    ).exclude(status__in=['04', '05']).order_by('member_id', 'start_date', 'contract_no').prefetch_related(
+    ).exclude(status__in=['04', '05']).order_by('member_id', 'contract_no', 'start_date').prefetch_related(
         Prefetch('member'),
     )
     today = datetime.date.today()
     count = query_set.count()
     for i, contract in enumerate(query_set):
+        if contract.member.pk == 403:
+            pass
         if contract.contract_no == contract.max_contract_no:
             if contract.start_date == contract.first_start_date and contract.join_date is None:
                 contract.join_date = contract.start_date
@@ -758,6 +760,7 @@ def batch_sync_contract(batch):
                                 contract.end_date2)
                     continue
                 filters['start_date__lt'] = query_set[i + 1].start_date
+                filters['contract_no__gte'] = contract.contract_no
 
                 auto_contract_set = contract_models.Contract.objects.public_filter(**filters).order_by('contract_no')
                 if auto_contract_set.count() == 0:

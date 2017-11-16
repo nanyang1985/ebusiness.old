@@ -9,6 +9,7 @@ mysql -u root -proot eb_sales < 008.get_member_status_by_month.sql
 mysql -u root -proot eb_sales < 009.get_member_status_today.sql
 mysql -u root -proot eb_sales < 010.get_member_release_date.sql
 mysql -u root -proot eb_sales < 011.get_bp_expenses.sql
+mysql -u root -proot eb_sales < 012.get_salary.sql
 mysql -u root -proot eb_sales < 101.v_interval_dates.sql
 mysql -u root -proot eb_sales < 102.v_turnover_dates.sql
 mysql -u root -proot eb_sales < 111.v_contract.sql
@@ -19,6 +20,10 @@ mysql -u root -proot eb_sales < 115.v_release_list.sql
 mysql -u root -proot eb_sales < 116.v_salesperson_status.sql
 mysql -u root -proot eb_sales < 117.v_status_monthly.sql
 mysql -u root -proot eb_sales < 118.v_latest_bp_contract.sql
+mysql -u root -proot eb_sales < 119.v_member_insurance_level.sql
+mysql -u root -proot eb_sales < 120.v_member_insurance.sql
+mysql -u root -proot eb_sales < 121.v_dispatch_member.sql
 mysql -u root -proot eb_sales < 201.sp_organization_cost.sql
 mysql -u root -proot eb_sales < 202.sp_organization_turnover.sql
 mysql -u root -proot eb_sales < 203.sp_sales_member.sql
+mysql -u root -proot eb_sales < 204.sp_dispatch_members.sql

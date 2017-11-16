@@ -230,6 +230,13 @@ class ContractRetire(BaseView):
                 'result': True,
                 'message': '成功しました。'
             })
+            message = u"契約は「%s」に終了とします" % date
+            LogEntry.objects.log_action(request.user.id,
+                                        ContentType.objects.get_for_model(contract).pk,
+                                        contract.pk,
+                                        unicode(contract),
+                                        CHANGE,
+                                        change_message=message)
         else:
             d.update({
                 'result': False,
