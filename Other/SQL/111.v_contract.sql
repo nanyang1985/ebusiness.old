@@ -72,7 +72,7 @@ CREATE OR REPLACE VIEW v_contract AS
             WHEN
                 (SELECT MAX(c1.contract_no)
 				   FROM eb_contract c1
-				  WHERE c1.start_date <= c.start_date
+				  WHERE c1.start_date = c.start_date
 					AND c1.member_id = c.member_id
 					AND c1.is_deleted = 0
 					AND c1.status <> '04') = c.contract_no
