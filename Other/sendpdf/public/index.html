@@ -1,0 +1,29 @@
+<html lang="ja"><head>
+    <meta charset="utf-8">
+    <title></title>
+    <link rel="shortcut icon" type="image/png" href="https://sales.e-business.co.jp/static/default/img/favicon.ico">
+</head>
+<body>
+    <form action="/send" method="post" enctype="multipart/form-data">
+	    <input type="hidden" name="token" value="md5(date + eb2016)">
+	    <input type="hidden" name="refurl" value="https://sales.e-business.co.jp">
+	    <input type="text" name="to">
+	    <br/>
+	    <input type="text" name="from">
+	    <br/>
+	    <input type="text" name="cc">
+	    <br/>
+	    <input type="text" name="title">
+	    <br/>
+	    <input type="text" name="content1">
+	    <br/>
+	    <input type="text" name="content2">
+	    <br/>
+	    <input type="file" name="file1">
+	    <br/>
+	    <input type="file" name="file2">
+	    <br/>
+	    <button type="submit" class="btn">Login</button>
+	 </form>
+</body>
+</html>

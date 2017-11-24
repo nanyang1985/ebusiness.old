@@ -5,9 +5,9 @@
 # host_path: /home/eb086/sendpdf
 # container_path: /home/sendpdf
 # container_name: office
-docker run -itd -v /home/eb086/sendpdf:/home/sendpdf --name office favaserver/office
+docker run -itd -v /home/eb086/sendpdf:/home/sendpdf -p 4567:4567 --name sendpdf favaserver/sendpdf
 
 # run convert
 # source_path: /home/sendpdf/demo.xlsx
 # out_path: /home/sendpdf
-docker exec -i office sh -c '/usr/bin/libreoffice --invisible --convert-to pdf /home/sendpdf/demo.xlsx --outdir /home/sendpdf'
+docker exec -i sendpdf sh -c '/usr/bin/libreoffice --invisible --convert-to pdf /home/sendpdf/demo.xlsx --outdir /home/sendpdf'
