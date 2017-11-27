@@ -33,7 +33,7 @@ def sendpass(from, to, subject, body , password)
        to to
        from from
        subject subject
-       body "body:#{body} , pass:#{password}"
+       body body.gsub('PASSWORD', password)
   end
 end
     
@@ -62,7 +62,7 @@ post '/send' do
   
   zipName = params[:file1][:filename].split("_").first.encode('cp932')
   zipPath = "/home/sendpdf/#{zipName}.zip"
-  File.delete(zipPath) if File.exist?(zipPath)  
+  File.delete(zipPath) if File.exist?(zipPath)
   Zip::Archive.open(zipPath, Zip::CREATE) do |arc|
     arc.add_file("#{params[:file1][:filename].gsub('xlsx', 'pdf').encode('cp932')}", "/home/sendpdf/#{newName1}")
     arc.add_file("#{params[:file2][:filename].gsub('xlsx', 'pdf').encode('cp932')}", "/home/sendpdf/#{newName2}")
