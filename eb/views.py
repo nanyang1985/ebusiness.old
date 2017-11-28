@@ -11,6 +11,7 @@ import os
 import urllib
 import operator
 import traceback
+import hashlib
 
 from django.conf import settings
 from django.contrib import admin
@@ -1738,12 +1739,15 @@ class BpMemberOrdersView(BaseTemplateView):
         member_id = kwargs.get('member_id')
         member = get_object_or_404(models.Member, pk=member_id)
         project_members = member.projectmember_set.public_filter(is_deleted=False).order_by('-start_date')
+        md5 = hashlib.md5()
+        md5.update(datetime.date.today().strftime('%Y%m%debsales'))
         context.update({
             'title': u"%s | ＢＰ注文書" % unicode(member),
             'member': member,
             'project_members': project_members,
             'year_list': common.get_year_list(),
             'month_list': common.get_month_list3(),
+            'md5_token': md5.hexdigest().decode('raw_unicode_escape'),
         })
         return context
 

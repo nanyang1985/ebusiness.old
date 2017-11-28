@@ -170,7 +170,7 @@
                                     <a href="{% url 'download_bp_order_request' project_member.pk year month|stringformat:'02d' %}?end_year={{ order.end_year }}&end_month={{ order.end_month }}" target="_blank">注文請書作成</a>
                                 {% endif %}
                             </td>
-                            <td class="center"><input type="button" value="送信"/></td>
+                            <td class="center"><a type="button" href="/sendpdf?id={{ order.subcontractor.pk }}&token={{ md5_token }}">送信</a></td>
                         {% else %}
                             <td class="center">
                                 {% if is_old %}
