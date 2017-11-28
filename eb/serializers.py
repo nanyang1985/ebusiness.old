@@ -31,9 +31,24 @@ class MailTemplateSerializer(serializers.ModelSerializer):
         fields = ('id', 'mail_title', 'mail_body', 'mail_html', 'pass_body')
 
 
+class MailCcListSerializer(serializers.ModelSerializer):
+    email = serializers.SerializerMethodField()
+
+    class Meta:
+        model = models.MailCcList
+        fields = ('email',)
+
+    def get_email(self, obj):
+        if obj.member and obj.member.email:
+            return obj.member.email
+        else:
+            return obj.email
+
+
 class MailGroupSerializer(serializers.ModelSerializer):
     mail_template = MailTemplateSerializer()
+    mailcclist_set = MailCcListSerializer(many=True)
 
     class Meta:
         model = models.MailGroup
-        fields = ('id', 'name', 'title', 'mail_sender', 'mail_template')
+        fields = ('id', 'name', 'title', 'mail_sender', 'mail_template', 'mailcclist_set')
