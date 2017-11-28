@@ -17,6 +17,7 @@ import logging
 import traceback
 import pdfkit
 import urlparse
+from openpyxl.drawing.image import Image
 
 import constants, errors
 import jholiday
@@ -1193,6 +1194,17 @@ def get_pay_notify_deadline(year, month):
         return business_days[5]
     else:
         return next_month
+
+
+def get_signature_image():
+    """電子印鑑の画像を取得する。
+
+    :return:
+    """
+    from django.conf import settings
+    img_path = os.path.join(settings.STATICFILES_DIRS[0], 'admin/img/signature.png')
+    img = Image(img_path)
+    return img
 
 
 if __name__ == "__main__":

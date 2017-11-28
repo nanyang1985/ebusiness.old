@@ -13,7 +13,6 @@ import xlsxwriter
 import openpyxl as px
 from openpyxl.writer.excel import save_virtual_workbook
 from openpyxl.styles import Font, Border, Side, Alignment
-from openpyxl.drawing.image import Image
 
 try:
     import pythoncom
@@ -814,9 +813,7 @@ def generate_pay_notify(data, template_path, out_path):
     sheet = book.get_sheet_by_name('支払通知書')
 
     # 電子印鑑
-    from django.conf import settings
-    img_path = os.path.join(settings.STATICFILES_DIRS[0], 'admin/img/signature.png')
-    img = Image(img_path)
+    img = common.get_signature_image()
     sheet.add_image(img, 'R5')
 
     # 見出し部分
@@ -1086,6 +1083,13 @@ def generate_order_linux(data, template_path, is_request):
     """
     book = px.load_workbook(template_path)
     sheet = book.get_sheet_by_name('Sheet1')
+
+    # 電子印鑑
+    img = common.get_signature_image()
+    if is_request:
+        sheet.add_image(img, 'C5')
+    else:
+        sheet.add_image(img, 'H6')
 
     order_no = data['DETAIL']['ORDER_NO']
     partner_name = data['DETAIL']['SUBCONTRACTOR_NAME']

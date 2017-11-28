@@ -114,6 +114,7 @@
                 <th>開始日／注文番号</th>
                 <th>終了日／注文書</th>
                 <th>注文請書</th>
+                <th></th>
             </tr>
         </thead>
         <tbody>
@@ -126,6 +127,7 @@
                     </td>
                     <td>{{ project_member.start_date }}</td>
                     <td>{{ project_member.end_date }}</td>
+                    <td></td>
                     <td></td>
                 </tr>
                 {% for year, month, days, order, is_old in project_member.get_bp_member_orders %}
@@ -168,7 +170,8 @@
                                     <a href="{% url 'download_bp_order_request' project_member.pk year month|stringformat:'02d' %}?end_year={{ order.end_year }}&end_month={{ order.end_month }}" target="_blank">注文請書作成</a>
                                 {% endif %}
                             </td>
-                            {% else %}
+                            <td class="center"><input type="button" value="送信"/></td>
+                        {% else %}
                             <td class="center">
                                 {% if is_old %}
                                     <!-- 昔の注文書は作成できないように -->
@@ -216,6 +219,7 @@
                                 </div>
                             </td>
                             <td></td>
+                            <td></td>
                         {% endif %}
                     </tr>
                 {% endfor %}
@@ -228,6 +232,7 @@
                 <th>開始日／注文番号</th>
                 <th>終了日／操作</th>
                 <th>注文請書</th>
+                <th></th>
             </tr>
         </tfoot>
     </table>
