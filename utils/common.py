@@ -1183,7 +1183,7 @@ def get_absolute_url(url):
 def get_pay_notify_deadline(year, month):
     """支払通知書とＢＰ注文書をメール送信時の支払締切日を取得する
 
-    来月の第八営業日
+    来月の第六営業日
 
     :return:
     """

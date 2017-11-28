@@ -7,8 +7,14 @@ Created on 2015/08/20
 
 from django.conf.urls import url, include
 
-from . import views
+from rest_framework import routers
+
+from . import views, views_api
 from eboa import views as eboa_views
+
+router = routers.DefaultRouter()
+router.register(r'subcontractor-order-recipient', views_api.SubcontractorOrderRecipientViewSet)
+
 
 member_patterns = [
     url(r'^list.html$', views.MemberListView.as_view(), name='employee_list'),

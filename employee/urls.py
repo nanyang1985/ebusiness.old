@@ -7,6 +7,8 @@ from del_data.admin import del_data_admin_site
 from contract.admin import contract_admin_site
 from employee import views
 
+from eb.urls import router as eb_router
+
 urlpatterns = [
     url(r'^$', views.HomeView.as_view(), name='home'),
     url(r'^eb/', include('eb.urls')),
@@ -28,6 +30,8 @@ urlpatterns = [
     url(r'^eboa-admin/', include(eboa_admin_site.urls)),
     url(r'^del-data-admin/', include(del_data_admin_site.urls)),
     url(r'^contract-admin/', include(contract_admin_site.urls)),
+
+    url(r'^api/', include(eb_router.urls)),
 ]
 
 handler403 = 'eb.views.handler403'
