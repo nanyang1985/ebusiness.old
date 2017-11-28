@@ -14,6 +14,7 @@ from eboa import views as eboa_views
 
 router = routers.DefaultRouter()
 router.register(r'subcontractor-order-recipient', views_api.SubcontractorOrderRecipientViewSet)
+router.register(r'mail-group', views_api.MailGroupViewSet)
 
 
 member_patterns = [

@@ -11,3 +11,8 @@ class SubcontractorOrderRecipientViewSet(viewsets.ModelViewSet):
     queryset = models.SubcontractorOrderRecipient.objects.public_all()
     serializer_class = serializers.SubcontractorOrderRecipientSerializer
     filter_fields = ('subcontractor__id',)
+
+
+class MailGroupViewSet(viewsets.ModelViewSet):
+    queryset = models.MailGroup.objects.public_all()
+    serializer_class = serializers.MailGroupSerializer
