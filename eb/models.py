@@ -767,6 +767,21 @@ class SubcontractorRequestRecipient(BaseModel):
         return unicode(self.subcontractor_member)
 
 
+class SubcontractorOrderRecipient(BaseModel):
+    subcontractor = models.ForeignKey(Subcontractor, on_delete=models.PROTECT, verbose_name=u"所属会社")
+    subcontractor_member = models.ForeignKey(SubcontractorMember, on_delete=models.PROTECT, verbose_name=u"所属会社社員")
+    is_cc = models.BooleanField(default=False, verbose_name=u"ＣＣに入れて送信")
+
+    class Meta:
+        ordering = ['subcontractor', 'subcontractor_member']
+        unique_together = ('subcontractor', 'subcontractor_member')
+        verbose_name = u"ＢＰ注文書の宛先"
+        verbose_name_plural = u"ＢＰ注文書の宛先一覧"
+
+    def __unicode__(self):
+        return unicode(self.subcontractor_member)
+
+
 class MailTemplate(BaseModel):
     mail_title = models.CharField(max_length=50, unique=True, verbose_name=u"送信メールのタイトル")
     mail_body = models.TextField(blank=True, null=True, verbose_name=u"メール本文(Plain Text)")

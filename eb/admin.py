@@ -198,6 +198,11 @@ class SubcontractorRequestRecipientInline(admin.TabularInline):
     extra = 1
 
 
+class SubcontractorOrderRecipientInline(admin.TabularInline):
+    model = models.SubcontractorOrderRecipient
+    extra = 1
+
+
 class SubcontractorBankInline(admin.TabularInline):
     model = models.SubcontractorBankInfo
     form = forms.SubcontractorBankInfoForm
@@ -693,13 +698,15 @@ class SubcontractorAdmin(BaseAdmin):
 
     list_display = ['name', 'is_deleted']
     list_filter = ['is_deleted']
-    inlines = (SubcontractorMemberInline, SubcontractorRequestRecipientInline, SubcontractorBankInline)
+    inlines = (SubcontractorMemberInline, SubcontractorRequestRecipientInline, SubcontractorOrderRecipientInline, SubcontractorBankInline)
 
     def _create_formsets(self, request, obj, change):
         formsets, inline_instances = super(SubcontractorAdmin, self)._create_formsets(request, obj, change)
         for fm in formsets:
             if fm.model == models.SubcontractorRequestRecipient:
                 # 支払通知書の宛先一覧のメンバーは当該する協力会社に絞り込む
+                fm.form.base_fields['subcontractor_member'].queryset = models.SubcontractorMember.objects.public_filter(subcontractor=obj)
+            elif fm.model == models.SubcontractorOrderRecipient:
                 fm.form.base_fields['subcontractor_member'].queryset = models.SubcontractorMember.objects.public_filter(subcontractor=obj)
         return formsets, inline_instances
 
