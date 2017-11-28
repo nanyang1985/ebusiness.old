@@ -59,3 +59,10 @@ class MailGroupSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.MailGroup
         fields = ('id', 'name', 'title', 'mail_sender', 'mail_template', 'mailcclist_set')
+
+
+class BpMemberOrderSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = models.BpMemberOrder
+        fields = '__all__'

@@ -6,6 +6,7 @@ from eboa.admin import eboa_admin_site
 from del_data.admin import del_data_admin_site
 from contract.admin import contract_admin_site
 from employee import views
+from eb import views_api as eb_views_api
 
 from eb.urls import router as eb_router
 
@@ -32,6 +33,7 @@ urlpatterns = [
     url(r'^contract-admin/', include(contract_admin_site.urls)),
 
     url(r'^api/', include(eb_router.urls)),
+    url(r'^api/subcontractor_order_sent/(?P<pk>[0-9]+)$', eb_views_api.subcontractor_order_sent),
 ]
 
 handler403 = 'eb.views.handler403'
