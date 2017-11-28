@@ -32,11 +32,18 @@ class MailTemplateSerializer(serializers.ModelSerializer):
 
 
 class MailCcListSerializer(serializers.ModelSerializer):
+    name = serializers.SerializerMethodField()
     email = serializers.SerializerMethodField()
 
     class Meta:
         model = models.MailCcList
-        fields = ('email',)
+        fields = ('name', 'email',)
+
+    def get_name(self, obj):
+        if obj.member:
+            return unicode(obj.member)
+        else:
+            return ""
 
     def get_email(self, obj):
         if obj.member and obj.member.email:
