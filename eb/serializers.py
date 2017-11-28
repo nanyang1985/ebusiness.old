@@ -7,6 +7,10 @@ from . import models
 
 
 class SubcontractorOrderRecipientSerializer(serializers.ModelSerializer):
+    name = serializers.ReadOnlyField(source='subcontractor_member.name')
+    email = serializers.ReadOnlyField(source='subcontractor_member.email')
+    company_name = serializers.ReadOnlyField(source='subcontractor.name')
+
     class Meta:
         model = models.SubcontractorOrderRecipient
-        fields = '__all__'
+        fields = ('id', 'company_name', 'name', 'email', 'is_cc')
