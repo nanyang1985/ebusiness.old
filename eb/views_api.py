@@ -16,3 +16,8 @@ class SubcontractorOrderRecipientViewSet(viewsets.ModelViewSet):
 class MailGroupViewSet(viewsets.ModelViewSet):
     queryset = models.MailGroup.objects.public_all()
     serializer_class = serializers.MailGroupSerializer
+
+
+class SubcontractorViewSet(viewsets.ModelViewSet):
+    queryset = models.Subcontractor.objects.public_all()
+    serializer_class = serializers.SubcontractorSerializer
