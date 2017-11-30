@@ -63,6 +63,8 @@
                 <th>注文番号</th>
                 <th>注文書</th>
                 <th>注文請書</th>
+                <th></th>
+                <th></th>
             </tr>
         </thead>
         <tbody>
@@ -120,6 +122,16 @@
                         {% endif %}
                     {% endif %}
                 </td>
+                <td>
+                    {% if bp_lump_contract.bplumporder.is_sent %}
+                        <img width="12px" src="/static/{{ theme }}/img/icon-normal.png"/>
+                    {% endif %}
+                </td>
+                <td class="center">
+                    {% if bp_lump_contract.bplumporder.filename_request %}
+                        <a type="button" href="/sendpdf?id={{ bp_lump_contract.bplumporder.subcontractor.pk }}&token={{ md5_token }}&ref={{ request.get_full_path|urlencode }}&order_id={{ bp_lump_contract.bplumporder.pk }}&year={{ year }}&month={{ month }}">送信</a>
+                    {% endif %}
+                </td>
             </tr>
             {% for project_member in project_members %}
                 {% for year, month, days, order, is_old in project_member.get_bp_member_orders %}
@@ -162,7 +174,10 @@
                                     <a href="{% url 'download_bp_order_request' project_member.pk year month|stringformat:'02d' %}?end_year={{ order.end_year }}&end_month={{ order.end_month }}" target="_blank">注文請書作成</a>
                                 {% endif %}
                             </td>
-                            {% else %}
+                            <td></td>
+                            <td>
+                            </td>
+                        {% else %}
                             <td class="center">
                                 {% if is_old %}
                                     <!-- 昔の注文書は作成できないように -->
@@ -170,6 +185,8 @@
                                     <a href="javascript:show_dialog('bp_order_gen_{{ project_member.pk }}_{{ year }}_{{ month|stringformat:'02d' }}');$('#id_publish_date_{{project_member.pk}}{{year}}{{month}}').datepicker();" target="_blank">注文書新規作成</a>
                                 {% endif %}
                             </td>
+                            <td></td>
+                            <td></td>
                             <td></td>
                         {% endif %}
                     </tr>
@@ -182,6 +199,8 @@
                 <th>注文番号</th>
                 <th>注文書</th>
                 <th>注文請書</th>
+                <th></th>
+                <th></th>
             </tr>
         </tfoot>
     </table>

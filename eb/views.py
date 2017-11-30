@@ -1759,9 +1759,12 @@ class BpLumpContractOrdersView(BaseTemplateView):
         context = super(BpLumpContractOrdersView, self).get_context_data(**kwargs)
         contract_id = kwargs.get('contract_id')
         bp_lump_contract = get_object_or_404(contract_models.BpLumpContract, pk=contract_id)
+        md5 = hashlib.md5()
+        md5.update(datetime.date.today().strftime('%Y%m%debsales'))
         context.update({
             'title': u"%s | ＢＰ注文書" % bp_lump_contract,
             'bp_lump_contract': bp_lump_contract,
+            'md5_token': md5.hexdigest().decode('raw_unicode_escape'),
         })
         return context
 

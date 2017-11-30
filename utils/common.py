@@ -775,11 +775,12 @@ def get_pay_notify_file_path(no, client_name, ym):
     return xlsx_path, pdf_path
 
 
-def get_order_file_path(order_no, client_name, ym, is_request=False):
+def get_order_file_path(order_no, client_name, project_name, member_name, ym, is_request=False):
     """協力会社の注文書のパスを取得する。
 
     :param order_no:
     :param client_name:
+    :param member_name:
     :param ym:
     :param is_request: 注文請書
     :return:
@@ -788,10 +789,16 @@ def get_order_file_path(order_no, client_name, ym, is_request=False):
 
     now = datetime.datetime.now()
     if is_request:
-        name_format = "EB注文請書_%s_%s_%s.xlsx"
+        name_format = "EB注文請書_%s_%s%s%s_%s.xlsx"
     else:
-        name_format = "EB注文書_%s_%s_%s.xlsx"
-    filename = name_format % (str(order_no), client_name.encode('UTF-8'), now.strftime("%Y%m%d_%H%M%S%f"))
+        name_format = "EB注文書_%s_%s%s%s_%s.xlsx"
+    filename = name_format % (
+        str(order_no),
+        (project_name.encode('UTF-8') + "_") if project_name else '',
+        (member_name.encode('UTF-8') + "_") if member_name else '',
+        client_name.encode('UTF-8'),
+        now.strftime("%H%M%S%f")
+    )
     path = os.path.join(settings.GENERATED_FILES_ROOT, "partner_order", str(ym))
     if not os.path.exists(path):
         os.makedirs(path)

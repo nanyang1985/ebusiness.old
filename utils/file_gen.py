@@ -1093,7 +1093,9 @@ def generate_order_linux(data, template_path, is_request):
 
     order_no = data['DETAIL']['ORDER_NO']
     partner_name = data['DETAIL']['SUBCONTRACTOR_NAME']
-    path = common.get_order_file_path(order_no, partner_name, data['DETAIL']['YM'], is_request)
+    project_name = data['DETAIL']['PROJECT_NAME'] if 'PROJECT_NAME' in data['DETAIL'] else None
+    member_name = data['DETAIL']['MEMBER_NAME'] if 'MEMBER_NAME' in data['DETAIL'] else None
+    path = common.get_order_file_path(order_no, partner_name, project_name, member_name, data['DETAIL']['YM'], is_request)
 
     for row in sheet.iter_rows():
         for cell in row:
