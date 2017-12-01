@@ -229,6 +229,47 @@ function calc_hourly_pay(obj) {
     }
 }
 
+function get_extra_hours(total_hours, min_hours, max_hours) {
+    if (total_hours >= min_hours && total_hours <= max_hours) {
+        return 0;
+    }
+    var attendance_type = $("#hidAttendanceType").val();
+    var int_part = Math.floor(total_hours)
+    var float_part = (total_hours % 1).toFixed(2)
+    if (attendance_type == "1") {
+        // １５分ごと
+        if (float_part >= 0 && float_part < 0.25) {
+            float_part = 0;
+        } else if (float_part >= 0.25 && float_part < 0.5) {
+            float_part = 0.25;
+        } else if (float_part >= 0.5 && float_part < 0.75) {
+            float_part = 0.5
+        } else {
+            float_part = 0.75
+        }
+    } else if (attendance_type == "2") {
+        // ３０分ごと
+        if (float_part >= 0 && float_part < 0.5) {
+            float_part = 0;
+        } else {
+            float_part = 0.5
+        }
+    } else if (attendance_type == "3") {
+        // １時間ごと
+        float_part = 0;
+    } else {
+        console.log("識別できない出勤区分です。");
+    }
+
+    total_hours = int_part + float_part;
+    if (total_hours > max_hours) {
+        extra_hours = total_hours - max_hours;
+    } else if (total_hours < min_hours) {
+        extra_hours = total_hours - min_hours;
+    }
+    return extra_hours.toFixed(2);
+}
+
 function calc_extra_hours_portal(obj) {
     row_id = $(obj).parent().parent().attr("id");
     price = $("#" + row_id + "-basic_price").val();
@@ -244,21 +285,13 @@ function calc_extra_hours_portal(obj) {
         min_hours = parseFloat(min_hours);
         max_hours = parseFloat(max_hours);
         total_hours = parseFloat(total_hours);
-        extra_hours = 0.00;
+        extra_hours = get_extra_hours(total_hours, min_hours, max_hours);
         rate = parseFloat(rate);
-        if (total_hours > max_hours) {
-            extra_hours = total_hours - max_hours;
-        } else if (total_hours < min_hours) {
-            extra_hours = total_hours - min_hours;
-        }
         obj_extra_hours.val(extra_hours);
-
         // 増（円）と 減（円）
         price = parseFloat(price);
         plus_per_hour = Math.round(obj_plus.val());
         minus_per_hour = Math.round(obj_minus.val());
-//        obj_plus.val(plus_per_hour);
-//        obj_minus.val(minus_per_hour);
 
         // 最終価格
         if (extra_hours > 0) {
@@ -269,7 +302,15 @@ function calc_extra_hours_portal(obj) {
         } else {
             result = price;
         }
-        obj_value.val(Math.round(result));
+        // 小数の処理区分
+        var decimal_type = $("#hidDecimalType").val();
+        if (decimal_type == 0) {
+            // 四捨五入
+            obj_value.val(Math.round(result));
+        } else {
+            // 切り捨て
+            obj_value.val(Math.floor(result));
+        }
     }
 }
 
