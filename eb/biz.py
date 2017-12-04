@@ -823,11 +823,11 @@ def generate_bp_order_data(project_member, year, month, contract, user, bp_order
     data['DETAIL']['SUBCONTRACTOR_POST_CODE'] = post_code
     # 下請け会社住所
     data['DETAIL']['SUBCONTRACTOR_ADDRESS1'] = contract.company.address1
-    data['DETAIL']['SUBCONTRACTOR_ADDRESS2'] = contract.company.address2
+    data['DETAIL']['SUBCONTRACTOR_ADDRESS2'] = contract.company.address2 or ''
     # 下請け会社電話番号
-    data['DETAIL']['SUBCONTRACTOR_TEL'] = contract.company.tel
+    data['DETAIL']['SUBCONTRACTOR_TEL'] = contract.company.tel or ''
     # 下請け会社ファックス
-    data['DETAIL']['SUBCONTRACTOR_FAX'] = contract.company.fax
+    data['DETAIL']['SUBCONTRACTOR_FAX'] = contract.company.fax or ''
     # 委託業務責任者（乙）
     data['DETAIL']['SUBCONTRACTOR_MASTER'] = contract.company.president
     # 連絡窓口担当者（甲）
@@ -836,19 +836,18 @@ def generate_bp_order_data(project_member, year, month, contract, user, bp_order
     # 連絡窓口担当者（乙）
     data['DETAIL']['SUBCONTRACTOR_MIDDLEMAN'] = contract.company.middleman
     # 作成者
-    create_user = get_user_profile(user)
-    data['DETAIL']['AUTHOR_FIRST_NAME'] = create_user.first_name if create_user else ''
+    data['DETAIL']['AUTHOR_FIRST_NAME'] = user.first_name if user else ''
     # 会社名
     data['DETAIL']['COMPANY_NAME'] = company.name
     # 本社郵便番号
     data['DETAIL']['POST_CODE'] = common.get_full_postcode(company.post_code)
     # 本社電話番号
-    data['DETAIL']['TEL'] = company.tel
+    data['DETAIL']['TEL'] = company.tel or ''
     # 代表取締役
     data['DETAIL']['MASTER'] = company.president if company.president else ""
     # 本社住所
-    data['DETAIL']['ADDRESS1'] = company.address1
-    data['DETAIL']['ADDRESS2'] = company.address2
+    data['DETAIL']['ADDRESS1'] = company.address1 or ''
+    data['DETAIL']['ADDRESS2'] = company.address2 or ''
     # 業務名称
     data['DETAIL']['PROJECT_NAME'] = project_member.project.name
     # 作業期間

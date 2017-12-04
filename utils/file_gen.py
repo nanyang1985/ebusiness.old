@@ -1087,7 +1087,7 @@ def generate_order_linux(data, template_path, is_request):
     # 電子印鑑
     img = common.get_signature_image()
     if is_request:
-        sheet.add_image(img, 'C5')
+        sheet.add_image(img, 'C7')
     else:
         sheet.add_image(img, 'H6')
 

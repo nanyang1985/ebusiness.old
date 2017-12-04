@@ -794,7 +794,7 @@ def get_order_file_path(order_no, client_name, project_name, member_name, ym, is
         name_format = "EB注文書_%s_%s%s%s_%s.xlsx"
     filename = name_format % (
         str(order_no),
-        (project_name.encode('UTF-8') + "_") if project_name else '',
+        (project_name.replace('/', u"／").encode('UTF-8') + "_") if project_name else '',
         (member_name.encode('UTF-8') + "_") if member_name else '',
         client_name.encode('UTF-8'),
         now.strftime("%H%M%S%f")
