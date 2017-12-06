@@ -120,6 +120,9 @@ def get_sales_members(year, month, param_dict=None, order_list=None):
     duplicated_index = duplicated_df.groupby('member_id').apply(lambda x: list(x.index))
     for m_id, rows in duplicated_index.iteritems():
         basic_row = df.loc[(df.member_id == m_id) & (df.member_type != 4)]
+        row_count, col_count = basic_row.shape
+        if row_count == 0:
+            continue
         basic_index = basic_row.iloc[0].name
         for index in rows:
             if index == basic_index:

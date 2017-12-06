@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 pids=$(pidof Xvfb)
 if [ -n "$pids" ]; then
     DISPLAY=:99 /usr/bin/wkhtmltopdf -q $*
