@@ -326,6 +326,15 @@ class ProjectMemberForm(forms.ModelForm):
                     data.remove(name)
         return data
 
+    def clean(self):
+        cleaned_data = super(ProjectMemberForm, self).clean()
+        contract_type = cleaned_data.get('contract_type', None)
+        end_date = cleaned_data.get('end_date', None)
+        today = datetime.date.today()
+        if not contract_type and today <= end_date:
+            self.add_error('contract_type', u"契約形態を入力してください！")
+        return cleaned_data
+
     member = forms.ModelChoiceField(queryset=models.Member.objects.public_all(),
                                     widget=SearchSelect(models.Member),
                                     label=u"名前")

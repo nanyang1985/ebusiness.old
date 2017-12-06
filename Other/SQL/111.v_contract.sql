@@ -71,11 +71,11 @@ CREATE OR REPLACE VIEW v_contract AS
         CASE
             WHEN
                 (SELECT MAX(c1.contract_no)
-				   FROM eb_contract c1
-				  WHERE c1.start_date = c.start_date
-					AND c1.member_id = c.member_id
-					AND c1.is_deleted = 0
-					AND c1.status <> '04') = c.contract_no
+                   FROM eb_contract c1
+                  WHERE c1.start_date = c.start_date
+                    AND c1.member_id = c.member_id
+                    AND c1.is_deleted = 0
+                    AND c1.status <> '04') = c.contract_no
             THEN
                 0
             ELSE 1
@@ -108,7 +108,7 @@ CREATE OR REPLACE VIEW v_contract AS
         c.deleted_date AS deleted_date
     FROM
         eb_contract c
-	WHERE c.status <> '04'
+    WHERE c.status <> '04'
     UNION ALL SELECT
         c.id AS id,
         NULL AS contract_no,
@@ -185,4 +185,4 @@ CREATE OR REPLACE VIEW v_contract AS
         c.deleted_date AS deleted_date
     FROM
         eb_bp_contract c
-	WHERE c.status <> '04'
+    WHERE c.status <> '04'
