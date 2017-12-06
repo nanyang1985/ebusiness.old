@@ -46,7 +46,6 @@ INSTALLED_APPS = (
     'del_data',
     'flow',
     'contract',
-    'wkhtmltopdf',
 )
 
 MIDDLEWARE_CLASSES = (
