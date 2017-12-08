@@ -392,7 +392,7 @@ class BpContract(BaseModel):
 
     def get_calculate_type_comment(self):
         if self.calculate_type in ('02', '03'):
-            return "精算方式:変動基準時間方式"
+            return "精算方式：変動基準時間方式"
         else:
             return ""
 

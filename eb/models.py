@@ -3435,6 +3435,18 @@ class BpMemberOrder(BaseModel):
             index = 1
         return "{0}{1:02d}".format(order_no, index)
 
+    def get_order_path(self):
+        if self.filename:
+            os.path.join(settings.GENERATED_FILES_ROOT, "partner_order", '%s%s' % (self.year, self.month), self.filename)
+        else:
+            return None
+
+    def get_order_request_path(self):
+        if self.filename_request:
+            os.path.join(settings.GENERATED_FILES_ROOT, "partner_order", '%s%s' % (self.year, self.month), self.filename_request)
+        else:
+            return None
+
     def save(self, force_insert=False, force_update=False, using=None,
              update_fields=None, data=None, is_request=False):
         super(BpMemberOrder, self).save(force_insert, force_update, using, update_fields)
