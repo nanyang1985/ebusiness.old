@@ -382,7 +382,19 @@ class BpContract(BaseModel):
                 allowance_time_memo = self.allowance_time_memo
             else:
                 allowance_time_memo = u"※基準時間：%s～%sh/月" % (allowance_time_min, allowance_time_max)
+        # 営業日数 × ８または営業日数 × ７.９の説明
+        if self.calculate_type in ('02', '03'):
+            hours = 8 if self.calculate_type == '02' else 7.9
+            allowance_time_memo += "   （%s＝%s月の営業日数(%s)×%s）" % (
+                allowance_time_min, month, len(common.get_business_days(year, month)), hours
+            )
         return allowance_time_memo
+
+    def get_calculate_type_comment(self):
+        if self.calculate_type in ('02', '03'):
+            return "精算方式:変動基準時間方式"
+        else:
+            return ""
 
     def get_allowance_absenteeism(self, year, month):
         if self.is_hourly_pay or self.is_fixed_cost:

@@ -3467,6 +3467,7 @@ class BpMemberOrder(BaseModel):
                                            is_hourly_pay=data['DETAIL'].get('IS_HOURLY_PAY', False),
                                            is_fixed_cost=data['DETAIL'].get('IS_FIXED_COST', False),
                                            is_show_formula=data['DETAIL'].get('IS_SHOW_FORMULA', False),
+                                           calculate_type_comment=data['DETAIL'].get('CALCULATE_TYPE_COMMENT', None),
                                            allowance_base=data['DETAIL'].get('ALLOWANCE_BASE', None),
                                            allowance_base_memo=data['DETAIL'].get('ALLOWANCE_BASE_MEMO', None),
                                            allowance_time_min=data['DETAIL'].get('ALLOWANCE_TIME_MIN', None),
@@ -3513,6 +3514,7 @@ class BpMemberOrderHeading(models.Model):
     is_hourly_pay = models.BooleanField(default=False, verbose_name=u"時給")
     is_fixed_cost = models.BooleanField(default=False, verbose_name=u"固定")
     is_show_formula = models.BooleanField(default=True, verbose_name=u"計算式")
+    calculate_type_comment = models.CharField(max_length=255, blank=True, null=True, verbose_name=u"変動基準時間方式の説明")
     allowance_base = models.CharField(blank=True, null=True, max_length=20, verbose_name=u"基本給")
     allowance_base_memo = models.CharField(blank=True, null=True, max_length=255, verbose_name=u"基本給メモ")
     allowance_time_min = models.CharField(blank=True, null=True, max_length=20, verbose_name=u"時間下限")

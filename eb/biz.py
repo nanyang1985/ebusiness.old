@@ -886,6 +886,8 @@ def generate_bp_order_data(project_member, year, month, contract, user, bp_order
     data['DETAIL']['IS_FIXED_COST'] = contract.is_fixed_cost
     # 計算式を表示するか
     data['DETAIL']['IS_SHOW_FORMULA'] = contract.is_show_formula
+    # 変動基準時間方式の説明
+    data['DETAIL']['CALCULATE_TYPE_COMMENT'] = contract.get_calculate_type_comment()
     if not contract.is_fixed_cost:
         # 超過単価
         allowance_overtime = humanize.intcomma(contract.allowance_overtime) if contract else ''
