@@ -3443,7 +3443,7 @@ class BpMemberOrder(BaseModel):
 
     def get_order_request_path(self):
         if self.filename_request:
-            os.path.join(settings.GENERATED_FILES_ROOT, "partner_order", '%s%s' % (self.year, self.month), self.filename_request)
+            return os.path.join(settings.GENERATED_FILES_ROOT, "partner_order", '%s%s' % (self.year, self.month), self.filename_request)
         else:
             return None
 
