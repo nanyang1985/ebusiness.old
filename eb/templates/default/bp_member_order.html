@@ -223,8 +223,11 @@
                             {{ data.DETAIL.ALLOWANCE_BASE_MEMO }}<br/>
                             {{ data.DETAIL.ALLOWANCE_OVERTIME_MEMO }}<br/>
                             {{ data.DETAIL.ALLOWANCE_ABSENTEEISM_MEMO }}<br/>
-                            {{ data.DETAIL.CALCULATE_TYPE_COMMENT }}<br/>
+                            {{ data.DETAIL.CALCULATE_TYPE_COMMENT|default:'' }}<br/>
                             {{ data.DETAIL.ALLOWANCE_TIME_MEMO }}<br/>
+                            {% if data.DETAIL.ALLOWANCE_OTHER_MEMO %}
+                                {{ data.DETAIL.ALLOWANCE_OTHER_MEMO }}<br/>
+                            {% endif %}
                             {{ data.DETAIL.COMMENT|default:'' }}<br/>
                             作業報告書に基づく稼動実費精算とする。
                         {% endif %}
@@ -245,8 +248,11 @@
                             {{ bp_order.bpmemberorderheading.allowance_base_memo }}<br/>
                             {{ bp_order.bpmemberorderheading.allowance_overtime_memo }}<br/>
                             {{ bp_order.bpmemberorderheading.allowance_absenteeism_memo }}<br/>
-                            {{ bp_order.bpmemberorderheading.calculate_type_comment }}<br/>
+                            {{ bp_order.bpmemberorderheading.calculate_type_comment|default:'' }}<br/>
                             {{ bp_order.bpmemberorderheading.allowance_time_memo }}<br/>
+                            {% if bp_order.bpmemberorderheading.allowance_other_memo %}
+                                {{ bp_order.bpmemberorderheading.allowance_other_memo }}<br/>
+                            {% endif %}
                             {{ bp_order.bpmemberorderheading.comment }}<br/>
                             作業報告書に基づく稼動実費精算とする。
                         {% endif %}
