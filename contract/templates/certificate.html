@@ -93,7 +93,13 @@
             </tr>
             <tr>
                 <td class="left_side">就 職　年 月 日 ： </td>
-                <td class="right_side">{{ contract.join_date }}</td>
+                <td class="right_side">
+                    {% if contract.join_date %}
+                        {{ contract.join_date }}
+                    {% else %}
+                        {{ member.join_date }}
+                    {% endif %}
+                </td>
             </tr>
             <tr id="tr_position">
                 <td class="left_side">職　務　位　置 ： </td>
