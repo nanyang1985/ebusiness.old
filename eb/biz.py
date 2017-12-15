@@ -796,8 +796,8 @@ def generate_bp_order_data(project_member, year, month, contract, user, bp_order
         raise errors.CustomException(u"終了年月「%s年%s月」は不正です、開始年月以降に選択してください。" % (end_year, end_month))
     if not contract:
         raise errors.CustomException(constants.ERROR_BP_NO_CONTRACT)
-    elif contract.end_date and contract.end_date < common.get_last_day_by_month(
-            datetime.date(int(end_year), int(end_month), 1)):
+    elif contract.end_date and contract.end_date.strftime('%Y%m') < common.get_last_day_by_month(
+            datetime.date(int(end_year), int(end_month), 1)).strftime('%Y%m'):
         # 注文書の終了年月はＢＰ契約の終了日以降の場合、エラーとする
         raise errors.CustomException(u"契約は指定年月「%s年%s月」前にすでに終了しました。" % (end_year, end_month))
     company = get_company()
@@ -812,6 +812,8 @@ def generate_bp_order_data(project_member, year, month, contract, user, bp_order
         last_day = common.get_last_day_by_month(datetime.date(int(end_year), int(end_month), 1))
     else:
         last_day = common.get_last_day_by_month(first_day)
+        if contract.end_date.strftime('%Y%m') == last_day.strftime('%Y%m'):
+            last_day = contract.end_date
     # 発行年月日
     publish_date = common.get_bp_order_publish_date(year, month, publish_date)
     data['DETAIL']['PUBLISH_DATE'] = common.to_wareki(publish_date)
