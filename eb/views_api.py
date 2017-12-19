@@ -11,23 +11,20 @@ from . import models, serializers
 
 
 # Create your views here.
-class SubcontractorOrderRecipientViewSet(viewsets.ModelViewSet):
+class SubcontractorOrderRecipientViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = models.SubcontractorOrderRecipient.objects.public_all()
     serializer_class = serializers.SubcontractorOrderRecipientSerializer
     filter_fields = ('subcontractor__id',)
-    http_method_names = ['get']
 
 
-class MailGroupViewSet(viewsets.ModelViewSet):
+class MailGroupViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = models.MailGroup.objects.public_all()
     serializer_class = serializers.MailGroupSerializer
-    http_method_names = ['get']
 
 
-class SubcontractorViewSet(viewsets.ModelViewSet):
+class SubcontractorViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = models.Subcontractor.objects.public_all()
     serializer_class = serializers.SubcontractorSerializer
-    http_method_names = ['get']
 
 
 @api_view(['PUT'])
@@ -40,13 +37,13 @@ def subcontractor_order_sent(request, pk):
         bp_order.save()
         return Response(serializer.data)
 
-class ClientRequestViewSet(viewsets.ModelViewSet):
+class ClientRequestViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = models.Client.objects.public_all()
     serializer_class = serializers.ClientRequestSerializer
-    http_method_names = ['get']
+    # http_method_names = ['get', 'head', 'options']
 
 
-class SubcontractorRequestViewSet(viewsets.ModelViewSet):
+class SubcontractorRequestViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = models.Subcontractor.objects.public_all()
     serializer_class = serializers.SubcontractorRequestSerializer
-    http_method_names = ['get']
+    # http_method_names = ['get', 'head', 'options']
