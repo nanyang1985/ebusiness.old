@@ -812,7 +812,7 @@ def generate_bp_order_data(project_member, year, month, contract, user, bp_order
         last_day = common.get_last_day_by_month(datetime.date(int(end_year), int(end_month), 1))
     else:
         last_day = common.get_last_day_by_month(first_day)
-        if contract.end_date.strftime('%Y%m') == last_day.strftime('%Y%m'):
+        if contract.end_date and contract.end_date.strftime('%Y%m') == last_day.strftime('%Y%m'):
             last_day = contract.end_date
     # 発行年月日
     publish_date = common.get_bp_order_publish_date(year, month, publish_date)
