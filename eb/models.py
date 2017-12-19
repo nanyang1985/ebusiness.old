@@ -4019,6 +4019,27 @@ class VClientRequest(models.Model):
         return self.client_name
 
 
+class VBpRequest(models.Model):
+    subcontractor = models.ForeignKey(Subcontractor, verbose_name=u"協力会社")
+    subcontractor_name = models.CharField(max_length=50, verbose_name=u"協力会社名")
+    year = models.CharField(max_length=4, verbose_name=u"対象年")
+    month = models.CharField(max_length=2, verbose_name=u"対象月")
+    amount = models.IntegerField(default=0, verbose_name=u"請求金額（税込）")
+    turnover_amount = models.IntegerField(default=0, verbose_name=u"売上金額（基本単価＋残業料）（税抜き）")
+    tax_amount = models.IntegerField(default=0, verbose_name=u"税金")
+    expenses_amount = models.IntegerField(default=0, verbose_name=u"精算金額")
+
+    class Meta:
+        managed = False
+        db_table = 'v_bp_request'
+        ordering = ['subcontractor', 'year', 'month']
+        verbose_name = verbose_name_plural = u"協力会社月別請求"
+        default_permissions = ()
+
+    def __unicode__(self):
+        return self.subcontractor_name
+
+
 class EmailMultiAlternativesWithEncoding(EmailMultiAlternatives):
     def _create_attachment(self, filename, content, mimetype=None):
         """

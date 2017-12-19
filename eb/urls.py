@@ -17,6 +17,7 @@ router.register(r'subcontractor-order-recipient', views_api.SubcontractorOrderRe
 router.register(r'mail-group', views_api.MailGroupViewSet)
 router.register(r'subcontractor', views_api.SubcontractorViewSet)
 router.register(r'client-request', views_api.ClientRequestViewSet)
+router.register(r'subcontractor-request', views_api.SubcontractorRequestViewSet)
 
 
 member_patterns = [

@@ -42,5 +42,11 @@ def subcontractor_order_sent(request, pk):
 
 class ClientRequestViewSet(viewsets.ModelViewSet):
     queryset = models.Client.objects.public_all()
-    serializer_class = serializers.ClientSerializer
+    serializer_class = serializers.ClientRequestSerializer
+    http_method_names = ['get']
+
+
+class SubcontractorRequestViewSet(viewsets.ModelViewSet):
+    queryset = models.Subcontractor.objects.public_all()
+    serializer_class = serializers.SubcontractorRequestSerializer
     http_method_names = ['get']

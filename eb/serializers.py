@@ -68,16 +68,30 @@ class BpMemberOrderSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class ClientRequestSerializer(serializers.ModelSerializer):
+class VClientRequestSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = models.VClientRequest
         fields = ('year', 'month', 'amount', 'turnover_amount', 'tax_amount', 'expenses_amount')
 
 
-class ClientSerializer(serializers.ModelSerializer):
-    vclientrequest_set = ClientRequestSerializer(many=True)
+class ClientRequestSerializer(serializers.ModelSerializer):
+    vclientrequest_set = VClientRequestSerializer(many=True)
 
     class Meta:
         model = models.Client
         fields = ('id', 'name', 'vclientrequest_set')
+
+class VBpRequestSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = models.VBpRequest
+        fields = ('year', 'month', 'amount', 'turnover_amount', 'tax_amount', 'expenses_amount')
+
+
+class SubcontractorRequestSerializer(serializers.ModelSerializer):
+    vbprequest_set = VBpRequestSerializer(many=True)
+
+    class Meta:
+        model = models.Client
+        fields = ('id', 'name', 'vbprequest_set')
