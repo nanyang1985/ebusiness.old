@@ -39,3 +39,8 @@ def subcontractor_order_sent(request, pk):
         bp_order.is_sent = True
         bp_order.save()
         return Response(serializer.data)
+
+class ClientRequestViewSet(viewsets.ModelViewSet):
+    queryset = models.Client.objects.public_all()
+    serializer_class = serializers.ClientSerializer
+    http_method_names = ['get']

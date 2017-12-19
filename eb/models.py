@@ -3998,6 +3998,27 @@ class VMemberWithoutContract(models.Model):
         return unicode(self.member)
 
 
+class VClientRequest(models.Model):
+    client = models.ForeignKey(Client, verbose_name=u"取引先")
+    client_name = models.CharField(max_length=50, verbose_name=u"取引先名")
+    year = models.CharField(max_length=4, verbose_name=u"対象年")
+    month = models.CharField(max_length=2, verbose_name=u"対象月")
+    amount = models.IntegerField(default=0, verbose_name=u"請求金額（税込）")
+    turnover_amount = models.IntegerField(default=0, verbose_name=u"売上金額（基本単価＋残業料）（税抜き）")
+    tax_amount = models.IntegerField(default=0, verbose_name=u"税金")
+    expenses_amount = models.IntegerField(default=0, verbose_name=u"精算金額")
+
+    class Meta:
+        managed = False
+        db_table = 'v_client_request'
+        ordering = ['client', 'year', 'month']
+        verbose_name = verbose_name_plural = u"取引先月別請求"
+        default_permissions = ()
+
+    def __unicode__(self):
+        return self.client_name
+
+
 class EmailMultiAlternativesWithEncoding(EmailMultiAlternatives):
     def _create_attachment(self, filename, content, mimetype=None):
         """
