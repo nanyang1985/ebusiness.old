@@ -72,7 +72,7 @@ class VClientRequestSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = models.VClientRequest
-        fields = ('year', 'month', 'amount', 'turnover_amount', 'tax_amount', 'expenses_amount')
+        fields = ('year', 'month', 'amount', 'limit_date', 'turnover_amount', 'tax_amount', 'expenses_amount')
 
 
 class ClientRequestSerializer(serializers.ModelSerializer):
@@ -86,7 +86,7 @@ class VBpRequestSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = models.VBpRequest
-        fields = ('year', 'month', 'amount', 'turnover_amount', 'tax_amount', 'expenses_amount')
+        fields = ('year', 'month', 'limit_date', 'amount', 'turnover_amount', 'tax_amount', 'expenses_amount')
 
 
 class SubcontractorRequestSerializer(serializers.ModelSerializer):

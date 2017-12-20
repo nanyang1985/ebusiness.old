@@ -4,6 +4,7 @@ select c.id
 	 , c.name as client_name
 	 , pr.year
 	 , pr.month
+     , max(prh.remit_date) as limit_date
 	 , sum(pr.amount) as amount
 	 , sum(pr.turnover_amount) as turnover_amount
 	 , sum(pr.tax_amount) as tax_amount
@@ -11,4 +12,5 @@ select c.id
   from eb_client c
   join eb_project p on p.client_id = c.id
   left join eb_projectrequest pr on pr.project_id = p.id
+  left join eb_projectrequestheading prh on prh.project_request_id = pr.id
  group by c.id, c.name, pr.year, pr.month
