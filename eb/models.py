@@ -1520,14 +1520,21 @@ class Member(AbstractMember):
                 cursor.execute("select count(*)"
                                "  from eb_member m"
                                "  join eb_membersalespersonperiod msp on msp.member_id = m.id"
-                               "  join eb_salesperson s on s.id = msp.salesperson_id"
+                               "								     and msp.start_date <= %s"
+                               "								     and (msp.end_date >= %s or msp.end_date is null)"
+                               "								     and msp.is_deleted = 0"
+                               "  join eb_salesperson s on s.id = %s"
+                               "                       and s.is_deleted = 0"
+                               "  left join eb_membersectionperiod msp2 on msp2.member_id = m.id"
+                               "									   and msp2.start_date <= %s"
+                               "									   and (msp2.end_date >= %s or msp2.end_date is null)"
+                               "									   and msp2.is_deleted = 0"
                                " where m.is_deleted = 0"
-                               "   and s.is_deleted = 0"
-                               "   and msp.is_deleted = 0"
-                               "   and msp.start_date <= %s"
-                               "   and (msp.end_date >= %s or msp.end_date is null)"
                                "   and m.id = %s"
-                               "   and msp.salesperson_id = %s", [last_day, first_day, self.pk, user.salesperson.pk])
+                               "   and (   msp2.division_id = s.section_id"
+                               "        or msp2.section_id = s.section_id"
+                               "        or msp2.subsection_id = s.section_id"
+                               "	   )", [last_day, first_day, user.salesperson.pk, last_day, first_day, self.pk])
                 records = cursor.fetchall()
             if records[0][0] > 0:
                 return True

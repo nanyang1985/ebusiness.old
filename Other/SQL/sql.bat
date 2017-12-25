@@ -24,6 +24,8 @@ mysql -u root -proot eb_sales < 119.v_member_insurance_level.sql
 mysql -u root -proot eb_sales < 120.v_member_insurance.sql
 mysql -u root -proot eb_sales < 121.v_dispatch_member.sql
 mysql -u root -proot eb_sales < 122.v_member_without_contract.sql
+mysql -u root -proot eb_sales < 123.v_client_request.sql
+mysql -u root -proot eb_sales < 124.v_bp_request.sql
 mysql -u root -proot eb_sales < 201.sp_organization_cost.sql
 mysql -u root -proot eb_sales < 202.sp_organization_turnover.sql
 mysql -u root -proot eb_sales < 203.sp_sales_member.sql
