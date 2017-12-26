@@ -657,6 +657,7 @@ class ClientAdmin(BaseAdmin):
 
     list_display = ['name', 'is_request_uploaded', 'is_deleted']
     list_filter = ['is_deleted']
+    search_fields = ('name',)
 
     def is_request_uploaded(self, obj):
         if obj.request_file and os.path.exists(obj.request_file.path):
@@ -699,6 +700,7 @@ class SubcontractorAdmin(BaseAdmin):
     list_display = ['name', 'is_deleted']
     list_filter = ['is_deleted']
     inlines = (SubcontractorMemberInline, SubcontractorRequestRecipientInline, SubcontractorOrderRecipientInline, SubcontractorBankInline)
+    search_fields = ('name',)
 
     def _create_formsets(self, request, obj, change):
         formsets, inline_instances = super(SubcontractorAdmin, self)._create_formsets(request, obj, change)
