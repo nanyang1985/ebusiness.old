@@ -1013,6 +1013,10 @@ class MailTemplateAdmin(BaseAdmin):
     list_display = ['mail_title']
 
 
+class HolidayAdmin(BaseAdmin):
+    list_display = ['date', 'comment']
+
+
 NEW_USERNAME_LENGTH = 50
 
 
@@ -1065,6 +1069,7 @@ admin.site.register(models.Config, ConfigAdmin)
 admin.site.register(models.BpMemberOrderInfo, BpMemberOrderInfoAdmin)
 admin.site.register(models.MailGroup, MailGroupAdmin)
 admin.site.register(models.MailTemplate, MailTemplateAdmin)
+admin.site.register(models.Holiday, HolidayAdmin)
 
 admin.site.unregister(User)
 admin.site.register(User, CustomUserAdmin)

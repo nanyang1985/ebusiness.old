@@ -1726,6 +1726,16 @@ class Skill(BaseModel):
         return self.name
 
 
+class Holiday(BaseModel):
+    date = models.DateField(unique=True, verbose_name=u"日付")
+    comment = models.CharField(max_length=100, verbose_name=u"説明")
+
+    class Meta:
+        ordering = ['date']
+        verbose_name = verbose_name_plural = u"休日"
+        db_table = 'mst_holiday'
+
+
 class OS(BaseModel):
     name = models.CharField(max_length=15, unique=True, verbose_name=u"名称")
 

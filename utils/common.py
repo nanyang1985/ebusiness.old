@@ -926,7 +926,9 @@ def get_unicode(s):
 
 
 def get_business_days(year, month, exclude=None):
+    from eb.models import Holiday
     business_days = []
+    eb_holidays = [holiday.date for holiday in Holiday.objects.public_all()]
     for i in range(1, 32):
         try:
             this_date = datetime.date(int(year), int(month), i)
@@ -938,7 +940,7 @@ def get_business_days(year, month, exclude=None):
                 business_days.append(this_date)
             elif exclude is None:
                 business_days.append(this_date)
-    return business_days
+    return [date for date in business_days if date not in eb_holidays]
 
 
 def get_form_changed_value(form, field):
