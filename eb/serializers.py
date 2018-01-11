@@ -16,12 +16,20 @@ class SubcontractorOrderRecipientSerializer(serializers.ModelSerializer):
         fields = ('id', 'company_name', 'name', 'email', 'is_cc')
 
 
+class SubcontractorBankInfoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.SubcontractorBankInfo
+        fields = (
+        'id', 'bank_code', 'bank_name', 'branch_no', 'branch_name', 'account_type', 'account_number', 'account_holder')
+
+
 class SubcontractorSerializer(serializers.ModelSerializer):
     subcontractororderrecipient_set = SubcontractorOrderRecipientSerializer(many=True)
+    subcontractorbankinfo_set = SubcontractorBankInfoSerializer(many=True)
 
     class Meta:
         model = models.Subcontractor
-        fields = ('id', 'name', 'president', 'post_code', 'address1', 'address2', 'subcontractororderrecipient_set')
+        fields = ('id', 'name', 'president', 'post_code', 'address1', 'address2', 'subcontractororderrecipient_set', 'subcontractorbankinfo_set')
 
 
 class MailTemplateSerializer(serializers.ModelSerializer):
@@ -81,6 +89,7 @@ class ClientRequestSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Client
         fields = ('id', 'name', 'vclientrequest_set')
+
 
 class VBpRequestSerializer(serializers.ModelSerializer):
 
