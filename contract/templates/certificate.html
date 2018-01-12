@@ -111,7 +111,7 @@
             </tr>
             <tr>
                 <td class="left_side">会 社　所 在 地 ： </td>
-                <td class="right_side">{{ member.company.address1|default:'' }}{{ member.company.address2|default:'' }}</td>
+                <td class="right_side">{{ contract.company.address1|default:'' }}{{ contract.company.address2|default:'' }}</td>
             </tr>
         </table>
     </div>
@@ -130,11 +130,11 @@
     <table class="bottom">
         <tr>
             <td class="left_side">住　　　所 :</td>
-            <td class="right_side">{{ member.company.address1|default:'' }}{{ member.company.address2|default:'' }}</td>
+            <td class="right_side">{{ contract.company.address1|default:'' }}{{ contract.company.address2|default:'' }}</td>
         </tr>
         <tr>
             <td class="left_side">会　社　名 :	</td>
-            <td class="right_side">{{ member.company }}</td>
+            <td class="right_side">{{ contract.company }}</td>
         </tr>
     </table>
     <div class="dashboard-control">
