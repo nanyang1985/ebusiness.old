@@ -252,9 +252,12 @@ class CertificateView(BaseTemplateView):
         context = super(CertificateView, self).get_context_data(**kwargs)
         member_id = kwargs.get('member_id')
         member = get_object_or_404(sales_models.Member, pk=member_id)
+        contract = member.get_latest_contract()
+        if contract is None:
+            contract = models.Contract.objects.public_filter(start_date__gte=datetime.date.today()).first()
         context.update({
             'member': member,
-            'contract': member.get_latest_contract(),
+            'contract': contract,
             'today': datetime.date.today()
         })
         return context
