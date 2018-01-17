@@ -32,6 +32,7 @@
                 <th>{% create_order_display "売上（税抜）" "" %}</th>
                 <th>{% create_order_display "税金" "" %}</th>
                 <th>{% create_order_display "精算" "" %}</th>
+                <th>{% create_order_display "合計" "" %}</th>
                 <th>{% create_order_display "粗利" "" %}</th>
                 <th>{% create_order_display "利率" "" %}</th>
             </tr>
@@ -58,6 +59,7 @@
                         </td>
                         <td class="num">{{ data_row.tax_price|floatformat:0|intcomma }}</td>
                         <td class="num">{{ data_row.expenses_price|floatformat:0|intcomma }}</td>
+                        <td class="num">{{ data_row.all_price|floatformat:0|intcomma }}</td>
                         <td class="num {% if data_row.profit < 0 %}red{% endif %}">{{ data_row.profit|floatformat:0|intcomma }}</td>
                         <td class="num {% if data_row.profit_rate < 0 %}red{% endif %}">{{ data_row.profit_rate|floatformat:1|intcomma }}%</td>
                     </tr>
