@@ -39,7 +39,7 @@
         </thead>
         <tbody>
             {% if data_frame is None %}
-                <tr class="row1"><td class="center red" colspan="8">売上情報がありません。</td></tr>
+                <tr class="row1"><td class="center red" colspan="9">売上情報がありません。</td></tr>
             {% else %}
                 {% for idx, data_row in data_frame.iterrows %}
                     <tr class="{% cycle 'row1' 'row2' %}">
@@ -74,6 +74,7 @@
                 <td class="num"> {{ summary.total_price|floatformat:0|intcomma }}</td>
                 <td class="num"> {{ summary.tax_price|floatformat:0|intcomma }}</td>
                 <td class="num"> {{ summary.expenses_price|floatformat:0|intcomma }}</td>
+                <td class="num"> {{ summary.all_price|floatformat:0|intcomma }}</td>
                 <td class="num"> {{ summary.profit|floatformat:0|intcomma }}</td>
                 <td class="num"> {{ summary.profit_rate|floatformat:1|intcomma }}%</td>
             </tr>
