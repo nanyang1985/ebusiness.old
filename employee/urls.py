@@ -34,6 +34,7 @@ urlpatterns = [
 
     url(r'^api/', include(eb_router.urls)),
     url(r'^api/subcontractor_order_sent/(?P<pk>[0-9]+)$', eb_views_api.subcontractor_order_sent),
+    url(r'^api/reset_member_edi_price/(?P<pk>[0-9]+)$', eb_views_api.reset_member_edi_price),
 ]
 
 handler403 = 'eb.views.handler403'

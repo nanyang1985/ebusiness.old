@@ -69,6 +69,20 @@ class MailGroupSerializer(serializers.ModelSerializer):
         fields = ('id', 'name', 'title', 'mail_sender', 'mail_template', 'mailcclist_set')
 
 
+class MemberAttendanceSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = models.MemberAttendance
+        fields = '__all__'
+
+
+class ProjectRequestDetailSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = models.ProjectRequestDetail
+        fields = '__all__'
+
+
 class BpMemberOrderSerializer(serializers.ModelSerializer):
 
     class Meta:

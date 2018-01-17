@@ -2956,6 +2956,7 @@ class MemberAttendance(BaseModel):
     plus_per_hour = models.IntegerField(default=0, editable=False, verbose_name=u"増（円）")
     minus_per_hour = models.IntegerField(default=0, editable=False, verbose_name=u"減（円）")
     price = models.IntegerField(default=0, verbose_name=u"価格")
+    expect_price = models.IntegerField(blank=True, null=True, verbose_name=u"請求金額")
     comment = models.CharField(blank=True, null=True, max_length=50, verbose_name=u"備考")
     # 経費（原価ではない、営業コストとする）
     expenses_conference = models.IntegerField(default=0, verbose_name=u"会議費")
