@@ -2241,6 +2241,7 @@ class ProjectRequestDetail(models.Model):
     minus_per_hour = models.IntegerField(default=0, editable=False, verbose_name=u"減（円）")
     total_price = models.IntegerField(default=0, verbose_name=u"売上（基本単価＋残業料）（税抜き）")
     expenses_price = models.IntegerField(default=0, verbose_name=u"精算金額")
+    expect_price = models.IntegerField(blank=True, null=True, verbose_name=u"請求金額")
     comment = models.CharField(blank=True, null=True, max_length=50, verbose_name=u"備考")
 
     class Meta:
