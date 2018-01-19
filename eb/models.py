@@ -877,7 +877,7 @@ class MailCcList(BaseModel):
         if self.member:
             return unicode(self.member)
         else:
-            return self.email
+            return self.email or ''
 
 
 class Section(BaseModel):
