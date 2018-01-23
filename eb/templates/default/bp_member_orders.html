@@ -177,7 +177,7 @@
                                     <img width="12px" src="/static/{{ theme }}/img/icon-normal.png"/>
                                 {% endif %}
                             </td>
-                            <td class="center"><a type="button" href="/sendpdf?id={{ order.subcontractor.pk }}&token={{ md5_token }}&ref={{ request.get_full_path|urlencode }}&order_id={{ order.pk }}&year={{ year }}&month={{ month }}&path1={{ order.get_order_path|urlencode }}&path2={{ order.get_order_request_path|urlencode }}">送信</a></td>
+                            <td class="center"><a type="button" href="/sendpdf?id={{ order.subcontractor.pk }}&token={{ md5_token }}&ref={{ request.get_full_path|urlencode }}&order_id={{ order.pk }}&year={{ year }}&month={{ month }}&path1={{ order.get_order_path|urlencode }}&path2={{ order.get_order_request_path|urlencode }}&operator={{ request.user.email|urlencode }}">送信</a></td>
                         {% else %}
                             <td class="center">
                                 {% if is_old %}
