@@ -872,12 +872,16 @@ def generate_bp_order_data(project_member, year, month, contract, user, bp_order
         # 注文書は２か月以上の場合月額基本料金も２か月分以上
         if interval > 0:
             allowance_base *= (interval + 1)
-        allowance_base_memo = u"月額基本料金：¥%s円/月  (固定、税金抜き)" % humanize.intcomma(allowance_base)
+            allowance_base_memo = u"基本料金：¥%s円  (固定、税金抜き)" % humanize.intcomma(allowance_base)
+        else:
+            allowance_base_memo = u"月額基本料金：¥%s円/月  (固定、税金抜き)" % humanize.intcomma(allowance_base)
     else:
         # 注文書は２か月以上の場合月額基本料金も２か月分以上
         if interval > 0:
             allowance_base *= (interval + 1)
-        allowance_base_memo = u"月額基本料金：¥%s円/月  (税金抜き)" % humanize.intcomma(allowance_base)
+            allowance_base_memo = u"基本料金：¥%s円  (税金抜き)" % humanize.intcomma(allowance_base)
+        else:
+            allowance_base_memo = u"月額基本料金：¥%s円/月  (税金抜き)" % humanize.intcomma(allowance_base)
     data['DETAIL']['ALLOWANCE_BASE'] = allowance_base
     data['DETAIL']['ALLOWANCE_BASE_MEMO'] = allowance_base_memo
     data['DETAIL']['ALLOWANCE_OTHER'] = contract.allowance_other
