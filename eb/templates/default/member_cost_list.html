@@ -57,15 +57,15 @@
                         </td>
                         <td><a href="{% url 'member_detail' member.employee_id %}">{{ member }}</a></td>
                         <td>{{ contract.get_member_type_display }}</td>
-                        <td><div style="width: 100px; overflow: hidden; white-space: nowrap;">{{ member.email|default:'' }}</div></td>
+                        <td><div style="width: 80px; overflow: hidden; white-space: nowrap;">{{ member.email|default:'' }}</div></td>
                         {% with section_period=member.current_section_period|first %}
                         <td>{{ section_period.division|default:'' }}</td>
                         <td>{{ section_period.section|default:'' }}</td>
                         <td>{{ section_period.subsection|default:'' }}</td>
                         <td>{{ section_period.subsection.get_chief.first|default:'' }}</td>
                         {% endwith %}
-                        <td><div style="width: 100px; overflow: hidden; white-space: nowrap;">{{ member.subcontractor|default:"" }}</div></td>
-                        <td>{{ member.get_ranking_display|default:'' }}</td>
+                        <td><div style="width: 70px; overflow: hidden; white-space: nowrap;">{{ member.subcontractor|default:"" }}</div></td>
+                        <td><div style="width: 60px; overflow: hidden; white-space: nowrap;">{{ member.get_ranking_display|default:'' }}</div></td>
                         {% if is_own %}
                             <td class="num">{{ contract.get_cost|intcomma }}</td>
                             <td class="center">
@@ -82,17 +82,17 @@
                             <td>****</td>
                             <td>****</td>
                         {% endif %}
-                        <td><div style="width: 100px; overflow: hidden; white-space: nowrap;">{{ member.get_current_project_member.project }}</div></td>
+                        <td><div style="width: 80px; overflow: hidden; white-space: nowrap;">{{ member.get_current_project_member.project }}</div></td>
                     </tr>
                     {% endwith %}
                 {% endfor %}
             {% else %}
-                <tr class="row2"><td class="center red" colspan="10">該当する要員がいません。</td></tr>
+                <tr class="row2"><td class="center red" colspan="16">該当する要員がいません。</td></tr>
             {% endif %}
         </tbody>
         <tfoot>
             <tr>
-                <td colspan="15">
+                <td colspan="16">
                     {% paging members %}
                 </td>
             </tr>
