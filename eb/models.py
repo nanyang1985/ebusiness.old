@@ -11,6 +11,7 @@ import urllib2
 import logging
 import traceback
 import mimetypes
+import math
 
 from email import encoders
 from email.header import Header
@@ -30,10 +31,10 @@ from django.conf import settings
 from django.core.validators import validate_comma_separated_integer_list
 from django.contrib.admin.models import LogEntry, CHANGE
 from django.contrib.contenttypes.models import ContentType
+from django.utils.functional import cached_property
 
 # from django.contrib.contenttypes.models import ContentType
 # from django.contrib.contenttypes.fields import GenericForeignKey
-
 
 from utils import common, constants
 from utils.errors import CustomException
@@ -1554,10 +1555,47 @@ class Member(AbstractMember):
         else:
             return "0001"
 
+    @cached_property
+    def get_health_insurance(self):
+        today = datetime.date.today()
+        try:
+            member = VMemberInsurance.objects.get(member=self, year=today.strftime('%Y'), month=today.strftime('%m'))
+            decimal_part, int_part = math.modf(member.health_insurance)
+            if decimal_part > 0.5:
+                return int(int_part) + 1
+            else:
+                return int(int_part)
+        except (ObjectDoesNotExist, MultipleObjectsReturned):
+            return 0
+
+    def get_all_cost(self):
+        today = datetime.date.today()
+        return self.get_cost(today) + self.get_health_insurance
+
     def delete(self, using=None, keep_parents=False):
         self.is_deleted = True
         self.deleted_date = datetime.datetime.now()
         self.save()
+
+
+class VMemberInsurance(models.Model):
+    ym = models.CharField(max_length=6)
+    year = models.CharField(max_length=4)
+    month = models.CharField(max_length=2)
+    member = models.ForeignKey(Member, on_delete=models.DO_NOTHING)
+    name = models.CharField(max_length=50)
+    birthday = models.DateField(blank=True, null=True)
+    age = models.IntegerField(blank=True, null=True)
+    salary = models.IntegerField(blank=True, null=True)
+    health_insurance = models.DecimalField(max_digits=10, decimal_places=1)
+
+    class Meta:
+        managed = False
+        verbose_name = verbose_name_plural = "被保険者保険料"
+        db_table = 'v_member_insurance'
+
+    def __unicode__(self):
+        return unicode(self.member)
 
 
 class MemberSectionPeriod(BaseModel):

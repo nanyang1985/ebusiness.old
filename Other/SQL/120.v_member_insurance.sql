@@ -1,5 +1,6 @@
 CREATE OR REPLACE VIEW v_member_insurance AS
-select d.ym
+select mil.member_id as id
+     , d.ym
      , d.year
      , d.month
      , mil.member_id

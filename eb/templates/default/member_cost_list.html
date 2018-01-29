@@ -37,9 +37,10 @@
                 <th>{% create_order_display "協力会社" "" %}</th>
                 <th>{% create_order_display "ランク" "" %}</th>
                 <th>{% create_order_display "月給" "" %}</th>
-                <th>{% create_order_display "保険" "" %}</th>
+                <th>健康保険</th>
                 <th>{% create_order_display "残業" "" %}</th>
                 <th>{% create_order_display "欠勤" "" %}</th>
+                <th>{% create_order_display "コスト" "" %}</th>
                 <th>{% create_order_display "案件" "" %}</th>
             </tr>
         </thead>
@@ -68,11 +69,14 @@
                         {% if is_own %}
                             <td class="num">{{ contract.get_cost|intcomma }}</td>
                             <td class="center">
-                                {% if contract.endowment_insurance == "1" %}○{% endif %}
+                                <!--{% if contract.endowment_insurance == "1" %}○{% endif %}-->
+                                {{ member.get_health_insurance|default:''|intcomma }}
                             </td>
                             <td class="num">{{ contract.allowance_overtime|intcomma }}</td>
                             <td class="num">{{ contract.allowance_absenteeism|intcomma }}</td>
+                            <td class="num">{{ member.get_all_cost|intcomma }}</td>
                         {% else %}
+                            <td>****</td>
                             <td>****</td>
                             <td>****</td>
                             <td>****</td>
