@@ -1257,12 +1257,17 @@ class Member(AbstractMember):
         """
         if not date:
             date = datetime.date.today()
-        results = self.membersalespersonperiod_set.filter((Q(start_date__lte=date) & Q(end_date__isnull=True)) |
-                                                          (Q(start_date__lte=date) & Q(end_date__gte=date)),
-                                                          is_deleted=False)
-        if results.count() > 0:
-            return results[0].salesperson
-        return None
+        first_day = common.get_first_day_by_month(date)
+        last_day = common.get_last_day_by_month(date)
+        results = self.membersalespersonperiod_set.filter(
+            (Q(start_date__lte=last_day) & Q(end_date__isnull=True)) |
+            (Q(start_date__lte=last_day) & Q(end_date__gte=first_day)),
+            is_deleted=False
+        ).first()
+        if results:
+            return results.salesperson
+        else:
+            return None
 
     def get_current_project_member(self):
         """現在実施中の案件アサイン情報を取得する
