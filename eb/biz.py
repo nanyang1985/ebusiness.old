@@ -420,6 +420,8 @@ def get_organization_turnover(year, month, section=None, param_dict=None, order_
     duplicated_index = duplicated_df.groupby('projectmember_id').apply(lambda x: list(x.index))
     for pm_id, rows in duplicated_index.iteritems():
         basic_row = df.loc[(df.projectmember_id == pm_id) & (df.member_type != 4)]
+        if basic_row.empty:
+            continue
         basic_index = basic_row.iloc[0].name
         for index in rows:
             if index == basic_index:
