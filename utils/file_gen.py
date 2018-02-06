@@ -1372,7 +1372,8 @@ def generate_members_cost(user, members):
     # タイトル
     for i, title in enumerate([u'給料王ＩＤ', u"名前", u"契約形態", u"メールアドレス",
                                u"事業部", u"部署", u"課・グループ", u"課長", u"協力会社", u"ランク",
-                               u"月給", u"保険", u"残業", u"欠勤", u"案件"], start=1):
+                               u"月給", u"交通費", u"健康保険", u"雇用保険", u"残業", u"欠勤", u"コスト",
+                               u"案件"], start=1):
         sheet.cell(row=1, column=i).value = title
     # リスト
     start_row = 2
@@ -1386,25 +1387,34 @@ def generate_members_cost(user, members):
         sheet.cell(row=row, column=2).value = unicode(member)
         sheet.cell(row=row, column=3).value = contract.get_member_type_display() if contract else ''
         sheet.cell(row=row, column=4).value = member.email
-        sheet.cell(row=row, column=5).value = unicode(section_period.division) if section_period else ''
-        sheet.cell(row=row, column=6).value = unicode(section_period.section) if section_period else ''
-        sheet.cell(row=row, column=7).value = unicode(section_period.subsection) if section_period else ''
+        sheet.cell(row=row, column=5).value = unicode(
+            section_period.division) if section_period and section_period.division else ''
+        sheet.cell(row=row, column=6).value = unicode(
+            section_period.section) if section_period and section_period.section else ''
+        sheet.cell(row=row, column=7).value = unicode(
+            section_period.subsection) if section_period and section_period.subsection else ''
         sheet.cell(row=row, column=8).value = unicode(section_period.subsection.get_chief().first()) \
             if section_period and section_period.subsection else ''
         sheet.cell(row=row, column=9).value = unicode(member.subcontractor) if member.subcontractor else ''
         sheet.cell(row=row, column=10).value = member.get_ranking_display()
         if is_own:
             sheet.cell(row=row, column=11).value = contract.get_cost() if contract else ''
-            sheet.cell(row=row, column=12).value = u"○" if contract and contract.endowment_insurance == "1" else ''
-            sheet.cell(row=row, column=13).value = contract.allowance_overtime if contract else ''
-            sheet.cell(row=row, column=14).value = contract.allowance_absenteeism if contract else ''
+            sheet.cell(row=row, column=12).value = member.traffic_cost
+            sheet.cell(row=row, column=13).value = member.get_health_insurance
+            sheet.cell(row=row, column=14).value = member.employment_insurance
+            sheet.cell(row=row, column=15).value = contract.allowance_overtime if contract else ''
+            sheet.cell(row=row, column=16).value = contract.allowance_absenteeism if contract else ''
+            sheet.cell(row=row, column=17).value = member.get_all_cost()
         else:
             sheet.cell(row=row, column=11).value = "****"
             sheet.cell(row=row, column=12).value = "****"
             sheet.cell(row=row, column=13).value = "****"
             sheet.cell(row=row, column=14).value = "****"
+            sheet.cell(row=row, column=15).value = "****"
+            sheet.cell(row=row, column=16).value = "****"
+            sheet.cell(row=row, column=17).value = "****"
         project_member = member.get_current_project_member()
-        sheet.cell(row=row, column=15).value = unicode(project_member.project) if project_member else ''
+        sheet.cell(row=row, column=18).value = unicode(project_member.project) if project_member else ''
 
     return save_virtual_workbook(book)
 
