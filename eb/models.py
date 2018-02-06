@@ -1273,12 +1273,9 @@ class Member(AbstractMember):
         """現在実施中の案件アサイン情報を取得する
         """
         now = datetime.datetime.now()
-        projects = self.projectmember_set.public_filter(end_date__gte=now, start_date__lte=now,
+        queryset = self.projectmember_set.public_filter(end_date__gte=now, start_date__lte=now,
                                                         status=2, is_deleted=False)
-        if projects.count() > 0:
-            return projects[0]
-        else:
-            return None
+        return queryset.first()
 
     def get_current_end_project_member(self):
         """今月リリースのアサイン情報を取得する。
@@ -1575,9 +1572,40 @@ class Member(AbstractMember):
         except (ObjectDoesNotExist, MultipleObjectsReturned):
             return 0
 
+    @cached_property
+    def traffic_cost(self):
+        date = datetime.date.today()
+        queryset = MemberAttendance.objects.public_filter(
+            project_member__in=self.projectmember_set.filter(status=2, is_deleted=False),
+        )
+        attendance = queryset.filter(year=date.strftime('%Y'), month=date.strftime('%m')).first()
+        if attendance:
+            cost = attendance.traffic_cost
+        else:
+            date = common.add_months(date, -1)
+            attendance = queryset.filter(year=date.strftime('%Y'), month=date.strftime('%m')).first()
+            cost = attendance.traffic_cost if attendance else 0
+        return cost or 0
+
+    @cached_property
+    def employment_insurance(self):
+        date = datetime.date.today()
+        queryset = MemberAttendance.objects.public_filter(
+            project_member__in=self.projectmember_set.filter(status=2, is_deleted=False),
+        )
+        attendance = queryset.filter(year=date.strftime('%Y'), month=date.strftime('%m')).first()
+        if attendance:
+            cost = attendance.get_employment_insurance()
+        else:
+            date = common.add_months(date, -1)
+            attendance = queryset.filter(year=date.strftime('%Y'), month=date.strftime('%m')).first()
+            cost = attendance.get_employment_insurance() if attendance else 0
+        return cost or 0
+
+
     def get_all_cost(self):
         today = datetime.date.today()
-        return self.get_cost(today) + self.get_health_insurance
+        return self.get_cost(today) + self.get_health_insurance + self.traffic_cost + self.employment_insurance
 
     def delete(self, using=None, keep_parents=False):
         self.is_deleted = True

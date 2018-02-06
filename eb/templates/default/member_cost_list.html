@@ -26,10 +26,9 @@
     <table class="list" cellpadding="0" cellspacing="0">
         <thead>
             <tr>
-                <th>{% create_order_display "給料王ＩＤ" "" %}</th>
+                <th>{% create_order_display "給料王ID" "" %}</th>
                 <th>{% create_order_display "名前" "" %}</th>
                 <th>{% create_order_display "契約形態" "" %}</th>
-                <th>{% create_order_display "メールアドレス" "" %}</th>
                 <th>事業部</th>
                 <th>部署</th>
                 <th>課・グループ</th>
@@ -37,9 +36,11 @@
                 <th>{% create_order_display "協力会社" "" %}</th>
                 <th>{% create_order_display "ランク" "" %}</th>
                 <th>{% create_order_display "月給" "" %}</th>
+                <th>交通費</th>
                 <th>健康保険</th>
-                <th>{% create_order_display "残業" "" %}</th>
-                <th>{% create_order_display "欠勤" "" %}</th>
+                <th>雇用保険</th>
+                <th>残業</th>
+                <th>欠勤</th>
                 <th>{% create_order_display "コスト" "" %}</th>
                 <th>{% create_order_display "案件" "" %}</th>
             </tr>
@@ -56,22 +57,23 @@
                             {% endif %}
                         </td>
                         <td><a href="{% url 'member_detail' member.employee_id %}">{{ member }}</a></td>
-                        <td>{{ contract.get_member_type_display }}</td>
-                        <td><div style="width: 80px; overflow: hidden; white-space: nowrap;">{{ member.email|default:'' }}</div></td>
+                        <td title="{{ contract.get_member_type_display }}"><div style="width: 50px; overflow: hidden; white-space: nowrap;">{{ contract.get_member_type_display }}</div></td>
                         {% with section_period=member.current_section_period|first %}
-                        <td>{{ section_period.division|default:'' }}</td>
+                        <td><div style="width: 50px; overflow: hidden; white-space: nowrap;">{{ section_period.division|default:'' }}</div></td>
                         <td>{{ section_period.section|default:'' }}</td>
                         <td>{{ section_period.subsection|default:'' }}</td>
                         <td>{{ section_period.subsection.get_chief.first|default:'' }}</td>
                         {% endwith %}
-                        <td><div style="width: 70px; overflow: hidden; white-space: nowrap;">{{ member.subcontractor|default:"" }}</div></td>
+                        <td title="{{ member.subcontractor|default:'' }}"><div style="width: 70px; overflow: hidden; white-space: nowrap;">{{ member.subcontractor|default:'' }}</div></td>
                         <td><div style="width: 60px; overflow: hidden; white-space: nowrap;">{{ member.get_ranking_display|default:'' }}</div></td>
                         {% if is_own %}
                             <td class="num">{{ contract.get_cost|intcomma }}</td>
+                            <td class="num">{{ member.traffic_cost|intcomma }}</td>
                             <td class="center">
                                 <!--{% if contract.endowment_insurance == "1" %}○{% endif %}-->
                                 {{ member.get_health_insurance|default:''|intcomma }}
                             </td>
+                            <td class="num">{{ member.employment_insurance|intcomma }}</td>
                             <td class="num">{{ contract.allowance_overtime|intcomma }}</td>
                             <td class="num">{{ contract.allowance_absenteeism|intcomma }}</td>
                             <td class="num">{{ member.get_all_cost|intcomma }}</td>
@@ -81,8 +83,10 @@
                             <td>****</td>
                             <td>****</td>
                             <td>****</td>
+                            <td>****</td>
+                            <td>****</td>
                         {% endif %}
-                        <td><div style="width: 80px; overflow: hidden; white-space: nowrap;">{{ member.get_current_project_member.project }}</div></td>
+                        <td title="{{ member.get_current_project_member.project }}"><div style="width: 80px; overflow: hidden; white-space: nowrap;">{{ member.get_current_project_member.project }}</div></td>
                     </tr>
                     {% endwith %}
                 {% endfor %}
