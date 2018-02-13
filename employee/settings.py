@@ -67,25 +67,25 @@ SESSION_COOKIE_AGE = 60 * 60 * 24
 # Database
 # https://docs.djangoproject.com/en/1.7/ref/settings/#databases
 
-if sys.platform == 'linux2':
+if sys.platform in ('linux2', 'linux'):
     # AWS docker
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.mysql',
             'NAME': 'eb_sales',
-            'USER': '',
-            'PASSWORD': '',
-            'HOST': '',
-            'PORT': '3306',
+            'USER': 'root',
+            'PASSWORD': os.environ['MYSQL_ENV_MYSQL_ROOT_PASSWORD'],
+            'HOST': os.environ['MYSQL_PORT_3306_TCP_ADDR'],
+            'PORT': os.environ['MYSQL_PORT_3306_TCP_PORT'],
         },
 
         'bpm_eboa': {
             'ENGINE': 'django.db.backends.mysql',
             'NAME': 'bpm_eboa',
-            'USER': '',
-            'PASSWORD': '',
-            'HOST': '',
-            'PORT': '3306',
+            'USER': 'root',
+            'PASSWORD': os.environ['MYSQL_ENV_MYSQL_ROOT_PASSWORD'],
+            'HOST': os.environ['MYSQL_PORT_3306_TCP_ADDR'],
+            'PORT': os.environ['MYSQL_PORT_3306_TCP_PORT'],
         },
     }
 elif sys.platform == 'win32' and getpass.getuser() == 'EB097':
