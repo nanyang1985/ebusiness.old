@@ -72,10 +72,10 @@ def get_batches():
 
     :return:
     """
-    if sys.platform == 'linux2':
-        user = os.environ['MYSQL_USER']
-        password = os.environ['MYSQL_PASSWORD']
-        host = os.environ['MYSQL_SERVER']
+    if sys.platform in ('linux2', 'linux'):
+        user = 'root'
+        password = os.environ['MYSQL_ENV_MYSQL_ROOT_PASSWORD']
+        host = os.environ['MYSQL_PORT_3306_TCP_ADDR']
     else:
         user = 'root'
         password = 'root'
