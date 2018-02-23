@@ -189,7 +189,7 @@
                     {% if data %}
                         {{ data.DETAIL.SUBCONTRACTOR_MIDDLEMAN|default:'' }}
                     {% else %}
-                        {{ bp_order.bpmemberorderheading.subcontractor_middleman }}
+                        {{ bp_order.bpmemberorderheading.subcontractor_middleman|default:'' }}
                     {% endif %}
                 </td>
             </tr>

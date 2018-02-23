@@ -841,7 +841,7 @@ def generate_bp_order_data(project_member, year, month, contract, user, bp_order
     salesperson = project_member.member.get_salesperson(datetime.date(int(year), int(month), 20))
     data['DETAIL']['MIDDLEMAN'] = unicode(salesperson) if salesperson else ''
     # 連絡窓口担当者（乙）
-    data['DETAIL']['SUBCONTRACTOR_MIDDLEMAN'] = contract.company.middleman
+    data['DETAIL']['SUBCONTRACTOR_MIDDLEMAN'] = contract.company.middleman or ''
     # 作成者
     data['DETAIL']['AUTHOR_FIRST_NAME'] = user.first_name if user else ''
     # 会社名
