@@ -46,7 +46,7 @@ select m.id as member_id
      , c.cost
      , c.is_hourly_pay
      , c.is_fixed_cost
-     , c.allowance_time_min as min_hours
+     , IFNULL(bp_h.allowance_time_min, c.allowance_time_min) as min_hours
      , c.allowance_time_max as max_hours
      , c.allowance_absenteeism as minus_per_hour
      , c.allowance_overtime as plus_per_hour
@@ -59,7 +59,7 @@ select m.id as member_id
      , case
            when c.is_hourly_pay or c.is_fixed_cost then 0
            when ma.id is null then 0
-           else get_overtime(IF(ma.total_hours_bp is null or ma.total_hours_bp = 0, IFNULL(ma.total_hours, 0), ma.total_hours_bp), c.allowance_time_min, c.allowance_time_max, c.is_hourly_pay, c.is_fixed_cost, p.is_reserve)
+           else get_overtime(IF(ma.total_hours_bp is null or ma.total_hours_bp = 0, IFNULL(ma.total_hours, 0), ma.total_hours_bp), IFNULL(bp_h.allowance_time_min, c.allowance_time_min), c.allowance_time_max, c.is_hourly_pay, c.is_fixed_cost, p.is_reserve)
        end as extra_hours
      , IFNULL(ma.total_days, 0) as total_days
      , IFNULL(ma.night_days, 0) as night_days
@@ -93,7 +93,7 @@ select m.id as member_id
      , IFNULL(IF(c.is_hourly_pay = 0, c.cost, c.cost * get_attendance_total_hours(IF(ma.total_hours_bp is null or ma.total_hours_bp = 0, IFNULL(ma.total_hours, 0), ma.total_hours_bp)) + c.allowance_other), 0) as salary
      , IFNULL(ma.allowance, 0) as allowance
      , get_night_allowance(ma.night_days) as night_allowance
-     , get_overtime_cost(IF(ma.total_hours_bp is null or ma.total_hours_bp = 0, IFNULL(ma.total_hours, 0), ma.total_hours_bp), c.allowance_time_min, c.allowance_time_max, c.is_hourly_pay, c.is_fixed_cost, p.is_reserve, c.allowance_absenteeism, c.allowance_overtime) as overtime_cost
+     , get_overtime_cost(IF(ma.total_hours_bp is null or ma.total_hours_bp = 0, IFNULL(ma.total_hours, 0), ma.total_hours_bp), IFNULL(bp_h.allowance_time_min, c.allowance_time_min), c.allowance_time_max, c.is_hourly_pay, c.is_fixed_cost, p.is_reserve, c.allowance_absenteeism, c.allowance_overtime) as overtime_cost
      , case c.member_type
            when 4 then get_bp_expenses(pm.id, ma.year, ma.month)
            else IFNULL(ma.expenses, 0) 
@@ -103,7 +103,7 @@ select m.id as member_id
            IFNULL(IF(c.is_hourly_pay = 0, c.cost, c.cost * get_attendance_total_hours(IF(ma.total_hours_bp is null or ma.total_hours_bp = 0, IFNULL(ma.total_hours, 0), ma.total_hours_bp))), 0),
            IFNULL(ma.allowance, 0),
            get_night_allowance(ma.night_days),
-           get_overtime_cost(IF(ma.total_hours_bp is null or ma.total_hours_bp = 0, IFNULL(ma.total_hours, 0), ma.total_hours_bp), c.allowance_time_min, c.allowance_time_max, c.is_hourly_pay, c.is_fixed_cost, p.is_reserve, c.allowance_absenteeism, c.allowance_overtime),
+           get_overtime_cost(IF(ma.total_hours_bp is null or ma.total_hours_bp = 0, IFNULL(ma.total_hours, 0), ma.total_hours_bp), IFNULL(bp_h.allowance_time_min, c.allowance_time_min), c.allowance_time_max, c.is_hourly_pay, c.is_fixed_cost, p.is_reserve, c.allowance_absenteeism, c.allowance_overtime),
            IFNULL(ma.traffic_cost, 0)
        ) as employment_insurance
      , get_health_insurance(
@@ -111,7 +111,7 @@ select m.id as member_id
            IFNULL(IF(c.is_hourly_pay = 0, c.cost, c.cost * get_attendance_total_hours(IF(ma.total_hours_bp is null or ma.total_hours_bp = 0, IFNULL(ma.total_hours, 0), ma.total_hours_bp))), 0),
            IFNULL(ma.allowance, 0),
            get_night_allowance(ma.night_days),
-           get_overtime_cost(IF(ma.total_hours_bp is null or ma.total_hours_bp = 0, IFNULL(ma.total_hours, 0), ma.total_hours_bp), c.allowance_time_min, c.allowance_time_max, c.is_hourly_pay, c.is_fixed_cost, p.is_reserve, c.allowance_absenteeism, c.allowance_overtime),
+           get_overtime_cost(IF(ma.total_hours_bp is null or ma.total_hours_bp = 0, IFNULL(ma.total_hours, 0), ma.total_hours_bp), IFNULL(bp_h.allowance_time_min, c.allowance_time_min), c.allowance_time_max, c.is_hourly_pay, c.is_fixed_cost, p.is_reserve, c.allowance_absenteeism, c.allowance_overtime),
            IFNULL(ma.traffic_cost, 0),
            m.id,
            get_ym()
@@ -151,6 +151,8 @@ select m.id as member_id
   left join v_contract c on c.member_id = m.id 
                         and c.is_old = 0 and extract(year_month from(c.start_date)) <= get_ym()
                         and (extract(year_month from(c.end_date)) >= get_ym() or c.end_date is null)
+  left join eb_bpmemberorder bp_o on bp_o.project_member_id = pm.id and bp_o.is_deleted = 0 and bp_o.year = ma.year and bp_o.month = ma.month
+  left join eb_bpmemberorderheading bp_h on bp_h.bp_order_id = bp_o.id
  where m.is_deleted = 0
 union all
 select null as member_id

@@ -2799,8 +2799,8 @@ class SubcontractorRequest(models.Model):
                 if contract:
                     detail.hourly_pay = contract.allowance_base if contract.is_hourly_pay else 0
                     detail.basic_price = contract.allowance_base
-                    detail.min_hours = contract.allowance_time_min
-                    detail.max_hours = contract.allowance_time_max
+                    detail.min_hours = item['ITEM_MIN_HOURS']
+                    detail.max_hours = item['ITEM_MAX_HOURS']
                 detail.total_hours = item['ITEM_WORK_HOURS'] if item['ITEM_WORK_HOURS'] else 0
                 detail.extra_hours = item['ITEM_EXTRA_HOURS'] if item['ITEM_EXTRA_HOURS'] else 0
                 detail.rate = item['ITEM_RATE']
@@ -3125,17 +3125,19 @@ class MemberAttendance(BaseModel):
         else:
             return 0
 
-    def get_overtime_cost(self):
+    def get_overtime_cost(self, allowance_time_min=None):
         """残業／控除の金額を取得する
 
         :return:
         """
         contract = self.get_contract()
+        if allowance_time_min is None:
+            allowance_time_min = contract.allowance_time_min
         if contract:
             if contract.is_fixed_cost:
                 return 0
             total_hours = self.get_total_hours_cost()
-            if contract.allowance_time_min <= total_hours <= contract.allowance_time_max:
+            if allowance_time_min <= total_hours <= contract.allowance_time_max:
                 return 0
             elif self.project_member.project.is_reserve:
                 # 待機案件の場合、残業と欠勤を計算する必要がない。
@@ -3144,7 +3146,7 @@ class MemberAttendance(BaseModel):
                 overtime = total_hours - float(contract.allowance_time_max)
                 return int(overtime * contract.allowance_overtime)
             else:
-                absenteeism = total_hours - float(contract.allowance_time_min)
+                absenteeism = total_hours - float(allowance_time_min)
                 return int(absenteeism * contract.allowance_absenteeism)
         else:
             return 0

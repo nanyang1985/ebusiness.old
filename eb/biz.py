@@ -1283,6 +1283,9 @@ def generate_subcontractor_request_data(subcontractor, year, month, subcontracto
                     bp_member_order = None
                 if contract_list.count() > 0:
                     contract = contract_list[0]
+                    allowance_time_min = contract.allowance_time_min
+                    if bp_member_order and hasattr(bp_member_order, 'bpmemberorderheading'):
+                        allowance_time_min = float(bp_member_order.bpmemberorderheading.allowance_time_min)
                     dict_expenses = dict()
                     # この項目は請求書の出力ではなく、履歴データをProjectRequestDetailに保存するために使う。
                     dict_expenses["EXTRA_PROJECT_MEMBER"] = member_attendance.project_member
@@ -1293,14 +1296,14 @@ def generate_subcontractor_request_data(subcontractor, year, month, subcontracto
                     # 項目
                     dict_expenses['ITEM_NAME'] = unicode(member)
                     # 時間下限
-                    dict_expenses['ITEM_MIN_HOURS'] = contract.allowance_time_min
+                    dict_expenses['ITEM_MIN_HOURS'] = allowance_time_min
                     # 時間上限
                     dict_expenses['ITEM_MAX_HOURS'] = contract.allowance_time_max
                     # 勤務時間
                     dict_expenses['ITEM_WORK_HOURS'] = member_attendance.total_hours_bp \
                         if member_attendance.total_hours_bp else member_attendance.total_hours
                     # 超過金額と控除金額
-                    extra_amount = member_attendance.get_overtime_cost()
+                    extra_amount = member_attendance.get_overtime_cost(allowance_time_min=allowance_time_min)
                     # 諸経費
                     dict_expenses['ITEM_EXPENSES_TOTAL'] = member_attendance.get_bp_expenses_amount()
                     if extra_amount > 0:
@@ -1332,7 +1335,7 @@ def generate_subcontractor_request_data(subcontractor, year, month, subcontracto
                         dict_expenses['ITEM_PRICE'] = contract.get_cost() or 0
                         # Min/Max（H）
                         dict_expenses['ITEM_MIN_MAX'] = "%s/%s" % (
-                            int(contract.allowance_time_min), int(contract.allowance_time_max)
+                            int(allowance_time_min), int(contract.allowance_time_max)
                         )
                         # 残業時間
                         extra_hours = member_attendance.get_overtime(contract)
@@ -1357,7 +1360,7 @@ def generate_subcontractor_request_data(subcontractor, year, month, subcontracto
                             dict_expenses['ITEM_PLUS_PER_HOUR2'] = u""
                             dict_expenses['ITEM_MINUS_PER_HOUR2'] = u""
                         # 基本金額＋残業金額
-                        dict_expenses['ITEM_AMOUNT_TOTAL'] = member_attendance.get_cost() + member_attendance.get_overtime_cost()
+                        dict_expenses['ITEM_AMOUNT_TOTAL'] = member_attendance.get_cost() + member_attendance.get_overtime_cost(allowance_time_min=allowance_time_min)
                     # 備考
                     dict_expenses['ITEM_COMMENT'] = member_attendance.comment \
                         if member_attendance and member_attendance.comment else u""
