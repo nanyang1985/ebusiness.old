@@ -1285,7 +1285,8 @@ def generate_subcontractor_request_data(subcontractor, year, month, subcontracto
                     contract = contract_list[0]
                     allowance_time_min = contract.allowance_time_min
                     if bp_member_order and hasattr(bp_member_order, 'bpmemberorderheading'):
-                        allowance_time_min = float(bp_member_order.bpmemberorderheading.allowance_time_min)
+                        if bp_member_order.bpmemberorderheading.allowance_time_min:
+                            allowance_time_min = float(bp_member_order.bpmemberorderheading.allowance_time_min)
                     dict_expenses = dict()
                     # この項目は請求書の出力ではなく、履歴データをProjectRequestDetailに保存するために使う。
                     dict_expenses["EXTRA_PROJECT_MEMBER"] = member_attendance.project_member
