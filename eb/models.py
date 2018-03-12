@@ -3146,7 +3146,7 @@ class MemberAttendance(BaseModel):
                 overtime = total_hours - float(contract.allowance_time_max)
                 return int(overtime * contract.allowance_overtime)
             else:
-                absenteeism = total_hours - float(allowance_time_min)
+                absenteeism = round(total_hours - float(allowance_time_min), 2)
                 return int(absenteeism * contract.allowance_absenteeism)
         else:
             return 0

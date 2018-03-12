@@ -106,16 +106,19 @@ select m.id as member_id
            get_overtime_cost(IF(ma.total_hours_bp is null or ma.total_hours_bp = 0, IFNULL(ma.total_hours, 0), ma.total_hours_bp), IFNULL(bp_h.allowance_time_min, c.allowance_time_min), c.allowance_time_max, c.is_hourly_pay, c.is_fixed_cost, p.is_reserve, c.allowance_absenteeism, c.allowance_overtime),
            IFNULL(ma.traffic_cost, 0)
        ) as employment_insurance
-     , get_health_insurance(
-           c.endowment_insurance,
-           IFNULL(IF(c.is_hourly_pay = 0, c.cost, c.cost * get_attendance_total_hours(IF(ma.total_hours_bp is null or ma.total_hours_bp = 0, IFNULL(ma.total_hours, 0), ma.total_hours_bp))), 0),
-           IFNULL(ma.allowance, 0),
-           get_night_allowance(ma.night_days),
-           get_overtime_cost(IF(ma.total_hours_bp is null or ma.total_hours_bp = 0, IFNULL(ma.total_hours, 0), ma.total_hours_bp), IFNULL(bp_h.allowance_time_min, c.allowance_time_min), c.allowance_time_max, c.is_hourly_pay, c.is_fixed_cost, p.is_reserve, c.allowance_absenteeism, c.allowance_overtime),
-           IFNULL(ma.traffic_cost, 0),
-           m.id,
-           get_ym()
-       ) as health_insurance 
+     , case 
+		   when c.member_type <> 4 then get_health_insurance(
+               c.endowment_insurance,
+               IFNULL(IF(c.is_hourly_pay = 0, c.cost, c.cost * get_attendance_total_hours(IF(ma.total_hours_bp is null or ma.total_hours_bp = 0, IFNULL(ma.total_hours, 0), ma.total_hours_bp))), 0),
+               IFNULL(ma.allowance, 0),
+               get_night_allowance(ma.night_days),
+               get_overtime_cost(IF(ma.total_hours_bp is null or ma.total_hours_bp = 0, IFNULL(ma.total_hours, 0), ma.total_hours_bp), IFNULL(bp_h.allowance_time_min, c.allowance_time_min), c.allowance_time_max, c.is_hourly_pay, c.is_fixed_cost, p.is_reserve, c.allowance_absenteeism, c.allowance_overtime),
+               IFNULL(ma.traffic_cost, 0),
+               m.id,
+               get_ym()
+           )
+           else 0
+	   end as health_insurance 
 	 , IFNULL(ma.expenses_conference, 0) as expenses_conference				-- 会議費
      , IFNULL(ma.expenses_entertainment, 0) as expenses_entertainment		-- 交際費
      , IFNULL(ma.expenses_travel, 0) as expenses_travel						-- 旅費交通費
