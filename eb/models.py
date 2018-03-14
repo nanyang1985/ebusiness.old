@@ -885,6 +885,7 @@ class Section(BaseModel):
     name = models.CharField(blank=False, null=False, max_length=30, verbose_name=u"部署名")
     description = models.CharField(blank=True, null=True, max_length=200, verbose_name=u"概要")
     is_on_sales = models.BooleanField(blank=False, null=False, default=False, verbose_name=u"営業対象")
+    is_active = models.BooleanField(default=False, verbose_name=u"社員に表示")
     parent = models.ForeignKey("self", related_name='children', blank=True, null=True, on_delete=models.PROTECT,
                                verbose_name=u"親組織")
     org_type = models.CharField(blank=False, null=False, max_length=2, choices=constants.CHOICE_ORG_TYPE,
@@ -1692,7 +1693,7 @@ class MemberSalesOffPeriod(BaseModel):
 
 class PositionShip(BaseModel):
     member = models.ForeignKey(Member, on_delete=models.PROTECT, verbose_name=u"社員名")
-    position = models.IntegerField(blank=True, null=True, choices=constants.CHOICE_POSITION, verbose_name=u"職位")
+    position = models.FloatField(blank=True, null=True, choices=constants.CHOICE_POSITION, verbose_name=u"職位")
     section = models.ForeignKey(Section, on_delete=models.PROTECT, verbose_name=u"所属")
     is_part_time = models.BooleanField(default=False, verbose_name=u"兼任")
 
