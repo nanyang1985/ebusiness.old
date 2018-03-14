@@ -1693,7 +1693,9 @@ class MemberSalesOffPeriod(BaseModel):
 
 class PositionShip(BaseModel):
     member = models.ForeignKey(Member, on_delete=models.PROTECT, verbose_name=u"社員名")
-    position = models.FloatField(blank=True, null=True, choices=constants.CHOICE_POSITION, verbose_name=u"職位")
+    position = models.DecimalField(
+        blank=True, null=True, max_digits=4, decimal_places=1, choices=constants.CHOICE_POSITION, verbose_name=u"職位"
+    )
     section = models.ForeignKey(Section, on_delete=models.PROTECT, verbose_name=u"所属")
     is_part_time = models.BooleanField(default=False, verbose_name=u"兼任")
 
