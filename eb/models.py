@@ -1183,6 +1183,8 @@ class Member(AbstractMember):
     id_card_expired_date = models.DateField(blank=True, null=True, verbose_name=u"在留カード期限")
     visa_start_date = models.DateField(blank=True, null=True, verbose_name=u"ビザ有効期限（開始）")
     visa_expire_date = models.DateField(blank=True, null=True, verbose_name=u"ビザ有効期限（終了）")
+    passport_number = models.CharField(blank=True, null=True, max_length=20, verbose_name=u"パスポート番号")
+    passport_expired_dt = models.DateField(blank=True, null=True, verbose_name=u"パスポート有効期限")
     residence_type = models.CharField(blank=True, null=True, max_length=20, choices=constants.CHOICE_RESIDENCE_TYPE, verbose_name=u"在留種類")
     pay_bank = models.CharField(blank=True, null=True, max_length=20, verbose_name=u"銀行名")
     pay_bank_code = models.CharField(blank=True, null=True, max_length=20, verbose_name=u"銀行コード")

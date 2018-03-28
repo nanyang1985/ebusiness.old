@@ -146,6 +146,12 @@
                 </tr>
                 <!-- EBOA 情報追加 20180328 zhuang-->
                 <tr>
+                    <th>{{ form.passport_number.label_tag }}</th>
+                    <td>{{ form.passport_number.errors }}{{ form.passport_number }}</td>
+                    <th>{{ form.passport_expired_dt.label_tag }}</th>
+                    <td>{{ form.passport_expired_dt.errors }}{{ form.passport_expired_dt }}</td>
+                </tr>
+                <tr>
                     <th>{{ form.id_number.label_tag }}</th>
                     <td>{{ form.id_number.errors }}{{ form.id_number }}</td>
                     <th>{{ form.id_card_expired_date.label_tag }}</th>
