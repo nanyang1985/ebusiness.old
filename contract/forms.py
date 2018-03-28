@@ -33,6 +33,10 @@ class MemberForm(BaseForm):
                                 help_text=u"数値だけを入力してください、例：1230034",
                                 required=False)
 
+    id_card_expired_date = forms.DateField(widget=AdminDateWidget, label=u"在留カード期限")
+    visa_start_date = forms.DateField(widget=AdminDateWidget, label=u"ビザ有効期限（開始）")
+    visa_expire_date = forms.DateField(widget=AdminDateWidget, label=u"ビザ有効期限（終了）")
+
     def __init__(self, *args, **kwargs):
         super(MemberForm, self).__init__(*args, **kwargs)
         self.fields['id_from_api'].widget.attrs.update({'readonly': 'readonly'})
