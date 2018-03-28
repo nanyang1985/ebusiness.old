@@ -1193,6 +1193,7 @@ class Member(AbstractMember):
     pay_owner = models.CharField(blank=True, null=True, max_length=20, verbose_name=u"口座名義")
     pay_owner_kana = models.CharField(blank=True, null=True, max_length=20, verbose_name=u"口座名義（カナ）")
     pay_account = models.CharField(blank=True, null=True, max_length=20, verbose_name=u"口座番号")
+    avatar_url = models.CharField(blank=True, null=True, max_length=500, verbose_name=u"自分の写真")
 
     objects = PublicManager(is_deleted=False, is_retired=False)
 
