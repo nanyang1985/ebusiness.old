@@ -363,6 +363,8 @@ class BpContract(BaseModel):
             return len(common.get_business_days(year, month)) * 8
         elif self.calculate_type == '03':
             return len(common.get_business_days(year, month)) * 7.9
+        elif self.calculate_type == '04':
+            return len(common.get_business_days(year, month)) * 7.75
         else:
             return self.allowance_time_min
 
@@ -384,7 +386,13 @@ class BpContract(BaseModel):
                 allowance_time_memo = u"※基準時間：%s～%sh/月" % (allowance_time_min, allowance_time_max)
         # 営業日数 × ８または営業日数 × ７.９の説明
         if self.calculate_type in ('02', '03'):
-            hours = 8 if self.calculate_type == '02' else 7.9
+            hours = 8
+            if self.calculate_type == '02':
+                hours = 8
+            elif self.calculate_type == '03':
+                hours = 7.9
+            elif self.calculate_type == '04':
+                hours = 7.75
             allowance_time_memo += "   （%s＝%s月の営業日数(%s)×%s）" % (
                 allowance_time_min, month, len(common.get_business_days(year, month)), hours
             )

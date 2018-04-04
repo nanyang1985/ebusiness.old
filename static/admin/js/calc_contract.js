@@ -332,6 +332,11 @@ function change_business_days(obj, name_base, name_min, name_max, name_minus, na
             obj_min.val(parseInt(days * 7.9));
             //calculate_minus_from_min_hour(obj_min[0], name_base, name_min, name_max, name_minus, name_plus);
         }
+        } else if (calc_type === "04") {
+            // 営業日数 × ７.７５
+            obj_min.val(parseInt(days * 7.75));
+            //calculate_minus_from_min_hour(obj_min[0], name_base, name_min, name_max, name_minus, name_plus);
+        }
     }
 }
 
@@ -365,6 +370,10 @@ function change_calculate_type(obj, name_base, name_min, name_max, name_minus, n
         } else if (calc_type === "03") {
             // 営業日数 × ７.９
             obj_min.val(parseInt(days * 7.9));
+            obj_min.attr('readonly', 'readonly');
+        } else if (calc_type === "04") {
+            // 営業日数 × ７.７５
+            obj_min.val(parseInt(days * 7.75));
             obj_min.attr('readonly', 'readonly');
         } else {
             obj_min.removeAttr('readonly', 'readonly');
