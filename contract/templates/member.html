@@ -144,6 +144,52 @@
                     <th>{{ form.private_email.label_tag }}</th>
                     <td colspan="3">{{ form.private_email.errors }}{{ form.private_email }}</td>
                 </tr>
+                <!-- EBOA 情報追加 20180328 zhuang-->
+                <tr>
+                    <th>{{ form.passport_number.label_tag }}</th>
+                    <td>{{ form.passport_number.errors }}{{ form.passport_number }}</td>
+                    <th>{{ form.passport_expired_dt.label_tag }}</th>
+                    <td>{{ form.passport_expired_dt.errors }}{{ form.passport_expired_dt }}</td>
+                </tr>
+                <tr>
+                    <th>{{ form.id_number.label_tag }}</th>
+                    <td>{{ form.id_number.errors }}{{ form.id_number }}</td>
+                    <th>{{ form.id_card_expired_date.label_tag }}</th>
+                    <td>{{ form.id_card_expired_date.errors }}{{ form.id_card_expired_date }}</td>
+                </tr>
+                <tr>
+                    <th>{{ form.visa_start_date.label_tag }}</th>
+                    <td>{{ form.visa_start_date.errors }}{{ form.visa_start_date }}</td>
+                    <th>{{ form.visa_expire_date.label_tag }}</th>
+                    <td>{{ form.visa_expire_date.errors }}{{ form.visa_expire_date }}</td>
+                </tr>
+                <tr>
+                    <th>{{ form.residence_type.label_tag }}</th>
+                    <td colspan="3">{{ form.residence_type.errors }}{{ form.residence_type }}</td>
+                </tr>
+                <tr>
+                    <th>{{ form.pay_bank_code.label_tag }}</th>
+                    <td>{{ form.pay_bank_code.errors }}{{ form.pay_bank_code }}</td>
+                    <th>{{ form.pay_bank.label_tag }}</th>
+                    <td>{{ form.pay_bank.errors }}{{ form.pay_bank }}</td>
+                </tr>
+                <tr>
+                    <th>{{ form.pay_branch_code.label_tag }}</th>
+                    <td>{{ form.pay_branch_code.errors }}{{ form.pay_branch_code }}</td>
+                    <th>{{ form.pay_branch.label_tag }}</th>
+                    <td>{{ form.pay_branch.errors }}{{ form.pay_branch }}</td>
+                </tr>
+                <tr>
+                    <th>{{ form.pay_account.label_tag }}</th>
+                    <td colspan="3">{{ form.pay_account.errors }}{{ form.pay_account }}</td>
+                </tr>
+                <tr>
+                    <th>{{ form.pay_owner.label_tag }}</th>
+                    <td>{{ form.pay_owner.errors }}{{ form.pay_owner }}</td>
+                    <th>{{ form.pay_owner_kana.label_tag }}</th>
+                    <td>{{ form.pay_owner_kana.errors }}{{ form.pay_owner_kana }}</td>
+                </tr>
+                <!-- EBOA 情報追加 20180328 zhuang-->
                 <tr>
                     <th>{{ form.is_retired.label_tag }}</th>
                     <td>{{ form.is_retired.errors }}{{ form.is_retired }}</td>
