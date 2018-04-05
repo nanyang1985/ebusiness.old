@@ -496,7 +496,7 @@ class MemberAttendanceFormSet(forms.ModelForm):
                                         required=False)
     extra_hours = forms.DecimalField(max_digits=5, decimal_places=2, initial=0,
                                      widget=forms.TextInput(
-                                         attrs={'type': 'number',
+                                         attrs={'type': 'text',
                                                 'style': 'width: 50px;',
                                                 'step': 0.25}),
                                      label=u"残業時間",
