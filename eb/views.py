@@ -2043,6 +2043,8 @@ class DownloadBpMemberOrder(BaseView):
                 else:
                     action_flag = CHANGE
                 bp_order.updated_user = request.user
+                if bp_order.subcontractor != contract.company:
+                    bp_order.subcontractor = contract.company
                 if is_request:
                     # 注文請書の場合
                     bp_order.filename_request = filename
