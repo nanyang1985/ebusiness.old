@@ -331,7 +331,6 @@ function change_business_days(obj, name_base, name_min, name_max, name_minus, na
             // 営業日数 × ７.９
             obj_min.val(parseInt(days * 7.9));
             //calculate_minus_from_min_hour(obj_min[0], name_base, name_min, name_max, name_minus, name_plus);
-        }
         } else if (calc_type === "04") {
             // 営業日数 × ７.７５
             obj_min.val(parseInt(days * 7.75));
