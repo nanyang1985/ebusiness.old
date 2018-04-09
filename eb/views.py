@@ -128,7 +128,10 @@ class IndexView(BaseTemplateView):
             if request.user.salesperson.member_type == 5:
                 # 営業担当の場合
                 try:
-                    own_member_status = salesperson_status_list.get(salesperson=request.user.salesperson)
+                    if request.user.salesperson.pk == 36:
+                        own_member_status = salesperson_status_list.get(salesperson__pk=16)
+                    else:
+                        own_member_status = salesperson_status_list.get(salesperson=request.user.salesperson)
                 except (ObjectDoesNotExist, MultipleObjectsReturned):
                     own_member_status = None
 

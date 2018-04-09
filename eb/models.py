@@ -1118,6 +1118,8 @@ class Salesperson(AbstractMember):
         return query_set
 
     def get_warning_projects(self):
+        if self.pk == 36:
+            return Salesperson.objects.get(pk=16).get_warning_projects()
         today = datetime.date.today()
         query_set = self.project_set.filter(status=4).extra(select={
             'num_working': "select count(*) "
