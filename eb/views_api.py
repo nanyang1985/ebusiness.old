@@ -70,3 +70,8 @@ class SubcontractorRequestViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = models.Subcontractor.objects.public_all()
     serializer_class = serializers.SubcontractorRequestSerializer
     # http_method_names = ['get', 'head', 'options']
+
+
+class OrganizationViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = models.Section.objects.public_all()
+    serializer_class = serializers.OrganizationSerializer

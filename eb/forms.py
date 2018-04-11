@@ -116,6 +116,7 @@ class SubcontractorForm(forms.ModelForm):
 
 
 class SectionForm(forms.ModelForm):
+
     class Meta:
         model = models.Section
         fields = '__all__'
@@ -629,6 +630,8 @@ class MemberSectionPeriodForm(forms.ModelForm):
             self.fields['division'].queryset = models.Section.objects.public_filter(is_on_sales=True, org_type='01')
             self.fields['section'].queryset = models.Section.objects.public_filter(is_on_sales=True, org_type='02')
             self.fields['subsection'].queryset = models.Section.objects.public_filter(is_on_sales=True, org_type='03')
+        self.fields['division'].widget.attrs.update({'onchange': 'setSubOrganizations(this)'})
+        self.fields['section'].widget.attrs.update({'onchange': 'setSubOrganizations(this)'})
 
     def clean(self):
         cleaned_data = super(MemberSectionPeriodForm, self).clean()

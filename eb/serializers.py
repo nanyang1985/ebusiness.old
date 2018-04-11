@@ -118,3 +118,18 @@ class SubcontractorRequestSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Client
         fields = ('id', 'name', 'vbprequest_set')
+
+
+class SubOrganizationSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = models.Section
+        fields = '__all__'
+
+
+class OrganizationSerializer(serializers.ModelSerializer):
+    children = SubOrganizationSerializer(many=True)
+
+    class Meta:
+        model = models.Section
+        fields = '__all__'

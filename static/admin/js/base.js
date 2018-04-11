@@ -432,11 +432,11 @@ function csrfSafeMethod(method) {
 }
 
 function ajax_get(url, data, callback) {
-    ajax_request(url, "GET", data, callback)
+    return ajax_request(url, "GET", data, callback)
 }
 
 function ajax_post(url, data, callback) {
-    ajax_request(url, "POST", data, callback)
+    return ajax_request(url, "POST", data, callback)
 }
 
 function ajax_request(url, method, data, callback) {
@@ -450,11 +450,34 @@ function ajax_request(url, method, data, callback) {
         }
     });
 
-    $.ajax({
+    return $.ajax({
         type: method,
         url: url,
         data: data,
         dataType: "json",
         success: callback
     });
+}
+
+function setSubOrganizations(obj) {
+    if ($(obj).val() == "") {
+        return false;
+    }
+    var nextSelect = $(obj).closest('td').next().find('select');
+    if (nextSelect.length > 0) {
+        var selected = nextSelect.val();
+        ajax_get('/api/organization/' + $(obj).val(), {}).done(function(result) {
+            nextSelect.empty();
+            if (result.children.length == 0) {
+                nextSelect.append("<option value=''>---------------</option>");
+            }
+            $.each(result.children, function(i, item) {
+                if (i == 0) {
+                    nextSelect.append("<option value=''>---------------</option>");
+                }
+                nextSelect.append("<option value=" + item.id + ">" + item.name + "</option>");
+            });
+            nextSelect.val(selected);
+        });
+    }
 }
