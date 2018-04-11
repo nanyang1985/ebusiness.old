@@ -68,13 +68,13 @@
                             {% for member in sec2.get_chief %}
                                 {{ member}},
                             {% endfor %}
+                            {% for member in sec2.get_chief2 %}
+                                {{ member}}(担当),
+                            {% endfor %}
                         </td>
                         <td>
                             {% for member in sec2.get_attendance_statistician %}
                                 {{ member}},
-                            {% endfor %}
-                            {% for member in sec2.get_chief2 %}
-                                {{ member}}(担当),
                             {% endfor %}
                         </td>
                     </tr>
