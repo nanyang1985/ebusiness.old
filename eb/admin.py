@@ -136,7 +136,7 @@ class MemberAttendanceInline(admin.TabularInline):
 
 class MemberSectionPeriodInline(admin.TabularInline):
     model = models.MemberSectionPeriod
-    extra = 1
+    extra = 0
     form = forms.MemberSectionPeriodForm
     formset = forms.MemberSectionPeriodFormset
 
