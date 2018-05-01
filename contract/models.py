@@ -154,7 +154,7 @@ class Contract(BaseModel):
                + self.allowance_security \
                + self.allowance_qualification \
                + self.allowance_other
-        if self.member_type == 1:
+        if self.member_type in (1, 7):
             cost = int((cost * 14) / 12)
         return cost
 
