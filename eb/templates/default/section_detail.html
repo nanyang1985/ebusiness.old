@@ -40,7 +40,7 @@
                 {% for member_period in members_period %}
                     {% with current_project_member=member_period.current_projectmember_set|first %}
                     <tr class="{% cycle 'row1' 'row2' %}
-                    {% ifnotequal member_period.member.is_on_sales True %}off_sales{% endifnotequal %}
+                    {% if member_period.member.sales_off_period %}off_sales{% endif %}
                     {% ifequal member_period.member.get_project_end_date|default:'' '' %}waiting{% endifequal %}">
                         <td>
                             <a href="{% url 'member_detail' member_period.member.employee_id %}">
@@ -51,14 +51,14 @@
                         <td>{{ member_period.division|default:'' }}</td>
                         <td>{{ member_period.section|default:'' }}</td>
                         <td>{{ member_period.subsection|default:'' }}</td>
-                        <td>{{ member_period.current_projectmember_set }}
-                            {% ifnotequal member_period.member.is_on_sales True %}
+                        <td>
+                            {% if member_period.member.sales_off_period %}
                                 {{ member_period.member.sales_off_reason }}
                             {% else %}
                                 {% ifequal member_period.member.get_project_end_date|default:'' '' %}
                                     待機
                                 {% endifequal %}
-                            {% endifnotequal %}
+                            {% endif %}
                         </td>
                     </tr>
                     {% endwith %}

@@ -1620,6 +1620,15 @@ class Member(AbstractMember):
             cost = attendance.get_employment_insurance() if attendance else 0
         return cost or 0
 
+    def get_sales_off_reason(self):
+        today = datetime.date.today()
+        queryset = MemberSalesOffPeriod.objects.filter(
+            (Q(start_date__lte=today) & Q(end_date__isnull=True)) |
+            (Q(start_date__lte=today) & Q(end_date__gte=today)),
+            member=self,
+        )
+        sales_off_period = queryset.first()
+        return sales_off_period.sales_off_reason if sales_off_period else None
 
     def get_all_cost(self):
         today = datetime.date.today()
