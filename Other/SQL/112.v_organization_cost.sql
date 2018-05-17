@@ -21,6 +21,7 @@ select m.id as member_id
      , pm.id as projectmember_id
      , p.id as project_id
      , p.name as project_name
+     , p.nearest_station
      , p.is_reserve
      , p.is_lump
      , c1.id as client_id
@@ -174,6 +175,7 @@ select null as member_id
      , null as projectmember_id
      , p.id as project_id
      , p.name as project_name
+     , p.nearest_station
      , p.is_reserve
      , p.is_lump
      , c1.id as client_id
@@ -246,6 +248,7 @@ select null as member_id
      , null as projectmember_id
      , p.id as project_id
      , p.name as project_name
+     , p.nearest_station
      , 0 as is_reserve
      , 1 as is_lump
      , null as client_id

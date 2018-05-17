@@ -1192,7 +1192,7 @@ def generate_organization_turnover(user, template_path, data_frame, year=None, m
 
     start_row = constants.POS_ATTENDANCE_START_ROW
     count = data_frame.shape[0]
-    set_openpyxl_styles(sheet, 'B5:AM%s' % (start_row + count + 2,), 5)
+    set_openpyxl_styles(sheet, 'B5:AN%s' % (start_row + count + 2,), 5)
     for i, row_data in data_frame.iterrows():
         # NO
         sheet.cell(row=start_row, column=2).value = "=ROW() - 4"
@@ -1210,10 +1210,12 @@ def generate_organization_turnover(user, template_path, data_frame, year=None, m
         sheet.cell(row=start_row, column=9).value = row_data.member_type_name or ''
         # 案件名
         sheet.cell(row=start_row, column=10).value = row_data.project_name or ''
+        # 最寄駅
+        sheet.cell(row=start_row, column=11).value = row_data.nearest_station or ''
         # 顧客名
-        sheet.cell(row=start_row, column=11).value = row_data.client_name or ''
+        sheet.cell(row=start_row, column=12).value = row_data.client_name or ''
         # 契約種類
-        sheet.cell(row=start_row, column=12).value = u"一括" if row_data.is_lump else 'SES'
+        sheet.cell(row=start_row, column=13).value = u"一括" if row_data.is_lump else 'SES'
         if row_data.is_lump:
             pass
 
@@ -1229,139 +1231,139 @@ def generate_organization_turnover(user, template_path, data_frame, year=None, m
             if row_data.endowment_insurance == "1":
                 sheet.cell(row=start_row, column=8).value = u"○"
             # 勤務時間
-            sheet.cell(row=start_row, column=13).value = row_data.total_hours
+            sheet.cell(row=start_row, column=14).value = row_data.total_hours
             # 勤務に数
-            sheet.cell(row=start_row, column=14).value = row_data.total_days
+            sheet.cell(row=start_row, column=15).value = row_data.total_days
             # 深夜日数
-            sheet.cell(row=start_row, column=15).value = row_data.night_days
+            sheet.cell(row=start_row, column=16).value = row_data.night_days
             # 客先立替金
-            sheet.cell(row=start_row, column=16).value = row_data.advances_paid_client
+            sheet.cell(row=start_row, column=17).value = row_data.advances_paid_client
             # 立替金
-            sheet.cell(row=start_row, column=17).value = row_data.advances_paid
+            sheet.cell(row=start_row, column=18).value = row_data.advances_paid
             # 勤務交通費
-            sheet.cell(row=start_row, column=18).value = row_data.traffic_cost
+            sheet.cell(row=start_row, column=19).value = row_data.traffic_cost
 
             # 売上（税込）
-            sheet.cell(row=start_row, column=19).value = row_data.all_price
+            sheet.cell(row=start_row, column=20).value = row_data.all_price
             # 売上（税抜）
-            sheet.cell(row=start_row, column=20).value = row_data.total_price
+            sheet.cell(row=start_row, column=21).value = row_data.total_price
             # 売上（経費）
-            sheet.cell(row=start_row, column=21).value = row_data.expenses_price
+            sheet.cell(row=start_row, column=22).value = row_data.expenses_price
             # 月給
-            sheet.cell(row=start_row, column=22).value = row_data.salary
+            sheet.cell(row=start_row, column=23).value = row_data.salary
             # 手当
-            sheet.cell(row=start_row, column=23).value = row_data.allowance
+            sheet.cell(row=start_row, column=24).value = row_data.allowance
             # 深夜手当
-            sheet.cell(row=start_row, column=24).value = row_data.night_allowance
+            sheet.cell(row=start_row, column=25).value = row_data.night_allowance
             # 残業／控除
-            sheet.cell(row=start_row, column=25).value = row_data.overtime_cost
+            sheet.cell(row=start_row, column=26).value = row_data.overtime_cost
             # 交通費(原価)
-            sheet.cell(row=start_row, column=26).value = row_data.traffic_cost
+            sheet.cell(row=start_row, column=27).value = row_data.traffic_cost
             # 経費(原価)
-            sheet.cell(row=start_row, column=27).value = row_data.expenses
+            sheet.cell(row=start_row, column=28).value = row_data.expenses
             # 雇用／労災(原価)
-            sheet.cell(row=start_row, column=28).value = row_data.employment_insurance
+            sheet.cell(row=start_row, column=29).value = row_data.employment_insurance
             # 健康／厚生(原価)
-            sheet.cell(row=start_row, column=29).value = row_data.health_insurance
+            sheet.cell(row=start_row, column=30).value = row_data.health_insurance
             # 会議費
-            sheet.cell(row=start_row, column=32).value = row_data.expenses_conference
+            sheet.cell(row=start_row, column=33).value = row_data.expenses_conference
             # 交際費
-            sheet.cell(row=start_row, column=33).value = row_data.expenses_entertainment
+            sheet.cell(row=start_row, column=34).value = row_data.expenses_entertainment
             # 旅費交通費
-            sheet.cell(row=start_row, column=34).value = row_data.expenses_travel
+            sheet.cell(row=start_row, column=35).value = row_data.expenses_travel
             # 通信費
-            sheet.cell(row=start_row, column=35).value = row_data.expenses_communication
+            sheet.cell(row=start_row, column=36).value = row_data.expenses_communication
             # 租税公課
-            sheet.cell(row=start_row, column=36).value = row_data.expenses_tax_dues
+            sheet.cell(row=start_row, column=37).value = row_data.expenses_tax_dues
             # 消耗品
-            sheet.cell(row=start_row, column=37).value = row_data.expenses_expendables
+            sheet.cell(row=start_row, column=38).value = row_data.expenses_expendables
         elif row_data.prev_traffic_cost > 0:
             # 勤務情報が入力してない場合、先月の交通費を使用する。
             # 勤務交通費
-            sheet.cell(row=start_row, column=18).value = row_data.prev_traffic_cost
+            sheet.cell(row=start_row, column=19).value = row_data.prev_traffic_cost
             # 手当
-            sheet.cell(row=start_row, column=23).value = row_data.prev_allowance
+            sheet.cell(row=start_row, column=24).value = row_data.prev_allowance
         elif not pd.isnull(row_data.is_lump) and row_data.is_lump == 1:
             # 一括案件の場合
 
             # 売上（税込）
-            sheet.cell(row=start_row, column=19).value = row_data.all_price
+            sheet.cell(row=start_row, column=20).value = row_data.all_price
             # 売上（税抜）
-            sheet.cell(row=start_row, column=20).value = row_data.total_price
+            sheet.cell(row=start_row, column=21).value = row_data.total_price
             # 売上（経費）
-            sheet.cell(row=start_row, column=21).value = row_data.expenses_price
+            sheet.cell(row=start_row, column=22).value = row_data.expenses_price
         else:
             pass
 
         start_row += 1
 
     # 合計
-    sheet.cell(row=start_row, column=18).value = "他社技術者の合計"
-    sheet.cell(row=start_row, column=19).value = '=SUMIF(I5:I{0}, "=他社技術者", S5:S{0})'.format(count + 4)
-    sheet.cell(row=start_row, column=20).value = '=SUMIF(I5:I{0}, "=他社技術者", T5:T{0})'.format(count + 4)
-    sheet.cell(row=start_row, column=21).value = '=SUMIF(I5:I{0}, "=他社技術者", U5:U{0})'.format(count + 4)
-    sheet.cell(row=start_row, column=22).value = '=SUMIF(I5:I{0}, "=他社技術者", V5:V{0})'.format(count + 4)
-    sheet.cell(row=start_row, column=23).value = '=SUMIF(I5:I{0}, "=他社技術者", W5:W{0})'.format(count + 4)
-    sheet.cell(row=start_row, column=24).value = '=SUMIF(I5:I{0}, "=他社技術者", X5:X{0})'.format(count + 4)
-    sheet.cell(row=start_row, column=25).value = '=SUMIF(I5:I{0}, "=他社技術者", Y5:Y{0})'.format(count + 4)
-    sheet.cell(row=start_row, column=26).value = '=SUMIF(I5:I{0}, "=他社技術者", Z5:Z{0})'.format(count + 4)
-    sheet.cell(row=start_row, column=27).value = '=SUMIF(I5:I{0}, "=他社技術者", AA5:AA{0})'.format(count + 4)
-    sheet.cell(row=start_row, column=28).value = '=SUMIF(I5:I{0}, "=他社技術者", AB5:AB{0})'.format(count + 4)
-    sheet.cell(row=start_row, column=29).value = '=SUMIF(I5:I{0}, "=他社技術者", AC5:AC{0})'.format(count + 4)
-    sheet.cell(row=start_row, column=30).value = '=SUMIF(I5:I{0}, "=他社技術者", AD5:AD{0})'.format(count + 4)
-    sheet.cell(row=start_row, column=31).value = '=SUMIF(I5:I{0}, "=他社技術者", AE5:AE{0})'.format(count + 4)
-    sheet.cell(row=start_row, column=32).value = '=SUMIF(I5:I{0}, "=他社技術者", AF5:AF{0})'.format(count + 4)
-    sheet.cell(row=start_row, column=33).value = '=SUMIF(I5:I{0}, "=他社技術者", AG5:AG{0})'.format(count + 4)
-    sheet.cell(row=start_row, column=34).value = '=SUMIF(I5:I{0}, "=他社技術者", AH5:AH{0})'.format(count + 4)
-    sheet.cell(row=start_row, column=35).value = '=SUMIF(I5:I{0}, "=他社技術者", AI5:AI{0})'.format(count + 4)
-    sheet.cell(row=start_row, column=36).value = '=SUMIF(I5:I{0}, "=他社技術者", AJ5:AJ{0})'.format(count + 4)
-    sheet.cell(row=start_row, column=37).value = '=SUMIF(I5:I{0}, "=他社技術者", AK5:AK{0})'.format(count + 4)
-    sheet.cell(row=start_row, column=38).value = '=SUMIF(I5:I{0}, "=他社技術者", AL5:AL{0})'.format(count + 4)
-    sheet.cell(row=start_row, column=39).value = '=SUMIF(I5:I{0}, "=他社技術者", AM5:AM{0})'.format(count + 4)
-    sheet.cell(row=start_row + 1, column=18).value = "自社の合計"
-    sheet.cell(row=start_row + 1, column=19).value = '=SUMIF(I5:I{0}, "<>他社技術者", S5:S{0})'.format(count + 4)
-    sheet.cell(row=start_row + 1, column=20).value = '=SUMIF(I5:I{0}, "<>他社技術者", T5:T{0})'.format(count + 4)
-    sheet.cell(row=start_row + 1, column=21).value = '=SUMIF(I5:I{0}, "<>他社技術者", U5:U{0})'.format(count + 4)
-    sheet.cell(row=start_row + 1, column=22).value = '=SUMIF(I5:I{0}, "<>他社技術者", V5:V{0})'.format(count + 4)
-    sheet.cell(row=start_row + 1, column=23).value = '=SUMIF(I5:I{0}, "<>他社技術者", W5:W{0})'.format(count + 4)
-    sheet.cell(row=start_row + 1, column=24).value = '=SUMIF(I5:I{0}, "<>他社技術者", X5:X{0})'.format(count + 4)
-    sheet.cell(row=start_row + 1, column=25).value = '=SUMIF(I5:I{0}, "<>他社技術者", Y5:Y{0})'.format(count + 4)
-    sheet.cell(row=start_row + 1, column=26).value = '=SUMIF(I5:I{0}, "<>他社技術者", Z5:Z{0})'.format(count + 4)
-    sheet.cell(row=start_row + 1, column=27).value = '=SUMIF(I5:I{0}, "<>他社技術者", AA5:AA{0})'.format(count + 4)
-    sheet.cell(row=start_row + 1, column=28).value = '=SUMIF(I5:I{0}, "<>他社技術者", AB5:AB{0})'.format(count + 4)
-    sheet.cell(row=start_row + 1, column=29).value = '=SUMIF(I5:I{0}, "<>他社技術者", AC5:AC{0})'.format(count + 4)
-    sheet.cell(row=start_row + 1, column=30).value = '=SUMIF(I5:I{0}, "<>他社技術者", AD5:AD{0})'.format(count + 4)
-    sheet.cell(row=start_row + 1, column=31).value = '=SUMIF(I5:I{0}, "<>他社技術者", AE5:AE{0})'.format(count + 4)
-    sheet.cell(row=start_row + 1, column=32).value = '=SUMIF(I5:I{0}, "<>他社技術者", AF5:AF{0})'.format(count + 4)
-    sheet.cell(row=start_row + 1, column=33).value = '=SUMIF(I5:I{0}, "<>他社技術者", AG5:AG{0})'.format(count + 4)
-    sheet.cell(row=start_row + 1, column=34).value = '=SUMIF(I5:I{0}, "<>他社技術者", AH5:AH{0})'.format(count + 4)
-    sheet.cell(row=start_row + 1, column=35).value = '=SUMIF(I5:I{0}, "<>他社技術者", AI5:AI{0})'.format(count + 4)
-    sheet.cell(row=start_row + 1, column=36).value = '=SUMIF(I5:I{0}, "<>他社技術者", AJ5:AJ{0})'.format(count + 4)
-    sheet.cell(row=start_row + 1, column=37).value = '=SUMIF(I5:I{0}, "<>他社技術者", AK5:AK{0})'.format(count + 4)
-    sheet.cell(row=start_row + 1, column=38).value = '=SUMIF(I5:I{0}, "<>他社技術者", AL5:AL{0})'.format(count + 4)
-    sheet.cell(row=start_row + 1, column=39).value = '=SUMIF(I5:I{0}, "<>他社技術者", AM5:AM{0})'.format(count + 4)
-    sheet.cell(row=start_row + 2, column=18).value = "全ての合計"
-    sheet.cell(row=start_row + 2, column=19).value = "=SUM(S5:S%s)" % (count + 4)
-    sheet.cell(row=start_row + 2, column=20).value = "=SUM(T5:T%s)" % (count + 4)
-    sheet.cell(row=start_row + 2, column=21).value = "=SUM(U5:U%s)" % (count + 4)
-    sheet.cell(row=start_row + 2, column=22).value = "=SUM(V5:V%s)" % (count + 4)
-    sheet.cell(row=start_row + 2, column=23).value = "=SUM(W5:W%s)" % (count + 4)
-    sheet.cell(row=start_row + 2, column=24).value = "=SUM(X5:X%s)" % (count + 4)
-    sheet.cell(row=start_row + 2, column=25).value = "=SUM(Y5:Y%s)" % (count + 4)
-    sheet.cell(row=start_row + 2, column=26).value = "=SUM(Z5:Z%s)" % (count + 4)
-    sheet.cell(row=start_row + 2, column=27).value = "=SUM(AA5:AA%s)" % (count + 4)
-    sheet.cell(row=start_row + 2, column=28).value = "=SUM(AB5:AB%s)" % (count + 4)
-    sheet.cell(row=start_row + 2, column=29).value = "=SUM(AC5:AC%s)" % (count + 4)
-    sheet.cell(row=start_row + 2, column=30).value = "=SUM(AD5:AD%s)" % (count + 4)
-    sheet.cell(row=start_row + 2, column=31).value = "=SUM(AE5:AE%s)" % (count + 4)
-    sheet.cell(row=start_row + 2, column=32).value = "=SUM(AF5:AF%s)" % (count + 4)
-    sheet.cell(row=start_row + 2, column=33).value = "=SUM(AG5:AG%s)" % (count + 4)
-    sheet.cell(row=start_row + 2, column=34).value = "=SUM(AH5:AH%s)" % (count + 4)
-    sheet.cell(row=start_row + 2, column=35).value = "=SUM(AI5:AI%s)" % (count + 4)
-    sheet.cell(row=start_row + 2, column=36).value = "=SUM(AJ5:AJ%s)" % (count + 4)
-    sheet.cell(row=start_row + 2, column=37).value = "=SUM(AK5:AK%s)" % (count + 4)
-    sheet.cell(row=start_row + 2, column=38).value = "=SUM(AL5:AL%s)" % (count + 4)
-    sheet.cell(row=start_row + 2, column=39).value = "=SUM(AM5:AM%s)" % (count + 4)
+    sheet.cell(row=start_row, column=19).value = "他社技術者の合計"
+    sheet.cell(row=start_row, column=20).value = '=SUMIF(I5:I{0}, "=他社技術者", S5:S{0})'.format(count + 4)
+    sheet.cell(row=start_row, column=21).value = '=SUMIF(I5:I{0}, "=他社技術者", T5:T{0})'.format(count + 4)
+    sheet.cell(row=start_row, column=22).value = '=SUMIF(I5:I{0}, "=他社技術者", U5:U{0})'.format(count + 4)
+    sheet.cell(row=start_row, column=23).value = '=SUMIF(I5:I{0}, "=他社技術者", V5:V{0})'.format(count + 4)
+    sheet.cell(row=start_row, column=24).value = '=SUMIF(I5:I{0}, "=他社技術者", W5:W{0})'.format(count + 4)
+    sheet.cell(row=start_row, column=25).value = '=SUMIF(I5:I{0}, "=他社技術者", X5:X{0})'.format(count + 4)
+    sheet.cell(row=start_row, column=26).value = '=SUMIF(I5:I{0}, "=他社技術者", Y5:Y{0})'.format(count + 4)
+    sheet.cell(row=start_row, column=27).value = '=SUMIF(I5:I{0}, "=他社技術者", Z5:Z{0})'.format(count + 4)
+    sheet.cell(row=start_row, column=28).value = '=SUMIF(I5:I{0}, "=他社技術者", AA5:AA{0})'.format(count + 4)
+    sheet.cell(row=start_row, column=29).value = '=SUMIF(I5:I{0}, "=他社技術者", AB5:AB{0})'.format(count + 4)
+    sheet.cell(row=start_row, column=30).value = '=SUMIF(I5:I{0}, "=他社技術者", AC5:AC{0})'.format(count + 4)
+    sheet.cell(row=start_row, column=31).value = '=SUMIF(I5:I{0}, "=他社技術者", AD5:AD{0})'.format(count + 4)
+    sheet.cell(row=start_row, column=32).value = '=SUMIF(I5:I{0}, "=他社技術者", AE5:AE{0})'.format(count + 4)
+    sheet.cell(row=start_row, column=33).value = '=SUMIF(I5:I{0}, "=他社技術者", AF5:AF{0})'.format(count + 4)
+    sheet.cell(row=start_row, column=34).value = '=SUMIF(I5:I{0}, "=他社技術者", AG5:AG{0})'.format(count + 4)
+    sheet.cell(row=start_row, column=35).value = '=SUMIF(I5:I{0}, "=他社技術者", AH5:AH{0})'.format(count + 4)
+    sheet.cell(row=start_row, column=36).value = '=SUMIF(I5:I{0}, "=他社技術者", AI5:AI{0})'.format(count + 4)
+    sheet.cell(row=start_row, column=37).value = '=SUMIF(I5:I{0}, "=他社技術者", AJ5:AJ{0})'.format(count + 4)
+    sheet.cell(row=start_row, column=38).value = '=SUMIF(I5:I{0}, "=他社技術者", AK5:AK{0})'.format(count + 4)
+    sheet.cell(row=start_row, column=39).value = '=SUMIF(I5:I{0}, "=他社技術者", AL5:AL{0})'.format(count + 4)
+    sheet.cell(row=start_row, column=40).value = '=SUMIF(I5:I{0}, "=他社技術者", AM5:AM{0})'.format(count + 4)
+    sheet.cell(row=start_row + 1, column=19).value = "自社の合計"
+    sheet.cell(row=start_row + 1, column=20).value = '=SUMIF(I5:I{0}, "<>他社技術者", S5:S{0})'.format(count + 4)
+    sheet.cell(row=start_row + 1, column=21).value = '=SUMIF(I5:I{0}, "<>他社技術者", T5:T{0})'.format(count + 4)
+    sheet.cell(row=start_row + 1, column=22).value = '=SUMIF(I5:I{0}, "<>他社技術者", U5:U{0})'.format(count + 4)
+    sheet.cell(row=start_row + 1, column=23).value = '=SUMIF(I5:I{0}, "<>他社技術者", V5:V{0})'.format(count + 4)
+    sheet.cell(row=start_row + 1, column=24).value = '=SUMIF(I5:I{0}, "<>他社技術者", W5:W{0})'.format(count + 4)
+    sheet.cell(row=start_row + 1, column=25).value = '=SUMIF(I5:I{0}, "<>他社技術者", X5:X{0})'.format(count + 4)
+    sheet.cell(row=start_row + 1, column=26).value = '=SUMIF(I5:I{0}, "<>他社技術者", Y5:Y{0})'.format(count + 4)
+    sheet.cell(row=start_row + 1, column=27).value = '=SUMIF(I5:I{0}, "<>他社技術者", Z5:Z{0})'.format(count + 4)
+    sheet.cell(row=start_row + 1, column=28).value = '=SUMIF(I5:I{0}, "<>他社技術者", AA5:AA{0})'.format(count + 4)
+    sheet.cell(row=start_row + 1, column=29).value = '=SUMIF(I5:I{0}, "<>他社技術者", AB5:AB{0})'.format(count + 4)
+    sheet.cell(row=start_row + 1, column=30).value = '=SUMIF(I5:I{0}, "<>他社技術者", AC5:AC{0})'.format(count + 4)
+    sheet.cell(row=start_row + 1, column=31).value = '=SUMIF(I5:I{0}, "<>他社技術者", AD5:AD{0})'.format(count + 4)
+    sheet.cell(row=start_row + 1, column=32).value = '=SUMIF(I5:I{0}, "<>他社技術者", AE5:AE{0})'.format(count + 4)
+    sheet.cell(row=start_row + 1, column=33).value = '=SUMIF(I5:I{0}, "<>他社技術者", AF5:AF{0})'.format(count + 4)
+    sheet.cell(row=start_row + 1, column=34).value = '=SUMIF(I5:I{0}, "<>他社技術者", AG5:AG{0})'.format(count + 4)
+    sheet.cell(row=start_row + 1, column=35).value = '=SUMIF(I5:I{0}, "<>他社技術者", AH5:AH{0})'.format(count + 4)
+    sheet.cell(row=start_row + 1, column=36).value = '=SUMIF(I5:I{0}, "<>他社技術者", AI5:AI{0})'.format(count + 4)
+    sheet.cell(row=start_row + 1, column=37).value = '=SUMIF(I5:I{0}, "<>他社技術者", AJ5:AJ{0})'.format(count + 4)
+    sheet.cell(row=start_row + 1, column=38).value = '=SUMIF(I5:I{0}, "<>他社技術者", AK5:AK{0})'.format(count + 4)
+    sheet.cell(row=start_row + 1, column=39).value = '=SUMIF(I5:I{0}, "<>他社技術者", AL5:AL{0})'.format(count + 4)
+    sheet.cell(row=start_row + 1, column=40).value = '=SUMIF(I5:I{0}, "<>他社技術者", AM5:AM{0})'.format(count + 4)
+    sheet.cell(row=start_row + 2, column=19).value = "全ての合計"
+    sheet.cell(row=start_row + 2, column=20).value = "=SUM(S5:S%s)" % (count + 4)
+    sheet.cell(row=start_row + 2, column=21).value = "=SUM(T5:T%s)" % (count + 4)
+    sheet.cell(row=start_row + 2, column=22).value = "=SUM(U5:U%s)" % (count + 4)
+    sheet.cell(row=start_row + 2, column=23).value = "=SUM(V5:V%s)" % (count + 4)
+    sheet.cell(row=start_row + 2, column=24).value = "=SUM(W5:W%s)" % (count + 4)
+    sheet.cell(row=start_row + 2, column=25).value = "=SUM(X5:X%s)" % (count + 4)
+    sheet.cell(row=start_row + 2, column=26).value = "=SUM(Y5:Y%s)" % (count + 4)
+    sheet.cell(row=start_row + 2, column=27).value = "=SUM(Z5:Z%s)" % (count + 4)
+    sheet.cell(row=start_row + 2, column=28).value = "=SUM(AA5:AA%s)" % (count + 4)
+    sheet.cell(row=start_row + 2, column=29).value = "=SUM(AB5:AB%s)" % (count + 4)
+    sheet.cell(row=start_row + 2, column=30).value = "=SUM(AC5:AC%s)" % (count + 4)
+    sheet.cell(row=start_row + 2, column=31).value = "=SUM(AD5:AD%s)" % (count + 4)
+    sheet.cell(row=start_row + 2, column=32).value = "=SUM(AE5:AE%s)" % (count + 4)
+    sheet.cell(row=start_row + 2, column=33).value = "=SUM(AF5:AF%s)" % (count + 4)
+    sheet.cell(row=start_row + 2, column=34).value = "=SUM(AG5:AG%s)" % (count + 4)
+    sheet.cell(row=start_row + 2, column=35).value = "=SUM(AH5:AH%s)" % (count + 4)
+    sheet.cell(row=start_row + 2, column=36).value = "=SUM(AI5:AI%s)" % (count + 4)
+    sheet.cell(row=start_row + 2, column=37).value = "=SUM(AJ5:AJ%s)" % (count + 4)
+    sheet.cell(row=start_row + 2, column=38).value = "=SUM(AK5:AK%s)" % (count + 4)
+    sheet.cell(row=start_row + 2, column=39).value = "=SUM(AL5:AL%s)" % (count + 4)
+    sheet.cell(row=start_row + 2, column=40).value = "=SUM(AM5:AM%s)" % (count + 4)
 
     return save_virtual_workbook(book)
 

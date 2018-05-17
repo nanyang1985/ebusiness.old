@@ -198,7 +198,7 @@
                 <tr>
                     <th class="bk01" rowspan="2" style="width: 20px;">No</th>
                     <th class="bk01" colspan="6">基本データ</th>
-                    <th class="bk02" colspan="3">案件情報</th>
+                    <th class="bk02" colspan="4">案件情報</th>
                     <th class="bk03" colspan="6">勤務情報</th>
                     <th class="bk04" colspan="3">売上</th>
                     <th class="bk05" colspan="9">原価</th>
@@ -217,6 +217,7 @@
                     <th class="bk01">{% create_single_order_display "契約形態" "member_type" %}</th>
                     <!--案件情報-->
                     <th class="bk02">{% create_single_order_display "案件名" "project_name" %}</th>
+                    <th class="bk02">最寄駅</th>
                     <th class="bk02">{% create_single_order_display "顧客" "client_name" %}</th>
                     <th class="bk02">契約種類</th>
                     <!--勤務情報-->
@@ -276,7 +277,10 @@
                             <td title="{{ data_row.project_name }}"
                                 {% if data_row.is_reserve %}class="reserve_project"
                                 {% elif data_row.is_lump %}class="lump_project"{% endif %}>
-                                <a href="{% url 'project_detail' data_row.project_id %}">{{ data_row.project_name }}</a></td>
+                                <a href="{% url 'project_detail' data_row.project_id %}">{{ data_row.project_name }}</a>
+                            </td>
+                            <!-- 最寄駅 -->
+                            <td>{{ data_row.nearest_station|default:'' }}</td>
                             <!-- 顧客 -->
                             <td>{{ data_row.client_name }}</td>
                             <!-- 契約種類 -->
@@ -366,7 +370,7 @@
                 </tbody>
                 <tfoot>
                     <tr style="height: 20px; font-size: 12px;">
-                        <td colspan="10" rowspan="3">
+                        <td colspan="11" rowspan="3">
                             {{ data_frame|length }} 件
                         </td>
                         <td colspan="6" style="text-align: right;">他社技術者の合計</td>
