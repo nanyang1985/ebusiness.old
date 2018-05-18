@@ -452,7 +452,7 @@ class MemberAdmin(BaseAdmin):
             ('member_type', 'ranking'),
             'join_date', 'email', 'notify_type', 'section', 'company',
             'subcontractor',
-            'is_retired', 'retired_date',
+            # 'is_retired', 'retired_date',
         ]})
     )
 

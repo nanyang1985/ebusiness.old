@@ -144,6 +144,16 @@ select m.id as member_id
                           and extract(year_month from(prev_pm.start_date)) <= DATE_FORMAT(STR_TO_DATE(concat(get_ym(), '01'), '%Y%m%d') - INTERVAL 1 MONTH, '%Y%m')
                           and (extract(year_month from(prev_pm.end_date)) >= DATE_FORMAT(STR_TO_DATE(concat(get_ym(), '01'), '%Y%m%d') - INTERVAL 1 MONTH, '%Y%m') or prev_pm.end_date is null)
                           and not exists(select 1 from eb_project s1 where s1.id = prev_pm.project_id and s1.is_reserve = 1)
+                          -- 前月の案件が二つ以上存在する場合の対策、一つしか取得するように。
+                          and prev_pm.id = (
+                              select min(prev_pm1.id)
+                                from eb_projectmember prev_pm1
+                               where prev_pm1.member_id = m.id and prev_pm1.is_deleted = 0 
+                                 and prev_pm1.status = 2
+                                 and extract(year_month from(prev_pm1.start_date)) <= DATE_FORMAT(STR_TO_DATE(concat(get_ym(), '01'), '%Y%m%d') - INTERVAL 1 MONTH, '%Y%m')
+                                 and (extract(year_month from(prev_pm1.end_date)) >= DATE_FORMAT(STR_TO_DATE(concat(get_ym(), '01'), '%Y%m%d') - INTERVAL 1 MONTH, '%Y%m') or prev_pm1.end_date is null)
+                                 and not exists(select 1 from eb_project s1 where s1.id = prev_pm1.project_id and s1.is_reserve = 1)
+                          )
   join eb_project p on p.id = pm.project_id
   join eb_client c1 on c1.id = p.client_id
   left join eb_memberattendance ma on ma.project_member_id = pm.id and concat(ma.year, ma.month) = get_ym()
