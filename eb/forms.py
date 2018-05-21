@@ -340,6 +340,17 @@ class ProjectMemberForm(forms.ModelForm):
                                     widget=SearchSelect(models.Member),
                                     label=u"名前")
 
+    def save(self, commit=True):
+        if self.instance.pk:
+            is_add = False
+        else:
+            is_add = True
+        project_member = super(ProjectMemberForm, self).save(commit)
+        if is_add:
+            # 案件メンバーを追加
+            pass
+        return project_member
+
 
 class ProjectMemberFormset(forms.BaseInlineFormSet):
 
