@@ -753,6 +753,9 @@ class SubcontractorMember(BaseModel):
     def __unicode__(self):
         return "%s - %s" % (self.subcontractor.name, self.name)
 
+    def delete(self, using=None, keep_parents=False):
+        super(BaseModel, self).delete(using, keep_parents)
+
 
 class SubcontractorRequestRecipient(BaseModel):
     subcontractor = models.ForeignKey(Subcontractor, on_delete=models.PROTECT, verbose_name=u"所属会社")
@@ -768,6 +771,9 @@ class SubcontractorRequestRecipient(BaseModel):
     def __unicode__(self):
         return unicode(self.subcontractor_member)
 
+    def delete(self, using=None, keep_parents=False):
+        super(BaseModel, self).delete(using, keep_parents)
+
 
 class SubcontractorOrderRecipient(BaseModel):
     subcontractor = models.ForeignKey(Subcontractor, on_delete=models.PROTECT, verbose_name=u"所属会社")
@@ -782,6 +788,9 @@ class SubcontractorOrderRecipient(BaseModel):
 
     def __unicode__(self):
         return unicode(self.subcontractor_member)
+
+    def delete(self, using=None, keep_parents=False):
+        super(BaseModel, self).delete(using, keep_parents)
 
 
 class MailTemplate(BaseModel):
