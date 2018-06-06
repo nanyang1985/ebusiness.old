@@ -312,4 +312,4 @@ select null as member_id
   left join eb_bplumporder lo on lc.id = lo.contract_id
  where lc.is_deleted = 0
    and lc.status <> '04'
-   and extract(year_month from(lc.delivery_date)) = get_ym()
+   and extract(year_month from(lc.end_date)) = get_ym()
