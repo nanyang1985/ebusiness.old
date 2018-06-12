@@ -88,6 +88,8 @@ class ProjectMemberInline(admin.TabularInline):
 
     def get_queryset(self, request):
         queryset = super(ProjectMemberInline, self).get_queryset(request)
+        if queryset.count() > 200:
+            queryset = queryset.filter(end_date__gte=common.add_months(datetime.date.today(), -2))
         return queryset.filter(member__is_retired=False, member__is_deleted=False).order_by('-end_date', '-start_date')
 
 
