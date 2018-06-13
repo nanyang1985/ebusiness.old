@@ -385,7 +385,7 @@ class BpContract(BaseModel):
             else:
                 allowance_time_memo = u"※基準時間：%s～%sh/月" % (allowance_time_min, allowance_time_max)
         # 営業日数 × ８または営業日数 × ７.９の説明
-        if self.calculate_type in ('02', '03'):
+        if self.calculate_type in ('02', '03', '04'):
             hours = 8
             if self.calculate_type == '02':
                 hours = 8
