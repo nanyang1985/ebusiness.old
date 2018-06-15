@@ -1537,7 +1537,7 @@ class Member(AbstractMember):
                                "   and msp.is_deleted = 0"
                                "   and msp.start_date <= %s"
                                "   and (msp.end_date >= %s or msp.end_date is null)"
-                               "   and ps.position in (3, 4, 5, 6, 7)"
+                               "   and ps.position in (3, 3.1, 4, 5, 6, 7)"
                                "   and m.id = %s"
                                "   and boss.id = %s", [last_day, first_day, self.pk, user.member.pk])
                 records = cursor.fetchall()
