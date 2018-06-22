@@ -1239,7 +1239,10 @@ class Member(AbstractMember):
         :return: 名(ローマ字)が定義すれば、その頭文字を取得し、姓と一緒に返す。
         """
         if self.last_name_en:
-            lst = re.findall(r"[A-Z]", str(self.last_name_en))
+            if isinstance(self.last_name_en, unicode):
+                lst = re.findall(r"[A-Z]", self.last_name_en)
+            else:
+                lst = re.findall(r"[A-Z]", str(self.last_name_en))
             last_name = "".join(lst)
         else:
             last_name = self.last_name
