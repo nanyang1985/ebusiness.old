@@ -129,7 +129,7 @@
                 </td>
                 <td class="center">
                     {% if bp_lump_contract.bplumporder.filename_request %}
-                        <a type="button" href="/sendpdf?id={{ bp_lump_contract.bplumporder.subcontractor.pk }}&token={{ md5_token }}&ref={{ request.get_full_path|urlencode }}&order_id={{ bp_lump_contract.bplumporder.pk }}&year={{ bp_lump_contract.start_date|date:'Y' }}&month={{ bp_lump_contract.start_date|date:'m' }}">送信</a>
+                        <a type="button" href="/sendpdf?id={{ bp_lump_contract.bplumporder.subcontractor.pk }}&token={{ md5_token }}&ref={{ request.get_full_path|urlencode }}&order_id={{ bp_lump_contract.bplumporder.pk }}&year={{ bp_lump_contract.start_date|date:'Y' }}&month={{ bp_lump_contract.start_date|date:'m' }}&operator={{ request.user.email|urlencode }}">送信</a>
                     {% endif %}
                 </td>
             </tr>
