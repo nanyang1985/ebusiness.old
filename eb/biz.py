@@ -1239,12 +1239,15 @@ def generate_subcontractor_request_data(subcontractor, year, month, subcontracto
     # メンバー毎の明細
     detail_members = []
 
+    sub_sections = subcontractor_request.section.get_children()
+    sub_sections.append(subcontractor_request.section)
     section_members = subcontractor.get_members_by_month_and_section(year, month, subcontractor_request.section)
     lump_contracts = subcontractor.get_lump_contracts(year, month).filter(
-        project__department=subcontractor_request.section
+        project__department__in=sub_sections
     )
     members_amount = 0
     project_members = []
+    lump_tax = None
     if False:
         members_amount = 0
         # 番号
@@ -1412,6 +1415,12 @@ def generate_subcontractor_request_data(subcontractor, year, month, subcontracto
             dict_expenses['ITEM_OTHER'] = u""
             # 金額合計
             members_amount += dict_expenses['ITEM_AMOUNT_TOTAL']
+            # 税金
+            if lump_tax is None:
+                lump_tax = lump_contract.allowance_base_tax or 0
+            else:
+                lump_tax += (lump_contract.allowance_base_tax or 0)
+            # 一括時の契約
             detail_members.append(dict_expenses)
 
     detail_expenses, expenses_amount = get_subcontractor_request_expenses_list(
@@ -1424,7 +1433,9 @@ def generate_subcontractor_request_data(subcontractor, year, month, subcontracto
     data['MEMBERS'] = detail_members
     data['EXPENSES'] = detail_expenses  # 清算リスト
     data['DETAIL']['ITEM_AMOUNT_ATTENDANCE'] = members_amount
-    if company.decimal_type == '0':
+    if lump_tax is not None:
+        data['DETAIL']['ITEM_AMOUNT_ATTENDANCE_TAX'] = lump_tax
+    elif company.decimal_type == '0':
         data['DETAIL']['ITEM_AMOUNT_ATTENDANCE_TAX'] = int(round(members_amount * company.tax_rate))
     else:
         # 出勤のトータル金額の税金
