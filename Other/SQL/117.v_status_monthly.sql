@@ -51,6 +51,7 @@ select d.ym as ym
              from eb_membersectionperiod s1
             where s1.member_id = m.id
               and s1.is_deleted = 0
+			limit 1
        )
    and (exists (
            select 1
@@ -59,6 +60,7 @@ select d.ym as ym
               and s1.status <> '04'
               and extract(year_month from s1.start_date) <= d.ym
               and (IFNULL(extract(year_month from (s1.end_date2)), extract(year_month from (s1.end_date))) >= d.ym or IFNULL(s1.end_date2, s1.end_date) is null)
+			limit 1
                ) OR
                (
            select 1
@@ -67,6 +69,7 @@ select d.ym as ym
               and s1.status <> '04'
               and extract(year_month from s1.start_date) <= d.ym
               and (extract(year_month from (s1.end_date)) >= d.ym or s1.end_date is null)
+			limit 1
                )
        )
  group by d.ym
