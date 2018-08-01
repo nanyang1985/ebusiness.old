@@ -250,6 +250,11 @@ LOGGING = {
             'formatter': 'standard',
             'filename': os.path.join(BASE_DIR, "log/eb_sales.log"),
         },
+        'console': {
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
+            'formatter': 'standard'
+        },
     },
     'loggers': {
         'eb.management.commands.sync_members': {
@@ -300,6 +305,11 @@ LOGGING = {
         'eb_sales': {
             'handlers': ['eb_sales'],
             'level': 'INFO',
+            'propagate': True,
+        },
+        'django': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
             'propagate': True,
         },
     }
