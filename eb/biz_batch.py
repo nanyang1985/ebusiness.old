@@ -16,7 +16,7 @@ import requests
 from . import biz, biz_config
 from utils import constants, common, file_gen
 from eb import models
-from eboa import models as eboa_models
+# from eboa import models as eboa_models
 from contract import models as contract_models
 
 from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
@@ -181,115 +181,116 @@ def sync_members_for_change(batch):
     :param batch:
     :return:
     """
-    members = models.Member.objects.public_filter(eboa_user_id__isnull=False)
-    logger = batch.get_logger()
-    user = batch.get_log_entry_user()
-    for member in members:
-        try:
-            oa_member = eboa_models.EbEmployee.objects.get(user__userid=member.eboa_user_id)
-            changed_list = []
-            # カタカナ
-            if oa_member.residence_name_kana:
-                try:
-                    if isinstance(oa_member.residence_name_kana, unicode):
-                        residence_name_kana = oa_member.residence_name_kana
-                    else:
-                        residence_name_kana = unicode(oa_member.residence_name_kana.decode('utf8'))
-                    kana_list = re.split(r"\s+", residence_name_kana, maxsplit=1)
-                    if kana_list and len(kana_list) == 2:
-                        common.get_object_changed_message(member, 'first_name_ja', kana_list[0], changed_list)
-                        common.get_object_changed_message(member, 'last_name_ja', kana_list[1], changed_list)
-                        member.first_name_ja = kana_list[0]
-                        member.last_name_ja = kana_list[1]
-                except Exception as ex:
-                    logger.error(u"%sの名前「%s」を読み込む時エラーが発生しました。" % (unicode(oa_member), oa_member.residence_name_kana))
-                    logger.error(ex)
-            # ローマ字
-            if oa_member.passport_name:
-                try:
-                    en_name_list = re.split(r"\s+", oa_member.passport_name, maxsplit=1)
-                    if en_name_list and len(en_name_list) == 2:
-                        common.get_object_changed_message(member, 'first_name_en', en_name_list[0], changed_list)
-                        common.get_object_changed_message(member, 'last_name_en', en_name_list[1], changed_list)
-                        member.first_name_en = en_name_list[0].capitalize()
-                        member.last_name_en = en_name_list[1].capitalize()
-                except Exception as ex:
-                    logger.error(u"%sの名前「%s」を読み込む時エラーが発生しました。" % (unicode(oa_member), oa_member.passport_name))
-                    logger.error(ex)
-            # 生年月日
-            if oa_member.birthday:
-                try:
-                    if len(oa_member.birthday) > 10:
-                        date_format = '%Y-%m-%d %H:%M:%S'
-                    else:
-                        date_format = '%Y-%m-%d'
-                    birthday = datetime.datetime.strptime(oa_member.birthday, date_format).date()
-                    common.get_object_changed_message(member, 'birthday', birthday, changed_list)
-                    member.birthday = birthday
-                except Exception as ex:
-                    logger.error(u"%sの生年月日「%s」を読み込む時エラーが発生しました。" % (unicode(oa_member), oa_member.birthday))
-                    logger.error(ex)
-            zip_code = oa_member.zipcode.replace('-', '') if oa_member.zipcode else ""
-            # 郵便番号
-            if re.match(r'^[0-9]{7}$', zip_code) and member.post_code != zip_code:
-                common.get_object_changed_message(member, 'post_code', zip_code, changed_list)
-                member.post_code = zip_code
-            # 住所
-            if isinstance(oa_member.address, unicode):
-                address = oa_member.address if oa_member.address else ''
-            else:
-                address = unicode(oa_member.address.decode('utf8')) if oa_member.address else ''
-            old_address = member.address1 if member.address1 else ''
-            old_address += member.address2 if member.address2 else ''
-            if address and old_address != address:
-                common.get_object_changed_message(member, 'address1', address, changed_list)
-                common.get_object_changed_message(member, 'address2', "", changed_list)
-                member.address1 = address
-                member.address2 = ""
-            # 電話番号
-            private_tel_number = oa_member.private_tel_number.replace("-", "") if oa_member.private_tel_number else ''
-            if re.match(r'^[0-9]{11}$', private_tel_number) and member.phone != private_tel_number:
-                common.get_object_changed_message(member, 'phone', private_tel_number, changed_list)
-                member.phone = private_tel_number
-            # 会社メールアドレス
-            if oa_member.business_mail_addr and oa_member.business_mail_addr.endswith("@e-business.co.jp") \
-                    and member.email != oa_member.business_mail_addr:
-                common.get_object_changed_message(member, 'email', oa_member.business_mail_addr, changed_list)
-                member.email = oa_member.business_mail_addr
-            if changed_list:
-                member.save()
-            if changed_list and user:
-                change_message = _('Changed %s.') % get_text_list(changed_list, _('and')) if changed_list else ''
-                prefix = u"【%s】" % batch.title
-                LogEntry.objects.log_action(user_id=user.pk,
-                                            content_type_id=ContentType.objects.get_for_model(member).pk,
-                                            object_id=member.pk,
-                                            object_repr=unicode(member),
-                                            action_flag=CHANGE,
-                                            change_message=(prefix + change_message) or _('No fields changed.'))
-                args = (member.eboa_user_id, member.__unicode__(), u"情報が変更されました。")
-                msg = u"eboa_user_id: %s, name: %s, %s" % args
-                logger.info(msg)
-        except ObjectDoesNotExist:
-            args = (member.eboa_user_id, member.__unicode__(), u"ＥＢＯＡのＤＢに該当するデータがありません。")
-            msg = u"eboa_user_id: %s, name: %s, %s" % args
-            logger.warning(msg)
-        except MultipleObjectsReturned:
-            args = (member.eboa_user_id, member.__unicode__(), u"ＥＢＯＡのＤＢに該当するデータ複数存在している。")
-            msg = u"eboa_user_id: %s, name: %s, %s" % args
-            logger.warning(msg)
-        except Exception as ex:
-            args = (member.eboa_user_id, member.__unicode__(), unicode(ex))
-            msg = u"eboa_user_id: %s, name: %s, 予期しないエラー: %s" % args
-            logger.error(msg)
-            logger.error(traceback.format_exc())
-    # EBOAのユーザーＩＤが設定されてないメンバーを出力する。
-    no_user_members = models.Member.objects.public_filter(eboa_user_id__isnull=True).exclude(member_type=4)
-    name_list = []
-    for member in no_user_members:
-        name_list.append(u"%s(%s)" % (unicode(member), member.employee_id))
-    if name_list:
-        logger.warning(u"%sのEBOAユーザーＩＤが設定されていません。" % (', '.join(name_list)))
+    pass
+    # members = models.Member.objects.public_filter(eboa_user_id__isnull=False)
+    # logger = batch.get_logger()
+    # user = batch.get_log_entry_user()
+    # for member in members:
+    #     try:
+    #         oa_member = eboa_models.EbEmployee.objects.get(user__userid=member.eboa_user_id)
+    #         changed_list = []
+    #         # カタカナ
+    #         if oa_member.residence_name_kana:
+    #             try:
+    #                 if isinstance(oa_member.residence_name_kana, unicode):
+    #                     residence_name_kana = oa_member.residence_name_kana
+    #                 else:
+    #                     residence_name_kana = unicode(oa_member.residence_name_kana.decode('utf8'))
+    #                 kana_list = re.split(r"\s+", residence_name_kana, maxsplit=1)
+    #                 if kana_list and len(kana_list) == 2:
+    #                     common.get_object_changed_message(member, 'first_name_ja', kana_list[0], changed_list)
+    #                     common.get_object_changed_message(member, 'last_name_ja', kana_list[1], changed_list)
+    #                     member.first_name_ja = kana_list[0]
+    #                     member.last_name_ja = kana_list[1]
+    #             except Exception as ex:
+    #                 logger.error(u"%sの名前「%s」を読み込む時エラーが発生しました。" % (unicode(oa_member), oa_member.residence_name_kana))
+    #                 logger.error(ex)
+    #         # ローマ字
+    #         if oa_member.passport_name:
+    #             try:
+    #                 en_name_list = re.split(r"\s+", oa_member.passport_name, maxsplit=1)
+    #                 if en_name_list and len(en_name_list) == 2:
+    #                     common.get_object_changed_message(member, 'first_name_en', en_name_list[0], changed_list)
+    #                     common.get_object_changed_message(member, 'last_name_en', en_name_list[1], changed_list)
+    #                     member.first_name_en = en_name_list[0].capitalize()
+    #                     member.last_name_en = en_name_list[1].capitalize()
+    #             except Exception as ex:
+    #                 logger.error(u"%sの名前「%s」を読み込む時エラーが発生しました。" % (unicode(oa_member), oa_member.passport_name))
+    #                 logger.error(ex)
+    #         # 生年月日
+    #         if oa_member.birthday:
+    #             try:
+    #                 if len(oa_member.birthday) > 10:
+    #                     date_format = '%Y-%m-%d %H:%M:%S'
+    #                 else:
+    #                     date_format = '%Y-%m-%d'
+    #                 birthday = datetime.datetime.strptime(oa_member.birthday, date_format).date()
+    #                 common.get_object_changed_message(member, 'birthday', birthday, changed_list)
+    #                 member.birthday = birthday
+    #             except Exception as ex:
+    #                 logger.error(u"%sの生年月日「%s」を読み込む時エラーが発生しました。" % (unicode(oa_member), oa_member.birthday))
+    #                 logger.error(ex)
+    #         zip_code = oa_member.zipcode.replace('-', '') if oa_member.zipcode else ""
+    #         # 郵便番号
+    #         if re.match(r'^[0-9]{7}$', zip_code) and member.post_code != zip_code:
+    #             common.get_object_changed_message(member, 'post_code', zip_code, changed_list)
+    #             member.post_code = zip_code
+    #         # 住所
+    #         if isinstance(oa_member.address, unicode):
+    #             address = oa_member.address if oa_member.address else ''
+    #         else:
+    #             address = unicode(oa_member.address.decode('utf8')) if oa_member.address else ''
+    #         old_address = member.address1 if member.address1 else ''
+    #         old_address += member.address2 if member.address2 else ''
+    #         if address and old_address != address:
+    #             common.get_object_changed_message(member, 'address1', address, changed_list)
+    #             common.get_object_changed_message(member, 'address2', "", changed_list)
+    #             member.address1 = address
+    #             member.address2 = ""
+    #         # 電話番号
+    #         private_tel_number = oa_member.private_tel_number.replace("-", "") if oa_member.private_tel_number else ''
+    #         if re.match(r'^[0-9]{11}$', private_tel_number) and member.phone != private_tel_number:
+    #             common.get_object_changed_message(member, 'phone', private_tel_number, changed_list)
+    #             member.phone = private_tel_number
+    #         # 会社メールアドレス
+    #         if oa_member.business_mail_addr and oa_member.business_mail_addr.endswith("@e-business.co.jp") \
+    #                 and member.email != oa_member.business_mail_addr:
+    #             common.get_object_changed_message(member, 'email', oa_member.business_mail_addr, changed_list)
+    #             member.email = oa_member.business_mail_addr
+    #         if changed_list:
+    #             member.save()
+    #         if changed_list and user:
+    #             change_message = _('Changed %s.') % get_text_list(changed_list, _('and')) if changed_list else ''
+    #             prefix = u"【%s】" % batch.title
+    #             LogEntry.objects.log_action(user_id=user.pk,
+    #                                         content_type_id=ContentType.objects.get_for_model(member).pk,
+    #                                         object_id=member.pk,
+    #                                         object_repr=unicode(member),
+    #                                         action_flag=CHANGE,
+    #                                         change_message=(prefix + change_message) or _('No fields changed.'))
+    #             args = (member.eboa_user_id, member.__unicode__(), u"情報が変更されました。")
+    #             msg = u"eboa_user_id: %s, name: %s, %s" % args
+    #             logger.info(msg)
+    #     except ObjectDoesNotExist:
+    #         args = (member.eboa_user_id, member.__unicode__(), u"ＥＢＯＡのＤＢに該当するデータがありません。")
+    #         msg = u"eboa_user_id: %s, name: %s, %s" % args
+    #         logger.warning(msg)
+    #     except MultipleObjectsReturned:
+    #         args = (member.eboa_user_id, member.__unicode__(), u"ＥＢＯＡのＤＢに該当するデータ複数存在している。")
+    #         msg = u"eboa_user_id: %s, name: %s, %s" % args
+    #         logger.warning(msg)
+    #     except Exception as ex:
+    #         args = (member.eboa_user_id, member.__unicode__(), unicode(ex))
+    #         msg = u"eboa_user_id: %s, name: %s, 予期しないエラー: %s" % args
+    #         logger.error(msg)
+    #         logger.error(traceback.format_exc())
+    # # EBOAのユーザーＩＤが設定されてないメンバーを出力する。
+    # no_user_members = models.Member.objects.public_filter(eboa_user_id__isnull=True).exclude(member_type=4)
+    # name_list = []
+    # for member in no_user_members:
+    #     name_list.append(u"%s(%s)" % (unicode(member), member.employee_id))
+    # if name_list:
+    #     logger.warning(u"%sのEBOAユーザーＩＤが設定されていません。" % (', '.join(name_list)))
 
 
 # def sync_contracts(batch):

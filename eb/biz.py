@@ -22,7 +22,7 @@ from django.contrib.contenttypes.models import ContentType
 from utils import common, errors, constants
 from eb import models
 from . import biz_config
-from eboa import models as eboa_models
+# from eboa import models as eboa_models
 from contract import models as contract_models
 
 
@@ -1519,13 +1519,14 @@ def get_attendance_time_from_eboa(project_member, year, month):
     if not project_member.member.eboa_user_id:
         return 0
 
-    period = '%04d/%02d' % (int(year), int(month))
-    eboa_attendances = eboa_models.EbAttendance.objects.filter(applicant__userid=project_member.member.eboa_user_id,
-                                                               period=period)
-    if eboa_attendances.count() > 0:
-        return float(eboa_attendances[0].totaltime)
-    else:
-        return 0
+    # period = '%04d/%02d' % (int(year), int(month))
+    # eboa_attendances = eboa_models.EbAttendance.objects.filter(applicant__userid=project_member.member.eboa_user_id,
+    #                                                            period=period)
+    # if eboa_attendances.count() > 0:
+    #     return float(eboa_attendances[0].totaltime)
+    # else:
+    #     return 0
+    return 0
 
 
 def get_master():

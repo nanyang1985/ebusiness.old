@@ -42,7 +42,6 @@ INSTALLED_APPS = (
     'django_filters',
     'rest_framework',
     'eb',
-    'eboa',
     'del_data',
     'flow',
     'contract',
@@ -79,14 +78,14 @@ if sys.platform in ('linux2', 'linux'):
             'PORT': os.environ['MYSQL_PORT_3306_TCP_PORT'],
         },
 
-        'bpm_eboa': {
-            'ENGINE': 'django.db.backends.mysql',
-            'NAME': 'bpm_eboa',
-            'USER': 'root',
-            'PASSWORD': os.environ['MYSQL_ENV_MYSQL_ROOT_PASSWORD'],
-            'HOST': os.environ['MYSQL_PORT_3306_TCP_ADDR'],
-            'PORT': os.environ['MYSQL_PORT_3306_TCP_PORT'],
-        },
+        # 'bpm_eboa': {
+        #     'ENGINE': 'django.db.backends.mysql',
+        #     'NAME': 'bpm_eboa',
+        #     'USER': 'root',
+        #     'PASSWORD': os.environ['MYSQL_ENV_MYSQL_ROOT_PASSWORD'],
+        #     'HOST': os.environ['MYSQL_PORT_3306_TCP_ADDR'],
+        #     'PORT': os.environ['MYSQL_PORT_3306_TCP_PORT'],
+        # },
     }
 elif sys.platform == 'win32' and getpass.getuser() == 'EB097':
     DATABASES = {
@@ -99,14 +98,14 @@ elif sys.platform == 'win32' and getpass.getuser() == 'EB097':
             'PORT': '',
         },
 
-        'bpm_eboa': {
-            'ENGINE': 'django.db.backends.mysql',
-            'NAME': 'bpm_eboa',
-            'USER': 'root',
-            'PASSWORD': 'root',
-            'HOST': '',
-            'PORT': '',
-        },
+        # 'bpm_eboa': {
+        #     'ENGINE': 'django.db.backends.mysql',
+        #     'NAME': 'bpm_eboa',
+        #     'USER': 'root',
+        #     'PASSWORD': 'root',
+        #     'HOST': '',
+        #     'PORT': '',
+        # },
     }
 else:
     DATABASES = {
@@ -119,17 +118,17 @@ else:
             'PORT': '',
         },
 
-        'bpm_eboa': {
-            'ENGINE': 'django.db.backends.mysql',
-            'NAME': 'bpm_eboa',
-            'USER': 'root',
-            'PASSWORD': 'root',
-            'HOST': '',
-            'PORT': '',
-        },
+        # 'bpm_eboa': {
+        #     'ENGINE': 'django.db.backends.mysql',
+        #     'NAME': 'bpm_eboa',
+        #     'USER': 'root',
+        #     'PASSWORD': 'root',
+        #     'HOST': '',
+        #     'PORT': '',
+        # },
     }
 
-DATABASE_ROUTERS = ['employee.db_router.DbRouter']
+# DATABASE_ROUTERS = ['employee.db_router.DbRouter']
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.7/topics/i18n/

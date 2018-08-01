@@ -10,7 +10,7 @@ from django.conf.urls import url, include
 from rest_framework import routers
 
 from . import views, views_api
-from eboa import views as eboa_views
+# from eboa import views as eboa_views
 
 router = routers.DefaultRouter()
 router.register(r'subcontractor-order-recipient', views_api.SubcontractorOrderRecipientViewSet)
@@ -77,7 +77,7 @@ download_patterns = [
     url(r'^section_all/attendance/(?P<year>[0-9]{4})/(?P<month>[0-9]{2}).html$',
         views.DownloadOrganizationTurnover.as_view(), {'is_all': True},
         name='download_organization_all_turnover'),
-    url(r'^member/list/eboa_info.html$', eboa_views.download_eboa_members, name='download_eboa_members'),
+    # url(r'^member/list/eboa_info.html$', eboa_views.download_eboa_members, name='download_eboa_members'),
     url(r'^member/cost_list.html$', views.DownloadMembersCostView.as_view(), name='download_members_cost'),
     url(r'^subcontractor_request/(?P<subcontractor_request_id>[0-9]+).html$',
         views.DownloadSubcontractorRequestView.as_view(), name='download_subcontractor_request'),
