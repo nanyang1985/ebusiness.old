@@ -111,42 +111,42 @@ class IndexView(BaseTemplateView):
                        'next_ym': next_month.strftime('%Y%m'),
                        'next_2_ym': next_2_months.strftime('%Y%m')}
 
-        member_in_coming = biz.get_members_in_coming()
+        # member_in_coming = biz.get_members_in_coming()
 
-        status_monthly = models.ViewStatusMonthly.objects.filter(
-            ym__in=[prev_month.strftime('%Y%m'), now.strftime('%Y%m'), next_month.strftime('%Y%m')]
-        ).order_by('ym')
+        # status_monthly = models.ViewStatusMonthly.objects.filter(
+        #     ym__in=[prev_month.strftime('%Y%m'), now.strftime('%Y%m'), next_month.strftime('%Y%m')]
+        # ).order_by('ym')
         release_info = biz.get_release_info()
-        salesperson_status_list = models.ViewSalespersonStatus.objects.all()
-        activities = biz.get_activities_incoming()
-        members_without_contract = biz.get_members_without_contract()
+        # salesperson_status_list = models.ViewSalespersonStatus.objects.all()
+        # activities = biz.get_activities_incoming()
+        # members_without_contract = biz.get_members_without_contract()
 
-        own_member_status = False
-        show_warning_projects = False
-        if biz.is_salesperson_user(request.user):
-            show_warning_projects = True
-            if request.user.salesperson.member_type == 5:
-                # 営業担当の場合
-                try:
-                    if request.user.salesperson.pk == 36:
-                        own_member_status = salesperson_status_list.get(salesperson__pk=16)
-                    else:
-                        own_member_status = salesperson_status_list.get(salesperson=request.user.salesperson)
-                except (ObjectDoesNotExist, MultipleObjectsReturned):
-                    own_member_status = None
+        # own_member_status = False
+        # show_warning_projects = False
+        # if biz.is_salesperson_user(request.user):
+        #     show_warning_projects = True
+        #     if request.user.salesperson.member_type == 5:
+        #         # 営業担当の場合
+        #         try:
+        #             if request.user.salesperson.pk == 36:
+        #                 own_member_status = salesperson_status_list.get(salesperson__pk=16)
+        #             else:
+        #                 own_member_status = salesperson_status_list.get(salesperson=request.user.salesperson)
+        #         except (ObjectDoesNotExist, MultipleObjectsReturned):
+        #             own_member_status = None
 
         context = self.get_context_data()
         context.update({
             'title': 'Home | %s' % constants.NAME_SYSTEM,
             'filter_list': filter_list,
-            'status_monthly': list(status_monthly),
-            'members_in_coming_count': member_in_coming.count(),
+            # 'status_monthly': list(status_monthly),
+            # 'members_in_coming_count': member_in_coming.count(),
             'release_info': release_info,
-            'activities': activities,
-            'own_member_status': own_member_status,
-            'show_warning_projects': show_warning_projects,
-            'salesperson_status_list': salesperson_status_list,
-            'members_without_contract': members_without_contract,
+            # 'activities': activities,
+            # 'own_member_status': own_member_status,
+            # 'show_warning_projects': show_warning_projects,
+            # 'salesperson_status_list': salesperson_status_list,
+            # 'members_without_contract': members_without_contract,
         })
         return self.render_to_response(context)
 
