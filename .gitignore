@@ -57,9 +57,6 @@ docs/_build/
 target/
 
 .idea/
-eb/migrations/
-flow/migrations/
-contract/migrations/
 media/request/temp/*
 media/client_order/*
 media/quotation/temp/*
@@ -68,3 +65,5 @@ media/temp/*
 *.DS_Store
 *.cert
 *.key
+*/migrations/*
+!__init__.py
