@@ -52,6 +52,7 @@ select null as id
               and s1.status <> '04'
               and s1.start_date <= current_date()
               and (IFNULL(s1.end_date2, s1.end_date) >= current_date() or IFNULL(s1.end_date2, s1.end_date) is null)
+			limit 1
                ) OR
                (
            select 1
@@ -60,6 +61,7 @@ select null as id
               and s1.status <> '04'
               and s1.start_date <= current_date()
               and (s1.end_date >= current_date() or s1.end_date is null)
+			limit 1
                )
        )
  group by s.id
