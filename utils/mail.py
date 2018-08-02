@@ -4,11 +4,13 @@ import os
 import mimetypes
 import datetime
 import traceback
-import pyminizip
+import sys
 import random
 import string
 import subprocess
 import shutil
+import zipfile
+import io
 
 from email import encoders
 from email.header import Header
@@ -92,27 +94,44 @@ class EbMail(object):
 
     def zip_attachments(self):
         if self.attachment_list:
-            temp_path = common.get_temp_path()
-            temp_zip = os.path.join(temp_path, datetime.datetime.now().strftime('%Y%m%d%H%M%S%f.zip'))
-            self.temp_files.append(temp_zip)
-            # TODO: エンコードが不一致しているので、暫定対策はＯＳごとに処理する。
-            file_list = []
-            # if sys.platform == 'linux2':
-            for f in self.attachment_list:
-                new_path = os.path.join(temp_path, self.escape(os.path.basename(f)).encode('shift-jis'))
-                shutil.copy(f, new_path)
-                # ファイル名をshift-jisの名前に変更する、Windowsで開く時の文字化け防止
-                # cmd = ['/usr/local/convmv-2.03/convmv', '--r', '--notest', '-f', 'utf8', '-t', 'cp932', new_path]
-                # subprocess.check_output(cmd, shell=False)
-                # new_path = new_path.encode('shift-jis')
-                file_list.append(new_path)
-                self.temp_files.append(new_path)
-            # else:
-            #     file_list = [f.encode('shift-jis') for f in self.attachment_list]
-            password = self.generate_password()
-            pyminizip.compress_multiple(file_list, temp_zip, password, 1)
-            bytes = open(temp_zip, b'rb',).read()
-            return bytes
+            if sys.platform in ("linux", "linux2"):
+                # tempフォルダー配下の一時フォルダーを取得する
+                temp_path = os.path.join(common.get_temp_path(), datetime.datetime.now().strftime('%Y%m%d%H%M%S%f'))
+                if not os.path.exists(temp_path):
+                    os.mkdir(temp_path)
+                    self.temp_files.append(temp_path)
+                temp_zip = os.path.join(common.get_temp_path(), datetime.datetime.now().strftime('%Y%m%d%H%M%S%f.zip'))
+                self.temp_files.append(temp_zip)
+                file_list = []
+                for attachment_file in self.attachment_list:
+                    new_path = os.path.join(temp_path, attachment_file.filename)
+                    file_list.append(new_path)
+                    self.temp_files.append(new_path)
+                    if attachment_file.is_bytes():
+                        # バイナリーファイルを一時ファイルに書き込む
+                        with open(new_path, 'wb') as f:
+                            f.write(attachment_file.content)
+                    else:
+                        shutil.copy(attachment_file.filename, new_path)
+                password = self.generate_password()
+                # tempフォルダー配下すべてのファイル名をUTF8からShift-JISに変換する
+                subprocess.call(["convmv", "-r", "-f", "utf8", '-t', 'sjis', '--notest', temp_path.rstrip('/') + '/'])
+                # 一時フォルダーを圧縮する
+                command = "zip --password {0} -j {1} {2}/*".format(password, temp_zip, temp_path.rstrip('/'))
+                print(command)
+                subprocess.call(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                bytes = open(temp_zip, 'rb', ).read()
+                return bytes
+            else:
+                buff = io.BytesIO()
+                in_memory_zip = zipfile.ZipFile(buff, mode='w')
+                for attachment_file in self.attachment_list:
+                    if attachment_file.is_bytes():
+                        in_memory_zip.writestr(attachment_file.filename, attachment_file.content)
+                    else:
+                        in_memory_zip.write(attachment_file.filename, attachment_file.path)
+                in_memory_zip.close()
+                return buff.getvalue()
         else:
             return None
 
