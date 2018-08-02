@@ -104,15 +104,10 @@ class EbMail(object):
                 self.temp_files.append(temp_zip)
                 file_list = []
                 for attachment_file in self.attachment_list:
-                    new_path = os.path.join(temp_path, attachment_file.filename)
+                    new_path = os.path.join(temp_path, os.path.basename(attachment_file))
                     file_list.append(new_path)
                     self.temp_files.append(new_path)
-                    if attachment_file.is_bytes():
-                        # バイナリーファイルを一時ファイルに書き込む
-                        with open(new_path, 'wb') as f:
-                            f.write(attachment_file.content)
-                    else:
-                        shutil.copy(attachment_file.filename, new_path)
+                    shutil.copy(attachment_file, new_path)
                 password = self.generate_password()
                 # tempフォルダー配下すべてのファイル名をUTF8からShift-JISに変換する
                 subprocess.call(["convmv", "-r", "-f", "utf8", '-t', 'sjis', '--notest', temp_path.rstrip('/') + '/'])
@@ -187,7 +182,10 @@ class EbMail(object):
             # 一時ファイルを削除
             for path in self.temp_files:
                 if os.path.exists(path):
-                    os.remove(path)
+                    if os.path.isdir(path):
+                        shutil.rmtree(path)
+                    else:
+                        os.remove(path)
 
     def send_password(self, conn):
         if self.attachment_list and self.is_encrypt:
