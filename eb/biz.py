@@ -1433,7 +1433,9 @@ def generate_subcontractor_request_data(subcontractor, year, month, subcontracto
     data['MEMBERS'] = detail_members
     data['EXPENSES'] = detail_expenses  # 清算リスト
     data['DETAIL']['ITEM_AMOUNT_ATTENDANCE'] = members_amount
-    if lump_tax is not None:
+    if subcontractor.pk == 154:
+        data['DETAIL']['ITEM_AMOUNT_ATTENDANCE_TAX'] = 0
+    elif lump_tax is not None:
         data['DETAIL']['ITEM_AMOUNT_ATTENDANCE_TAX'] = lump_tax
     elif company.decimal_type == '0':
         data['DETAIL']['ITEM_AMOUNT_ATTENDANCE_TAX'] = int(round(members_amount * company.tax_rate))
