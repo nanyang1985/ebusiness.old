@@ -572,6 +572,13 @@ class MemberAttendanceFormSetHourlyPay(forms.ModelForm):
                                     label=u"時給",
                                     required=False)
 
+    def __init__(self, *args, **kwargs):
+        forms.ModelForm.__init__(self, *args, **kwargs)
+        data = kwargs.get('initial', None)
+        if data and isinstance(data, dict):
+            pm = data.get('project_member', None)
+            self.fields['project_member'].queryset = models.ProjectMember.objects.filter(pk=pm.pk)
+
 
 class BpMemberOrderInfoForm(forms.ModelForm):
     class Meta:
