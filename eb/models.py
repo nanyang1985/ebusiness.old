@@ -3172,11 +3172,11 @@ class MemberAttendance(BaseModel):
         :return:
         """
         contract = self.get_contract()
-        if allowance_time_min is None:
-            allowance_time_min = contract.allowance_time_min
         if contract:
             if contract.is_fixed_cost:
                 return 0
+            if allowance_time_min is None:
+                allowance_time_min = contract.allowance_time_min
             total_hours = self.get_total_hours_cost()
             if allowance_time_min <= total_hours <= contract.allowance_time_max:
                 return 0
