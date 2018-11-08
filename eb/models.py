@@ -2269,11 +2269,16 @@ class ProjectRequest(models.Model):
                 project_member = item["EXTRA_PROJECT_MEMBER"]
                 ym = data['EXTRA']['YM']
                 cost = project_member.member.get_cost(date)
+                member_section = project_member.member.get_section(date)
+                if not member_section:
+                    raise CustomException(u'{}は{}年{}月の部署が設定されていません。'.format(
+                        project_member.member, self.year, self.month)
+                    )
                 detail = ProjectRequestDetail(project_request=self,
                                               project_member=project_member,
                                               year=self.year,
                                               month=self.month,
-                                              member_section=project_member.member.get_section(date),
+                                              member_section=member_section,
                                               member_type=project_member.member.member_type,
                                               salesperson=project_member.member.get_salesperson(date),
                                               subcontractor=project_member.member.subcontractor,
