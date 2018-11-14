@@ -1290,6 +1290,11 @@ def generate_subcontractor_request_data(subcontractor, year, month, subcontracto
                     if bp_member_order and hasattr(bp_member_order, 'bpmemberorderheading'):
                         if bp_member_order.bpmemberorderheading.allowance_time_min:
                             allowance_time_min = float(bp_member_order.bpmemberorderheading.allowance_time_min)
+                        allowance_absenteeism = int(bp_member_order.bpmemberorderheading.allowance_absenteeism)
+                        allowance_overtime = int(str(bp_member_order.bpmemberorderheading.allowance_overtime).replace(',', ''))
+                    else:
+                        allowance_absenteeism = contract.allowance_absenteeism
+                        allowance_overtime = contract.allowance_overtime
                     dict_expenses = dict()
                     # この項目は請求書の出力ではなく、履歴データをProjectRequestDetailに保存するために使う。
                     dict_expenses["EXTRA_PROJECT_MEMBER"] = member_attendance.project_member
@@ -1338,8 +1343,8 @@ def generate_subcontractor_request_data(subcontractor, year, month, subcontracto
                         # 単価（円）
                         dict_expenses['ITEM_PRICE'] = contract.get_cost() or 0
                         # Min/Max（H）
-                        dict_expenses['ITEM_MIN_MAX'] = "%s/%s" % (
-                            int(allowance_time_min), int(contract.allowance_time_max)
+                        dict_expenses['ITEM_MIN_MAX'] = "%.1f/%s" % (
+                            allowance_time_min, int(contract.allowance_time_max)
                         )
                         # 残業時間
                         extra_hours = member_attendance.get_overtime(contract)
@@ -1347,9 +1352,9 @@ def generate_subcontractor_request_data(subcontractor, year, month, subcontracto
                         # 率
                         dict_expenses['ITEM_RATE'] = 1
                         # 減（円）
-                        dict_expenses['ITEM_MINUS_PER_HOUR'] = contract.allowance_absenteeism
+                        dict_expenses['ITEM_MINUS_PER_HOUR'] = allowance_absenteeism
                         # 増（円）
-                        dict_expenses['ITEM_PLUS_PER_HOUR'] = contract.allowance_overtime
+                        dict_expenses['ITEM_PLUS_PER_HOUR'] = allowance_overtime
 
                         if extra_hours > 0:
                             dict_expenses['ITEM_AMOUNT_EXTRA'] = extra_hours * dict_expenses['ITEM_PLUS_PER_HOUR']

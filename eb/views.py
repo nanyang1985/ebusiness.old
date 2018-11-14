@@ -2224,7 +2224,7 @@ class GenerateSubcontractorRequestView(BaseView):
         )
         # お支払通知書
         file_gen.generate_pay_notify(
-            data, template_path=common.get_template_pay_notify_path(company), out_path=pay_notify_xlsx_path
+            data, template_path=common.get_template_pay_notify_path(company), out_path=pay_notify_xlsx_path,
         )
         subcontractor_request.filename = os.path.basename(request_xlsx_path)
         subcontractor_request.filename_pdf = os.path.basename(request_pdf_path)
