@@ -783,7 +783,7 @@ class ProjectMemberAdmin(BaseAdmin):
         return form
 
 
-class ProjectRequestAdmin(ReadonlyAdmin):
+class ProjectRequestAdmin(BaseAdmin):
     list_display = ['project', 'year', 'month', 'request_no', 'created_user', 'created_date', 'amount']
     search_fields = ['project__name', 'request_no']
     list_display_links = ['project', 'request_no']
@@ -795,7 +795,7 @@ class ProjectRequestAdmin(ReadonlyAdmin):
         return False
 
 
-class ProjectRequestHeadingAdmin(ReadonlyAdmin):
+class ProjectRequestHeadingAdmin(BaseAdmin):
     list_display = ['get_request_no', 'get_project_name']
     search_fields = ['project_request__request_no', 'project_request__project__name']
 
@@ -816,7 +816,7 @@ class ProjectRequestHeadingAdmin(ReadonlyAdmin):
         return False
 
 
-class ProjectRequestDetailAdmin(ReadonlyAdmin):
+class ProjectRequestDetailAdmin(BaseAdmin):
     list_display = ['get_request_no', 'get_project_name', 'no', 'project_member', 'total_price', 'expenses_price']
     search_fields = ['project_request__request_no', 'project_request__project__name',
                      'project_member__member__first_name', 'project_member__member__last_name']
