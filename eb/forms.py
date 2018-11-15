@@ -873,3 +873,17 @@ class SubcontractorBankInfoForm(forms.ModelForm):
         self.fields['branch_name'].widget.attrs.update({'style': 'width: 80px;'})
         self.fields['account_number'].widget.attrs.update({'style': 'width: 100px;'})
         self.fields['account_holder'].widget.attrs.update({'style': 'width: 120px;'})
+
+
+class ProjectRequestForm(forms.ModelForm):
+
+    class Meta:
+        model = models.ProjectRequest
+        fields = ('request_name', 'turnover_amount', 'tax_amount', 'expenses_amount', 'amount')
+
+
+class ProjectRequestHeadingForm(forms.ModelForm):
+
+    class Meta:
+        model = models.ProjectRequestHeading
+        fields = ('work_period_start', 'work_period_end')

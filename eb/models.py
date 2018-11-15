@@ -2335,6 +2335,9 @@ class ProjectRequestHeading(models.Model):
         ordering = ['-project_request__request_no']
         verbose_name = verbose_name_plural = u"案件請求見出し"
 
+    def __unicode__(self):
+        return unicode(self.project_request)
+
 
 class ProjectRequestDetail(models.Model):
     project_request = models.ForeignKey(ProjectRequest, on_delete=models.PROTECT, verbose_name=u"請求書")
