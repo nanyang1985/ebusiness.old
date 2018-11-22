@@ -1290,8 +1290,8 @@ def generate_subcontractor_request_data(subcontractor, year, month, subcontracto
                     if bp_member_order and hasattr(bp_member_order, 'bpmemberorderheading'):
                         if bp_member_order.bpmemberorderheading.allowance_time_min:
                             allowance_time_min = float(bp_member_order.bpmemberorderheading.allowance_time_min)
-                        allowance_absenteeism = int(bp_member_order.bpmemberorderheading.allowance_absenteeism)
-                        allowance_overtime = int(str(bp_member_order.bpmemberorderheading.allowance_overtime).replace(',', ''))
+                        allowance_absenteeism = int(bp_member_order.bpmemberorderheading.allowance_absenteeism or 0)
+                        allowance_overtime = int(str(bp_member_order.bpmemberorderheading.allowance_overtime or 0).replace(',', ''))
                     else:
                         allowance_absenteeism = contract.allowance_absenteeism
                         allowance_overtime = contract.allowance_overtime
