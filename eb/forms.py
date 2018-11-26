@@ -886,4 +886,4 @@ class ProjectRequestHeadingForm(forms.ModelForm):
 
     class Meta:
         model = models.ProjectRequestHeading
-        fields = ('work_period_start', 'work_period_end')
+        fields = ('work_period_start', 'work_period_end', 'publish_date')
