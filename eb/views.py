@@ -824,6 +824,7 @@ class ProjectMembersView(BaseTemplateView):
         return self.render_to_response(context)
 
 
+@method_decorator(permission_required('eb.view_section', raise_exception=True), name='get')
 class SectionListView(BaseTemplateView):
     template_name = 'default/section_list.html'
 

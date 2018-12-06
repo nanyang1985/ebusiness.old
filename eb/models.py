@@ -904,6 +904,9 @@ class Section(BaseModel):
     class Meta:
         ordering = ['name']
         verbose_name = verbose_name_plural = u"部署"
+        permissions = (
+            ('view_section', u'部署参照'),
+        )
 
     def __unicode__(self):
         return self.name
