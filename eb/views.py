@@ -839,6 +839,7 @@ class SectionListView(BaseTemplateView):
         return self.render_to_response(context)
 
 
+@method_decorator(permission_required('eb.view_section', raise_exception=True), name='get')
 class SectionAllDetailView(BaseTemplateView):
     template_name = 'default/section_detail.html'
 
@@ -852,6 +853,7 @@ class SectionAllDetailView(BaseTemplateView):
         return context
 
 
+@method_decorator(permission_required('eb.view_section', raise_exception=True), name='get')
 class SectionDetailView(BaseTemplateView):
     template_name = 'default/section_detail.html'
 
