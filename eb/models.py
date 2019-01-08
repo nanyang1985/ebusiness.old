@@ -1647,15 +1647,7 @@ class Member(AbstractMember):
 
     def get_all_cost(self):
         today = datetime.date.today()
-        cast = self.get_cost(today) + self.get_health_insurance + self.employment_insurance
-        contract = self.get_current_contract()
-        member_type = self.member_type
-        if contract:
-            member_type = contract.member_type
-        if member_type == 1 or member_type == 7  :
-            return cast * 14/12 + self.traffic_cost
-        else:
-            return cast + self.traffic_cost
+        return self.get_cost(today) + self.get_health_insurance + self.traffic_cost + self.employment_insurance
 
     def delete(self, using=None, keep_parents=False):
         self.is_deleted = True

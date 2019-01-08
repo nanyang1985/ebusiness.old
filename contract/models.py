@@ -154,8 +154,8 @@ class Contract(BaseModel):
                + self.allowance_security \
                + self.allowance_qualification \
                + self.allowance_other
-        # if self.member_type == 1:
-        #     cost = int((cost * 14) / 12)
+        if self.member_type == 1 or self.member_type == 7:
+            cost = int((cost * 14) / 12)
         return cost
 
     def get_next_contract_no(self):
