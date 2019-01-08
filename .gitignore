@@ -67,3 +67,5 @@ media/temp/*
 *.key
 */migrations/*
 !__init__.py
+
+nohup.out
