@@ -55,14 +55,16 @@
         <thead>
             <tr>
                 <th>{% create_order_display "案件名称" "name" %}</th>
-                <th style="width: 150px;">{% create_order_display "関連会社" "client__name" %}</th>
+                <th style="width: 150px;">{% create_order_display "関連会社<br/>(顧客責任者)" "client__name" %}</th>
                 <th style="width: 110px">{% create_order_display "事業分類" "business_type" %}</th>
                 <th style="width: 90px;">{% create_order_display "営業員" "salesperson__first_name" %}</th>
                 <th style="width: 50px;">{% create_order_display "総人数" "" %}</th>
                 <th style="width: 62px;">{% create_order_display "現在人数" "" %}</th>
                 <th style="width: 85px;">{% create_order_display "メンバー" "" %}</th>
                 <th style="width: 60px;">{% create_order_display "状態" "" %}</th>
-                <th style="width: 140px;">{% create_order_display "更新日" "updated_date" %}</th>
+                <th style="width: 90px;">{% create_order_display "開始日" "start_date" %}</th>
+                <th style="width: 90px;">{% create_order_display "終了日" "end_date" %}</th>
+                <th style="width: 90px;">{% create_order_display "更新日" "updated_date" %}</th>
                 <th class="noprint" style="width: 65px;"></th>
             </tr>
         </thead>
@@ -78,7 +80,10 @@
                         </td>
                         <td>
                             <div style="width: 150px; overflow: hidden; white-space: nowrap;">
-                                <a title="{{ project.client.name }}">{{ project.client.name }}</a>
+                                <a title="{{ project.client.name }}">{{ project.client.name }}</a> <br />
+                                {% if project.boss %}
+                                    (<a title="{{ project.boss|default:'' }}">{{ project.boss|default:'' }}</a>)
+                                {% endif %}
                             </div>
                         </td>
                         <td>{{ project.get_business_type_display|default:'' }}</td>
@@ -101,6 +106,16 @@
                             {% endfor %}
                         </td>
                         <td class="center"><a href="?status={{ project.status }}">{{ project.get_status_display }}</a></td>
+                        <td>
+                            {% if project.start_date %}
+                                {{ project.start_date|date:'Y/m/d'}}
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if project.end_date %}
+                                {{ project.end_date|date:'Y/m/d'}}
+                            {% endif %}
+                        </td>
                         <td>{{ project.updated_date|date:'Y/m/d H:i' }}</td>
                         <td class="center noprint">
                             <a href="{% url 'admin:eb_project_change' project.id %}?from=portal&_popup=1" target="_blank">編集</a>
@@ -109,12 +124,12 @@
                     </tr>
                 {% endfor %}
             {% else %}
-                <tr class="row1"><td class="center red" colspan="9">該当する案件がありません。</td></tr>
+                <tr class="row1"><td class="center red" colspan="12">該当する案件がありません。</td></tr>
             {% endif %}
         </tbody>
         <tfoot>
             <tr>
-                <td colspan="10">
+                <td colspan="12">
                     {% paging projects %}
                 </td>
             </tr>
