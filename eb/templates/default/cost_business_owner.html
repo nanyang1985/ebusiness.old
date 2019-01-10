@@ -1,0 +1,99 @@
+{% extends theme|add:"/base.html" %}
+{% load humanize %}
+{% load order_by_tag %}
+{% load sales_templates %}
+{% load year_month_filter %}
+
+{% block header %}
+    <script type="text/javascript">
+        window.onload = function() {
+        };
+    </script>
+{% endblock %}
+
+{% block content %}
+    <div class="dashboard">
+        <div class="dashboard-title">{{ title }}</div>
+        <form action="" method="get">
+            {% year_month_filter year month %}
+            <input type="submit" value="Filter" />
+            <div class="clear"></div>
+        </form>
+    </div>
+    <table class="list" cellpadding="0" cellspacing="0">
+        <thead>
+            <tr>
+                <th>{% create_single_order_display "名前" "first_name" %}</th>
+                <th style="width: 250px;">{% create_single_order_display "案件" "project_name" %}</th>
+                <th>基本給</th>
+                <th>基準時間</th>
+                <th>増</th>
+                <th>減</th>
+                <th>出勤時間</th>
+                <th>不足/超過</th>
+                <th>交通費</th>
+                <th>精算</th>
+                <th>コスト（税抜）</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% if data_frame is None %}
+                <tr class="row1"><td class="center red" colspan="4">個人事業主がありません。</td></tr>
+            {% else %}
+                {% for idx, data_row in data_frame.iterrows %}
+                <tr class="{% cycle 'row1' 'row2' %} {% if data_row.is_loan %}is_loan{% endif %}">
+                    <td>
+                        {% if data_row.contract_type == '04' %}
+
+                        {% else %}
+                            <a href="{% url 'member_detail' data_row.employee_id %}">
+                                {{ data_row.first_name }} {{ data_row.last_name }}
+                            </a>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if data_row.project_id %}
+                            <div style="width: 250px; overflow: hidden; white-space: nowrap;">
+                                <a href="{% url 'project_detail' data_row.project_id %}">{{ data_row.project_name }}</a>
+                            </div>
+                        {% else %}
+                            {{ data_row.project_name }}
+                        {% endif %}
+                    </td>
+                    <td class="num">{{ data_row.cost|floatformat:0|intcomma }}</td>
+                    {% if data_row.is_hourly_pay %}
+                        <td class="center" colspan="3">時給</td>
+                    {% elif data_row.is_fixed_cost %}
+                        <td class="center" colspan="3">固定</td>
+                    {% else %}
+                        <td>{{ data_row.min_hours|floatformat:2 }}～{{ data_row.max_hours|floatformat:2 }}</td>
+                        <td class="num">{{ data_row.plus_per_hour|floatformat:0|intcomma }}</td>
+                        <td class="num">{{ data_row.minus_per_hour|floatformat:0|intcomma }}</td>
+                    {% endif %}
+                    <td class="num">{{ data_row.total_hours|floatformat:2|intcomma }}</td>
+                    <td class="num {% if data_row.extra_hours < 0 %}red{% endif %}">{{ data_row.extra_hours|floatformat:2 }}</td>
+                    <td class="num">{{ data_row.traffic_cost|floatformat:0|intcomma }}</td>
+                    <td class="num">{{ data_row.expenses|floatformat:0|intcomma }}</td>
+                    <td class="num">{{ data_row.total_cost|floatformat:0|intcomma }}</td>
+                </tr>
+                {% endfor %}
+            {% endif %}
+        </tbody>
+        <tfoot>
+            <tr>
+                <td colspan="2">
+                    {% paging object_list %}
+                </td>
+                <td class="num">{{ summary.cost|floatformat:0|intcomma }}</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td class="num">{{ summary.total_hours|floatformat:2|intcomma }}</td>
+                <td class="num">{{ summary.extra_hours|floatformat:2|intcomma }}</td>
+                <td class="num">{{ summary.traffic_cost|floatformat:0|intcomma }}</td>
+                <td class="num">{{ summary.expenses|floatformat:0|intcomma }}</td>
+                <td class="num">{{ summary.total_cost|floatformat:0|intcomma }}</td>
+            </tr>
+        </tfoot>
+    </table>
+{% endblock %}

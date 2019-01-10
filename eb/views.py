@@ -1462,6 +1462,42 @@ class CostSubcontractorsMonthlyView(BaseTemplateView):
             'object_list': object_list,
         })
         return context
+"""
+個人事業主コスト
+"""
+@method_decorator(permission_required('eb.view_subcontractor', raise_exception=True), name='get')
+class CostBusinessOwnerView(BaseTemplateView):
+    template_name = 'default/cost_business_owner.html'
+
+    def get_context_data(self, **kwargs):
+        request = kwargs.get('request')
+        now = datetime.datetime.now()
+        year = request.GET.get('_year', now.year)
+        month = request.GET.get('_month', now.strftime('%m'))
+        context = super(CostBusinessOwnerView, self).get_context_data(**kwargs)
+
+        data_frame = biz_turnover.get_business_owner_cost(year, month)
+        summary = data_frame.sum()
+        object_list = list(data_frame.iterrows())
+        paginator = Paginator(object_list, biz_config.get_page_size())
+        page = request.GET.get('page')
+        try:
+            object_list = paginator.page(page)
+        except PageNotAnInteger:
+            object_list = paginator.page(1)
+        except EmptyPage:
+            object_list = paginator.page(paginator.num_pages)
+
+        context.update({
+            'title': u"%s年%s月の個人事業主コスト" % (year, month),
+            'data_frame': data_frame,
+            'year': year,
+            'month': month,
+            'summary': summary,
+            'object_list': object_list,
+            'paginator': paginator,
+        })
+        return context
 
 
 @method_decorator(permission_required('eb.view_subcontractor', raise_exception=True), name='get')

@@ -619,3 +619,30 @@ def get_client_turnover(year, month, client):
     df['profit_rate'] = df['profit'] / df['total_price'] * 100
     df = df.sort_values(by='project_name', ascending=True)
     return df
+
+"""
+個人事業主コスト
+"""
+def get_business_owner_cost(year, month): #, param_dict=None
+    # df = biz.get_cost_by_month(year, month, param_dict)
+    # return df
+    pd.read_sql("SELECT @get_ym:=%s%s" % (year, month), connection)
+    df = pd.read_sql('''
+        SELECT * FROM v_organization_cost s
+        WHERE s.member_type = '3'
+        order by s.is_lump, s.employee_id
+    ''', connection)
+    
+    # 原価合計を計算する。
+    df['total_cost'] = df['salary'] + df['allowance'] + df['night_allowance'] + df['overtime_cost'] + df[
+        'traffic_cost'] + df['expenses'] + df['employment_insurance'] + df['health_insurance']
+    # 粗利
+    df['profit'] = df['total_price'] - df['total_cost']
+    # 経費合計
+    df['expenses_total'] = df['expenses_conference'] + df['expenses_entertainment'] + df['expenses_travel'] + df[
+        'expenses_communication'] + df['expenses_tax_dues'] + df['expenses_expendables']
+    # 営業利益
+    df['income'] = df['total_price'] - df['total_cost'] - df['expenses_total']
+    df.project_id = df.project_id.fillna(0).astype(int)
+
+    return df

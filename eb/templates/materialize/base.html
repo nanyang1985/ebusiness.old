@@ -105,6 +105,7 @@
     <li><div class="divider"></div></li>
     <li><a href="{% url 'business_partner_members' %}" class="waves-effect"><i class="material-icons">contacts</i>ＢＰ契約一覧</a></li>
     <li><a href="{% url 'cost_subcontractors_monthly' %}" class="waves-effect">協力会社コスト</a></li>
+    <li><a href="{% url 'cost_business_owner' %}">個人事業主コスト</a></li>
     {% endif %}
     {% if perms.eb.view_turnover %}
     <li><div class="divider"></div></li>
