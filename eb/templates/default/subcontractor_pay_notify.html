@@ -144,7 +144,7 @@ table.request td.align_right {
             </tr>
             <tr style="font-weight: bold; height: 60px;">
                 <td></td>
-                <td colspan="4" style="border: 2px solid black; font-size: 15px; padding: 5px 2px;">合計金額（税込み）</td>
+                <td colspan="4" style="border: 2px solid black; font-size: 15px; padding: 5px 2px;">合計金額</td>
                 <td colspan="4" style="border: 2px solid black; font-size: 15px; padding: 5px 2px; border-left: 0px; text-align: right;">
                     ￥{{ project_request.amount|intcomma }}</td>
                 <td colspan="2"></td>
@@ -242,14 +242,14 @@ table.request td.align_right {
             <tr>
                 <td></td>
                 <td class="left align_right" colspan="11"></td>
-                <td class="left bottom center" colspan="4">本体価格（内税含む）</td>
+                <td class="left bottom center" colspan="4">本体価格</td>
                 <td class="left bottom align_right" colspan="3">{{ project_request.turnover_amount|intcomma }}</td>
                 <td class="left align_left border_right" colspan="3"></td>
             </tr>
             <tr>
                 <td></td>
                 <td class="left align_right" colspan="11"></td>
-                <td class="left bottom center" colspan="4">消費税等（外税額のみ）</td>
+                <td class="left bottom center" colspan="4">消費税等</td>
                 <td class="left bottom align_right" colspan="3">{{ project_request.tax_amount|intcomma }}</td>
                 <td class="left align_left border_right" colspan="3"></td>
             </tr>

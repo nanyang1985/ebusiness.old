@@ -810,7 +810,7 @@ def generate_pay_notify(data, template_path, out_path):
     """
     from django.contrib.humanize.templatetags import humanize
     book = px.load_workbook(template_path)
-    sheet = book.get_sheet_by_name('支払通知書')
+    sheet = book['支払通知書']
 
     # 電子印鑑
     img = common.get_signature_image()
@@ -823,6 +823,9 @@ def generate_pay_notify(data, template_path, out_path):
                 replaced_string = get_openpyxl_replaced_string(cell.value, data['DETAIL'])
                 if replaced_string is not None:
                     cell.value = replaced_string
+    if data['EXTRA']['WORK_PERIOD_START'] is not None:
+        first_day = data['EXTRA']['WORK_PERIOD_START']
+        sheet.cell(row=3, column=1).value = '%s年%s月度検収兼お支払通知書' % (first_day.strftime('%Y'), first_day.strftime('%m'))
     # 合計金額（税込み）
     amount = data['DETAIL']['ITEM_AMOUNT_ALL']
     sheet.cell(row=14, column=8).value = '¥%s' % humanize.intcomma(amount)
@@ -915,9 +918,9 @@ def generate_pay_notify(data, template_path, out_path):
     # リスト部分の下底枠線
     for i in range(2, 22):
         sheet.cell(row=start_row, column=i).border = Border(top=thin)
-    # 本体価格（内税含む）
+    # 本体価格
     sheet.row_dimensions[start_row].height = 23
-    sheet.cell(row=start_row, column=12).value = '本体価格（内税含む）'
+    sheet.cell(row=start_row, column=12).value = '本体価格'
     sheet.cell(row=start_row, column=12).alignment = Alignment(horizontal="center", vertical="center")
     sheet.merge_cells(start_row=start_row, start_column=12, end_row=start_row, end_column=15)
     sheet.cell(row=start_row, column=16).value = data['DETAIL']['ITEM_AMOUNT_ATTENDANCE']
@@ -925,9 +928,9 @@ def generate_pay_notify(data, template_path, out_path):
     sheet.cell(row=start_row, column=16).number_format = '#,##0'
     sheet.merge_cells(start_row=start_row, start_column=16, end_row=start_row, end_column=18)
     start_row += 1
-    # 消費税等（外税額のみ）
+    # 消費税等
     sheet.row_dimensions[start_row].height = 23
-    sheet.cell(row=start_row, column=12).value = '消費税等（外税額のみ）'
+    sheet.cell(row=start_row, column=12).value = '消費税等'
     sheet.cell(row=start_row, column=12).alignment = Alignment(horizontal="center", vertical="center")
     sheet.merge_cells(start_row=start_row, start_column=12, end_row=start_row, end_column=15)
     sheet.cell(row=start_row, column=16).value = data['DETAIL']['ITEM_AMOUNT_ATTENDANCE_TAX']
