@@ -1898,7 +1898,7 @@ class Project(BaseModel):
                                      help_text=u"バーチャル案件です、コストなどを算出ために非稼働メンバーを"
                                                u"この案件にアサインすればいい。")
     client = models.ForeignKey(Client, null=True, on_delete=models.PROTECT, verbose_name=u"関連会社")
-    boss = models.ForeignKey(ClientMember, blank=False, null=False, related_name="boss_set", on_delete=models.PROTECT,
+    boss = models.ForeignKey(ClientMember, blank=False, null=True, related_name="boss_set", on_delete=models.PROTECT,
                              verbose_name=u"案件責任者")
     middleman = models.ForeignKey(ClientMember, blank=True, null=True, on_delete=models.PROTECT,
                                   related_name="middleman_set", verbose_name=u"案件連絡者")
