@@ -646,3 +646,22 @@ def get_business_owner_cost(year, month): #, param_dict=None
     df.project_id = df.project_id.fillna(0).astype(int)
 
     return df
+
+def get_bundle_project(subcontractor_id, year, month):
+    sql = '''
+        SELECT 
+            scrd.total_price,
+            scrd.project_id,
+            sc.name as sub_contractor_name,
+            p.name as project_name
+        FROM `eb_subcontractorrequestdetail` scrd
+        LEFT JOIN `eb_subcontractorrequest` scr on scrd.`subcontractor_request_id` = scr.id
+        LEFT JOIN `eb_subcontractor` sc on scr.subcontractor_id = sc.id
+        LEFT JOIN `eb_project` p on scrd.project_id = p.id
+        WHERE scr.`year` =%s
+            AND scr.`month`=%s
+            AND scr.`subcontractor_id`=%s
+            AND scrd.`project_member_id` IS NULL
+    '''
+    df = pd.read_sql(sql % (year, month, subcontractor_id), connection)
+    return df

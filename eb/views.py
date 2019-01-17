@@ -1023,7 +1023,7 @@ class SubcontractorPayNotifyView(BaseTemplateViewWithoutLogin):
     template_name = 'default/subcontractor_pay_notify.html'
 
     def get(self, request, *args, **kwargs):
-        request_id = kwargs.get('request_id', 0)
+        request_id = kwargs.get('request_id', 0) 
         subcontractor_request = get_object_or_404(models.SubcontractorRequest, pk=request_id)
         if hasattr(subcontractor_request, 'subcontractorrequestheading'):
             request_heading = subcontractor_request.subcontractorrequestheading
@@ -1550,12 +1550,18 @@ class CostSubcontractorMembersByMonthView(BaseTemplateView):
         except EmptyPage:
             object_list = paginator.page(paginator.num_pages)
 
+
+        bundle_project_list = biz_turnover.get_bundle_project(subcontractor_id, year, month)
+        print bundle_project_list.sum()
+        
         context.update({
             'title': u"%s年%s月の%sコスト一覧" % (
                 year, month,
                 '「' + unicode(subcontractor) + '」' if subcontractor else "ＢＰメンバー"
             ),
             'object_list': object_list,
+            'bundle_project_list': list(bundle_project_list.iterrows()),
+            'bundle_project_summary': bundle_project_list.sum(),
             'summary': summary,
             'subcontractor': subcontractor,
             'sections': sections,

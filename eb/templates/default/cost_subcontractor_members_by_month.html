@@ -292,4 +292,42 @@
             </tr>
         </tfoot>
     </table>
+
+
+
+
+    {% if bundle_project_list %}
+    <table class="list" cellpadding="0" cellspacing="0">
+        <thead>
+            <tr>
+                <th>協力会社</th>
+                <th>案件（一括）</th>
+                <th>金額（税抜）</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for idx, data_row in bundle_project_list %}
+            <tr class="{% cycle 'row1' 'row2' %}">
+                <td>{{ data_row.sub_contractor_name }}</td>
+                <td><div style="width: 250px; overflow: hidden; white-space: nowrap;">
+                    <a href="{% url 'project_detail' data_row.project_id %}">{{ data_row.project_name }}</a>
+                </div></td>
+                <td>{{ data_row.total_price|floatformat:0|intcomma }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+        <tfoot>
+            <tr>
+                <td></td>
+                <td></td>
+                <td class="num">合計（税抜）：{{ bundle_project_summary.total_price|floatformat:0|intcomma }}</td>
+            </tr>
+        </tfoot>
+    </table>
+    <div class="dashboard">
+        <div class="dashboard-title"><b>合計金額(SES+一括)</b></div>
+        <div style="text-align: right"><b>{{summary.total_cost|add:bundle_project_summary.total_price|floatformat:0|intcomma}}</b></div>
+    </div>
+    {% endif %}
+
 {% endblock %}
