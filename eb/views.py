@@ -12,6 +12,8 @@ import urllib
 import operator
 import traceback
 import hashlib
+import csv
+from calendar import monthrange
 
 from django.conf import settings
 from django.contrib import admin
@@ -1552,8 +1554,7 @@ class CostSubcontractorMembersByMonthView(BaseTemplateView):
 
 
         bundle_project_list = biz_turnover.get_bundle_project(subcontractor_id, year, month)
-        print bundle_project_list.sum()
-        
+
         context.update({
             'title': u"%s年%s月の%sコスト一覧" % (
                 year, month,
@@ -1597,6 +1598,89 @@ class CostSubcontractorsByMonthView(BaseTemplateView):
             'month': month,
         })
         return context
+# WEB総振 振込データ
+# format
+# ジャパンネット銀行 Business Account WEB総振 振込データの項目説明
+class DownloadCostSubcontractorsByMonthView(BaseTemplateView):
+    def get(self, request, *args, **kwargs):
+        # copy from CostSubcontractorsByMonthView
+        year = kwargs.get('year')
+        month = kwargs.get('month')
+        data_frame = biz_turnover.get_bp_cost_by_subcontractor(year, month)
+
+        # find bank information for 'data_frame' 
+        subcontractor_list = list(data_frame.iterrows())
+        subcontractor_ids = [subcontractor.company_id for idx, subcontractor in subcontractor_list]
+        subcontractor_bankinfo_list = models.SubcontractorBankInfo.objects.filter(subcontractor_id__in=subcontractor_ids)
+
+        response = HttpResponse(content_type='text/csv')
+        # force download.
+        response['Content-Disposition'] = 'attachment;filename=%s%s.csv' % (year, month)
+        # the csv writer
+        writer = csv.writer(response)
+        # first row, eb's bank information
+        self.writeBankInfomationOfEB(writer)
+        # subcontractor_list = data_frame.iterrows()
+        # write bank information for subcontractor
+        for s_bank in subcontractor_bankinfo_list:
+            self.writeRowForSubcontractor(writer, s_bank, subcontractor_list)
+        # totla 
+        writer.writerow(['8', '件数'.encode('utf-8'), '合計金額'.encode('utf-8'), ''])
+        # last row
+        writer.writerow(['9', ''])
+        
+        return response
+    # first row, eb's bank information
+    def writeBankInfomationOfEB(self, writer):
+        today = datetime.date.today()
+        lastday = monthrange(today.year, today.month)[1]
+
+        # bank information
+        bankInfo = models.BankInfo.objects.first()
+        # format -> ジャパンネット銀行 Business Account WEB総振 振込データの項目説明
+        # first row
+        writer.writerow(['1',                               #データ区分 (1) 「1」固定
+            '21',                                           #種別コード (2) 「21] 固定
+            '0',                                            #コード区分 (1) 「0」固定
+            '',                                             #振込依頼人コード ( 10) (設定不要)
+            bankInfo.account_holder.encode('utf-8'),        #振込依頼人名 ( 40) 「入力必須」
+            datetime.date(today.year, today.month, lastday).strftime("%m%d"),#振込日 (4) 「MMDD」
+            '33',                                           #振込元銀行コード (4) 「33」固定
+            '',                                             #振込元銀行名 ( 15) (省略可)
+            bankInfo.branch_no.encode('utf-8'),             #振込元支店コード (3) 「入力必須」
+            '',                                             #振込元支店名 ( 15) (省略可
+            '1',                                            #振込元預金種目 (1) 「1」固定
+            bankInfo.account_number.encode('utf-8'),        #振込元口座番号 (7) 「入力必須」
+            ''])                                            #予備(7)( 設定不要)
+
+    # write the bank information for subcatontractor
+    def writeRowForSubcontractor(self, writer, s_bank, subcontractor_list):
+        # 振込先口座の預金科目(1:普通、2:当座、4:貯蓄)を入力してください。
+        bank_account_type='1'
+        if s_bank.account_type == '4' :
+            bank_account_type='2'
+        elif s_bank.account_type == '5' :
+            bank_account_type='4'
+
+        # The Cost of current month
+        money = [subcontractor.total_cost for idx, subcontractor in subcontractor_list if subcontractor.company_id == s_bank.subcontractor.pk][0]
+        writer.writerow([
+            '2',                                #データ区分「2」固定
+            '' if s_bank.bank_code is None else s_bank.bank_code.encode('utf-8'),       #銀行コード
+            '' if s_bank.bank_name is None else s_bank.bank_name.encode('utf-8'),       #銀行名(省略可)
+            '' if s_bank.branch_no is None else s_bank.branch_no.encode('utf-8'),       #支店コード
+            '' if s_bank.branch_name is None else s_bank.branch_name.encode('utf-8'),   #支店名(省略可)
+            '',                                 #手形交換所番号(設定不要)
+            bank_account_type.encode('utf-8'),  #預金種目
+            '' if s_bank.account_number is None else s_bank.account_number.encode('utf-8'),#口座番号
+            '' if s_bank.account_holder is None else s_bank.account_holder.encode('utf-8'),#受取人名
+            '' if money is None else int(round(money)),     #金額
+            '0',                                #新規コード「0」固定
+            '',                                 #顧客コード1 ( 10) (設定不要)
+            '',                                 #顧客コード2 ( 10) (設定不要)
+            '',                                 #振込指定区分 (1) (設定不要)
+            '',                                 #識別表示 (1) (設定不要)
+            ''])                                #予備(7)( 設定不要']
 
 
 @method_decorator(permission_required('eb.view_subcontractor', raise_exception=True), name='get')
