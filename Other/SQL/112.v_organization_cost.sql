@@ -1,5 +1,5 @@
 CREATE OR REPLACE VIEW v_organization_cost AS
-select m.id as member_id
+select distinct m.id as member_id
      , m.employee_id
      , m.first_name
      , m.last_name

@@ -109,6 +109,7 @@ CREATE OR REPLACE VIEW v_contract AS
     FROM
         eb_contract c
     WHERE c.status <> '04'
+      AND c.is_deleted = 0
     UNION ALL SELECT
         c.id AS id,
         NULL AS contract_no,
@@ -186,3 +187,4 @@ CREATE OR REPLACE VIEW v_contract AS
     FROM
         eb_bp_contract c
     WHERE c.status <> '04'
+      AND c.is_deleted = 0
