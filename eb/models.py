@@ -2272,6 +2272,26 @@ class ProjectRequest(models.Model):
                 project_member = item["EXTRA_PROJECT_MEMBER"]
                 ym = data['EXTRA']['YM']
                 cost = project_member.member.get_cost(date)
+                total_hours = item['ITEM_WORK_HOURS'] if item['ITEM_WORK_HOURS'] else 0
+                try:
+                    member_attendance = MemberAttendance.objects.get(
+                        project_member=project_member, year=self.year, month=self.month
+                    )
+                    with connection.cursor() as cursor:
+                        cursor.callproc('sp_project_member_cost', [
+                            project_member.member.pk,
+                            project_member.pk,
+                            self.year,
+                            self.month,
+                            member_attendance.total_hours_bp or member_attendance.total_hours,
+                            member_attendance.allowance or 0,
+                            member_attendance.night_days or 0,
+                            member_attendance.traffic_cost or 0,
+                            member_attendance.expenses or 0,
+                        ])
+                        dict_cost = common.dictfetchall(cursor)[0]
+                except Exception as ex:
+                    dict_cost = dict()
                 member_section = project_member.member.get_section(date)
                 if not member_section:
                     raise CustomException(u'{}は{}年{}月の部署が設定されていません。'.format(
@@ -2285,13 +2305,14 @@ class ProjectRequest(models.Model):
                                               member_type=project_member.member.member_type,
                                               salesperson=project_member.member.get_salesperson(date),
                                               subcontractor=project_member.member.subcontractor,
-                                              cost=cost,
+                                              salary=dict_cost.get('salary', 0) or 0,
+                                              cost=dict_cost.get('cost', 0) or 0,
                                               no=str(i + 1),
                                               hourly_pay=project_member.hourly_pay if project_member.hourly_pay else 0,
                                               basic_price=project_member.price,
                                               min_hours=project_member.min_hours,
                                               max_hours=project_member.max_hours,
-                                              total_hours=item['ITEM_WORK_HOURS'] if item['ITEM_WORK_HOURS'] else 0,
+                                              total_hours=total_hours,
                                               extra_hours=item['ITEM_EXTRA_HOURS']if item['ITEM_EXTRA_HOURS'] else 0,
                                               rate=item['ITEM_RATE'],
                                               plus_per_hour=project_member.plus_per_hour,

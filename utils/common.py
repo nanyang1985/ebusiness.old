@@ -1216,6 +1216,15 @@ def get_signature_image():
     return img
 
 
+def dictfetchall(cursor):
+    "Return all rows from a cursor as a dict"
+    columns = [col[0] for col in cursor.description]
+    return [
+        dict(zip(columns, row))
+        for row in cursor.fetchall()
+    ]
+
+
 if __name__ == "__main__":
     for it in range(1, 10):
         print u'2016年%02d月' % (it,), get_business_days(2016, it)
