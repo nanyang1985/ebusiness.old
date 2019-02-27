@@ -15,7 +15,7 @@
 </head>
 <body>
 <article class="contract">
-    <h1 style="margin-bottom: 10px;">雇 用 契 約 書</h1>
+    <h1 style="margin-bottom: 0px;">雇 用 契 約 書</h1>
     <div>
         <u>{{ contract.member }} 殿</u>
         <div>貴殿を雇用するに当たっての条件は次の通りです。</div>
@@ -49,7 +49,7 @@
             </tr>
             <tr>
                 <th>就業の場所<br/>業務の種類</th>
-                <td colspan="5">
+                <td colspan="5" style="padding: 1px 5px;">
                     {{ contract.business_address }}<br/>
                     {% if contract.business_type == '16' %}
                         {% if contract.business_type_other %}
@@ -65,7 +65,7 @@
             </tr>
             <tr>
                 <th>就業時間</th>
-                <td colspan="5"><pre>{{ contract.business_time }}</pre></td>
+                <td colspan="5" style="padding: 1px 5px;"><pre>{{ contract.business_time }}</pre></td>
             </tr>
             <tr>
                 <th rowspan="5">給　　与</th>
@@ -139,7 +139,7 @@
             {% if contract.member_type == 7 %}
             <tr>
                 <th>賞　　与</th>
-                <td colspan="5"><pre>{{ contract.bonus_comment|default:'' }}</pre></td>
+                <td colspan="5" style="padding: 1px 5px;"><pre>{{ contract.bonus_comment|default:'' }}</pre></td>
             </tr>
             {% endif %}
             {% endif %}
@@ -163,7 +163,7 @@
             </tr>
             <tr>
                 <th>備　　考</th>
-                <td colspan="5"><pre>{{ contract.comment|default:'' }}</pre></td>
+                <td colspan="5" style="padding: 1px 5px;"><pre>{{ contract.comment|default:'' }}</pre></td>
             </tr>
         </tbody>
     </table>
