@@ -79,7 +79,7 @@
             </tr>
             <tr>
                 <th>諸手当</th>
-                <td colspan="4">
+                <td colspan="4" style="padding: 1px 5px;">
                     {% if contract.move_flg == 0 %}
                         {% if contract.allowance_work %}
                             現場手当 : ¥{{ contract.allowance_work|intcomma }}円/月&nbsp;{{ contract.allowance_work_memo|default:'' }}<br/>
@@ -119,21 +119,21 @@
             <tr>
                 {% if contract.endowment_insurance == '1' %}
                     <th>会社保険</th>
-                    <td colspan="4">厚生年金保険 : 加入する</td>
+                    <td colspan="4" style="padding: 1px 5px;">厚生年金保険 : 加入する</td>
                 {% endif %}
             </tr>
             <tr>
                 <th>給与締切日<br/>および支払日</th>
-                <td colspan="4"><pre>{{ contract.allowance_date_comment|default:'' }}</pre></td>
+                <td colspan="4" style="padding: 1px 5px;"><pre>{{ contract.allowance_date_comment|default:'' }}</pre></td>
             </tr>
             <tr>
                 <th>昇給および<br/>降給</th>
-                <td colspan="4">{{ contract.allowance_change_comment|default:'' }}</td>
+                <td colspan="4" style="padding: 1px 5px;">{{ contract.allowance_change_comment|default:'' }}</td>
             </tr>
             {% if contract.member_type == 1 %}
             <tr>
                 <th>賞　　与</th>
-                <td colspan="5"><pre>{{ contract.bonus_comment|default:'' }}</pre></td>
+                <td colspan="5" style="padding: 1px 5px;"><pre>{{ contract.bonus_comment|default:'' }}</pre></td>
             </tr>
             {% else %}
             {% if contract.member_type == 7 %}
@@ -145,21 +145,21 @@
             {% endif %}
             <tr>
                 <th>休　　日</th>
-                <td colspan="5">{{ contract.holiday_comment|default:'' }}</td>
+                <td colspan="5" style="padding: 1px 5px;">{{ contract.holiday_comment|default:'' }}</td>
             </tr>
             {% if contract.member_type == 1 %}
             <tr>
                 <th>有給休暇</th>
-                <td colspan="5">{{ contract.paid_vacation_comment|default:'' }}</td>
+                <td colspan="5" style="padding: 1px 5px;">{{ contract.paid_vacation_comment|default:'' }}</td>
             </tr>
             {% endif %}
             <tr>
                 <th>無給休暇</th>
-                <td colspan="5">{{ contract.non_paid_vacation_comment|default:'' }}</td>
+                <td colspan="5" style="padding: 1px 5px;">{{ contract.non_paid_vacation_comment|default:'' }}</td>
             </tr>
             <tr>
                 <th>退職に関する<br/>事　項</th>
-                <td colspan="5"><pre>{{ contract.retire_comment|default:'' }}</pre></td>
+                <td colspan="5" style="padding: 1px 5px;"><pre>{{ contract.retire_comment|default:'' }}</pre></td>
             </tr>
             <tr>
                 <th>備　　考</th>
