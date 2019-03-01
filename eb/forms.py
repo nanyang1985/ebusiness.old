@@ -887,3 +887,10 @@ class ProjectRequestHeadingForm(forms.ModelForm):
     class Meta:
         model = models.ProjectRequestHeading
         fields = ('work_period_start', 'work_period_end', 'publish_date')
+
+
+class ProjectRequestDetailForm(forms.ModelForm):
+
+    class Meta:
+        model = models.ProjectRequestDetail
+        fields = ('basic_price', 'total_price',)
