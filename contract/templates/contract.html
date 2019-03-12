@@ -73,7 +73,7 @@
                 <td colspan="4">
                     ¥{{ contract.allowance_base|intcomma }}円/{% if contract.is_hourly_pay %}時間{% else %}月{% endif %}
                     {% if contract.move_flg == 0 %}
-                        {{ contract.allowance_base_memo }}
+                        {{ contract.allowance_base_memo|default:'' }}
                     {% endif %}
                 </td>
             </tr>
