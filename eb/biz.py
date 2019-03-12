@@ -1005,18 +1005,20 @@ def get_request_members_in_project(project, client_order, ym):
     :param ym: 対象年月
     :return: メンバーのリスト
     """
+    first_day = common.get_first_day_from_ym(ym)
+    last_day = common.get_last_day_by_month(first_day)
     if client_order.projects.public_filter(is_deleted=False).count() > 1:
         # 一つの注文書に複数の案件がある場合
         projects = client_order.projects.public_filter(is_deleted=False)
-        project_members = models.ProjectMember.objects.public_filter(project__in=projects)
+        project_members = models.ProjectMember.objects.public_filter(
+            project__in=projects, start_date__lte=last_day, end_date__gte=first_day
+        )
     elif project.get_order_by_month(ym[:4], ym[4:]).count() > 1:
         # １つの案件に複数の注文書ある場合
         project_members = []
         if client_order.member_comma_list:
             # 重複したメンバーを外す。
             member_id_list = sorted(set(client_order.member_comma_list.split(",")))
-            first_day = common.get_first_day_from_ym(ym)
-            last_day = common.get_last_day_by_month(first_day)
             for pm_id in member_id_list:
                 try:
                     project_members.append(
