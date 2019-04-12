@@ -1528,7 +1528,9 @@ class Member(AbstractMember):
             return True
         first_day = common.get_first_day_by_month(date)
         last_day = common.get_last_day_by_month(date)
-        if hasattr(user, 'member'):
+        if user.has_perm('eb.edit_price'):
+            return True
+        elif hasattr(user, 'member'):
             with connection.cursor() as cursor:
                 cursor.execute("select distinct boss.id boss_id"
                                "     , ps.position"
