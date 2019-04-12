@@ -2499,6 +2499,9 @@ class ProjectMember(BaseModel):
 
     class Meta:
         verbose_name = verbose_name_plural = u"案件メンバー"
+        permissions = (
+            ('edit_price', u'単価設定'),
+        )
 
     def __unicode__(self):
         return self.member.__unicode__()
