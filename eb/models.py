@@ -938,7 +938,7 @@ class Section(BaseModel):
         """
         query_set = Member.objects.public_filter(
             positionship__section=self,
-            positionship__position__in=[3, 4, 6],
+            positionship__position__in=[3, 3.1, 4, 6],
             positionship__is_deleted=False,
         )
         return query_set
