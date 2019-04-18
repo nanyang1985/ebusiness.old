@@ -936,8 +936,11 @@ class Section(BaseModel):
 
         :return:
         """
-        query_set = Member.objects.public_filter(positionship__section=self,
-                                                 positionship__position__in=[3, 4, 6])
+        query_set = Member.objects.public_filter(
+            positionship__section=self,
+            positionship__position__in=[3, 4, 6],
+            positionship__is_deleted=False,
+        )
         return query_set
 
     def get_chief2(self):
@@ -945,8 +948,11 @@ class Section(BaseModel):
 
         :return:
         """
-        query_set = Member.objects.public_filter(positionship__section=self,
-                                                 positionship__position__in=[5, 7])
+        query_set = Member.objects.public_filter(
+            positionship__section=self,
+            positionship__position__in=[5, 7],
+            positionship__is_deleted=False,
+        )
         return query_set
 
     def get_attendance_statistician(self):
