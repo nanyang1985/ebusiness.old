@@ -893,7 +893,7 @@ class MailCcList(BaseModel):
 class Section(BaseModel):
     name = models.CharField(blank=False, null=False, max_length=30, verbose_name=u"部署名")
     description = models.CharField(blank=True, null=True, max_length=200, verbose_name=u"概要")
-    is_on_sales = models.BooleanField(blank=False, null=False, default=False, verbose_name=u"営業対象")
+    is_on_sales = models.BooleanField(default=False, verbose_name=u"営業対象")
     is_active = models.BooleanField(default=False, verbose_name=u"社員に表示")
     parent = models.ForeignKey("self", related_name='children', blank=True, null=True, on_delete=models.PROTECT,
                                verbose_name=u"親組織")
@@ -963,6 +963,9 @@ class Section(BaseModel):
         query_set = Member.objects.public_filter(positionship__section=self,
                                                  positionship__position=11)
         return query_set
+
+    def get_child_section(self):
+        return self.children.filter(is_on_sales=True)
 
     def get_children(self):
         children = []
