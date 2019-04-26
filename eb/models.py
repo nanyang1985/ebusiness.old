@@ -2286,6 +2286,7 @@ class ProjectRequest(models.Model):
                 project_member = item["EXTRA_PROJECT_MEMBER"]
                 ym = data['EXTRA']['YM']
                 total_hours = item['ITEM_WORK_HOURS'] if item['ITEM_WORK_HOURS'] else 0
+                expenses_price = project_member.get_expenses_amount(ym[:4], int(ym[4:]))
                 try:
                     member_attendance = MemberAttendance.objects.get(
                         project_member=project_member, year=self.year, month=self.month
@@ -2301,8 +2302,7 @@ class ProjectRequest(models.Model):
                             member_attendance.allowance or 0,
                             member_attendance.night_days or 0,
                             member_attendance.traffic_cost or 0,
-                            (member_attendance.expenses or 0) + (member_attendance.advances_paid or 0) + (
-                                        member_attendance.advances_paid_client or 0),
+                            expenses_price,
                         ])
                         dict_cost = common.dictfetchall(cursor)[0]
                 except Exception as ex:
@@ -2333,7 +2333,7 @@ class ProjectRequest(models.Model):
                                               plus_per_hour=project_member.plus_per_hour,
                                               minus_per_hour=project_member.minus_per_hour,
                                               total_price=item['ITEM_AMOUNT_TOTAL'],
-                                              expenses_price=project_member.get_expenses_amount(ym[:4], int(ym[4:])),
+                                              expenses_price=expenses_price,
                                               comment=item['ITEM_COMMENT'])
                 detail.save()
 

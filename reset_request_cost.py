@@ -15,7 +15,7 @@ from eb.models import ProjectRequestDetail, MemberAttendance
 
 
 def main():
-    qs = ProjectRequestDetail.objects.filter(salary=0)
+    qs = ProjectRequestDetail.objects.all()
     for detail in qs:
         project_member = detail.project_member
         try:
@@ -39,8 +39,7 @@ def main():
                     member_attendance.allowance or 0,
                     member_attendance.night_days or 0,
                     member_attendance.traffic_cost or 0,
-                    (member_attendance.expenses or 0) + (member_attendance.advances_paid or 0) + (
-                                member_attendance.advances_paid_client or 0),
+                    detail.expenses_price,
                 ])
                 dict_cost = common.dictfetchall(cursor)[0]
 
