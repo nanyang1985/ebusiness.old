@@ -34,11 +34,13 @@ def main():
                     project_member.pk,
                     detail.year,
                     detail.month,
+                    len(common.get_business_days(detail.year, detail.month)),
                     member_attendance.total_hours_bp or member_attendance.total_hours,
                     member_attendance.allowance or 0,
                     member_attendance.night_days or 0,
                     member_attendance.traffic_cost or 0,
-                    member_attendance.expenses or 0,
+                    (member_attendance.expenses or 0) + (member_attendance.advances_paid or 0) + (
+                                member_attendance.advances_paid_client or 0),
                 ])
                 dict_cost = common.dictfetchall(cursor)[0]
 

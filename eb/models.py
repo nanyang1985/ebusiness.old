@@ -1779,6 +1779,8 @@ class Client(AbstractCompany):
                                       verbose_name=u"見積書テンプレート")
     request_file = models.FileField(blank=True, null=True, upload_to="./request", verbose_name=u"請求書テンプレート",
                                     help_text=u"如果该项目为空，则使用EB自己的模板。")
+    created_dt = models.DateTimeField(auto_now_add=True, verbose_name=u"作成日時")
+    updated_dt = models.DateTimeField(auto_now=True, verbose_name=u"更新日時")
     is_deleted = models.BooleanField(default=False, editable=False, verbose_name=u"削除フラグ")
     deleted_date = models.DateTimeField(blank=True, null=True, editable=False, verbose_name=u"削除年月日")
 
@@ -2213,6 +2215,7 @@ class ProjectRequest(models.Model):
     month = models.CharField(max_length=2, choices=constants.CHOICE_ATTENDANCE_MONTH, verbose_name=u"対象月")
     request_no = models.CharField(max_length=7, unique=True, verbose_name=u"請求番号")
     request_name = models.CharField(max_length=50, blank=True, null=True, verbose_name=u"請求名称")
+    cost = models.IntegerField(default=0, verbose_name=u"コスト")
     amount = models.IntegerField(default=0, verbose_name=u"請求金額（税込）")
     turnover_amount = models.IntegerField(default=0, verbose_name=u"売上金額（基本単価＋残業料）（税抜き）")
     tax_amount = models.IntegerField(default=0, verbose_name=u"税金")
@@ -2282,7 +2285,6 @@ class ProjectRequest(models.Model):
             for i, item in enumerate(data['MEMBERS']):
                 project_member = item["EXTRA_PROJECT_MEMBER"]
                 ym = data['EXTRA']['YM']
-                cost = project_member.member.get_cost(date)
                 total_hours = item['ITEM_WORK_HOURS'] if item['ITEM_WORK_HOURS'] else 0
                 try:
                     member_attendance = MemberAttendance.objects.get(
@@ -2294,11 +2296,13 @@ class ProjectRequest(models.Model):
                             project_member.pk,
                             self.year,
                             self.month,
+                            len(common.get_business_days(self.year, self.month)),
                             member_attendance.total_hours_bp or member_attendance.total_hours,
                             member_attendance.allowance or 0,
                             member_attendance.night_days or 0,
                             member_attendance.traffic_cost or 0,
-                            member_attendance.expenses or 0,
+                            (member_attendance.expenses or 0) + (member_attendance.advances_paid or 0) + (
+                                        member_attendance.advances_paid_client or 0),
                         ])
                         dict_cost = common.dictfetchall(cursor)[0]
                 except Exception as ex:

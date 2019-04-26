@@ -3,7 +3,8 @@ delimiter //
 DROP PROCEDURE IF EXISTS sp_organization_turnover //
 
 CREATE PROCEDURE sp_organization_turnover(
-    in_ym char(6)
+    in_ym char(6),
+    in_days integer
 )
 BEGIN
 

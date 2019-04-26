@@ -552,7 +552,8 @@ def get_members_turnover(year, month, param_dict=None, order_list=None):
     :param order_list:
     :return:
     """
-    df = pd.read_sql("call sp_organization_turnover('%s%s')" % (year, month), connection)
+    days = common.get_business_days(year, month)
+    df = pd.read_sql("call sp_organization_turnover('%s%s', %s)" % (year, month, len(days)), connection)
     # 出向の契約を洗い出す
     loan_df = df[df.is_loan == 1]
     for index, row in loan_df.iterrows():
