@@ -1636,3 +1636,16 @@ def member_retired(member, user):
                                             unicode(contract),
                                             CHANGE,
                                             change_message=change_message)
+
+
+def get_division_turnover_by_month(year, month):
+    """各事業部の月別売上一覧
+
+    :param year:
+    :param month:
+    :return:
+    """
+    with connection.cursor() as cursor:
+        cursor.callproc('sp_division_turnover_by_month', ('{:04d}'.format(int(year)), '{:02d}'.format(int(month))))
+        data = common.dictfetchall(cursor)
+    return data
