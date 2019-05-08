@@ -90,7 +90,7 @@
                 <td style="text-align: right;">{{ turnover.expenses_amount|intcomma }}</td>
                 <td style="text-align: right;">{{ turnover.amount__sum|intcomma }}</td>
                 <td class="center"><a href="{% url 'turnover_clients_monthly' turnover.year turnover.month %}">お客様別詳細</a></td>
-                <td class="center"><a href="{% url 'turnover_division_by_month' turnover.year turnover.month  %}">事業部別詳細</a></td>
+                <td class="center"><a href="{% url 'turnover_divisions_by_month' turnover.year turnover.month  %}">事業部別詳細</a></td>
             </tr>
             {% endfor %}
         </tbody>

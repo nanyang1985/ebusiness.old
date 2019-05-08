@@ -1297,16 +1297,34 @@ class TurnoverBusinessTypeByYearView(BaseTemplateView):
         return context
 
 
+class TurnoverDivisionsByMonth(BaseTemplateView):
+    template_name = 'default/turnover_divisions.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(TurnoverDivisionsByMonth, self).get_context_data(**kwargs)
+        year = kwargs.get('year')
+        month = kwargs.get('month')
+        object_list = biz.get_divisions_turnover_by_month(year, month)
+        context.update({
+            'title': "{}年{}月事業部別売上詳細".format(year, month),
+            'object_list': object_list,
+            'year': year,
+            'month': month,
+        })
+        return context
+
+
 class TurnoverDivisionByMonth(BaseTemplateView):
     template_name = 'default/turnover_division.html'
 
     def get_context_data(self, **kwargs):
         context = super(TurnoverDivisionByMonth, self).get_context_data(**kwargs)
+        division = get_object_or_404(models.Section, pk=kwargs.get('pk'))
         year = kwargs.get('year')
         month = kwargs.get('month')
-        object_list = biz.get_division_turnover_by_month(year, month)
+        object_list = biz.get_division_turnover_by_month(division.pk, year, month)
         context.update({
-            'title': "{}年{}月事業部別売上詳細".format(year, month),
+            'title': "{} {}年{}月売上詳細".format(division.name, year, month),
             'object_list': object_list,
             'year': year,
             'month': month,

@@ -10,7 +10,7 @@ import StringIO
 import pandas as pd
 
 from django.db import connection
-from django.db.models import Q, Max, Prefetch, Count, Case, When, IntegerField, Subquery, OuterRef, BigIntegerField
+from django.db.models import Q, Max, Prefetch, Count, Case, When, IntegerField
 from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
 from django.contrib.humanize.templatetags import humanize
@@ -22,7 +22,6 @@ from django.contrib.contenttypes.models import ContentType
 from utils import common, errors, constants
 from eb import models
 from . import biz_config
-# from eboa import models as eboa_models
 from contract import models as contract_models
 
 
@@ -1638,7 +1637,7 @@ def member_retired(member, user):
                                             change_message=change_message)
 
 
-def get_division_turnover_by_month(year, month):
+def get_divisions_turnover_by_month(year, month):
     """各事業部の月別売上一覧
 
     :param year:
@@ -1646,6 +1645,22 @@ def get_division_turnover_by_month(year, month):
     :return:
     """
     with connection.cursor() as cursor:
-        cursor.callproc('sp_division_turnover_by_month', ('{:04d}'.format(int(year)), '{:02d}'.format(int(month))))
+        cursor.callproc('sp_divisions_turnover_by_month', ('{:04d}'.format(int(year)), '{:02d}'.format(int(month))))
+        data = common.dictfetchall(cursor)
+    return data
+
+
+def get_division_turnover_by_month(division_id, year, month):
+    """各事業部の月別売上一覧
+
+    :param division_id: 事業部ＩＤ
+    :param year:
+    :param month:
+    :return:
+    """
+    with connection.cursor() as cursor:
+        cursor.callproc('sp_division_turnover_by_month', (
+            division_id, '{:04d}'.format(int(year)), '{:02d}'.format(int(month))
+        ))
         data = common.dictfetchall(cursor)
     return data

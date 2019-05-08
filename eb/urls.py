@@ -119,7 +119,10 @@ turnover_patterns = [
         name='turnover_client_yearly'),
     url(r'^business_type/(?P<year>[0-9]{4})\.html$', views.TurnoverBusinessTypeByYearView.as_view(),
         name='turnover_business_type_by_year'),
-    url(r'^division/(?P<year>[0-9]{4})/(?P<month>[0-9]{2})\.html$', views.TurnoverDivisionByMonth.as_view(),
+    url(r'^division/(?P<year>[0-9]{4})/(?P<month>[0-9]{2})\.html$', views.TurnoverDivisionsByMonth.as_view(),
+        name='turnover_divisions_by_month'),
+    url(r'^division/(?P<pk>\d+)/(?P<year>[0-9]{4})/(?P<month>[0-9]{2})\.html$',
+        views.TurnoverDivisionByMonth.as_view(),
         name='turnover_division_by_month'),
 ]
 

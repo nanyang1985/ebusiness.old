@@ -8,16 +8,16 @@
     <table class="list" cellspacing="0" cellpadding="0">
     <thead>
         <tr>
-            <th>事業部名称（{{ year }}年{{ month }}月）</th>
-            <th style="text-align: right;">アサインした<br/>メンバー数</th>
-            <th style="text-align: right;">合計単価</th>
-            <th style="text-align: right;">平均単価</th>
+            <th>関連会社名称（{{ year }}年{{ month }}月）</th>
+            <th style="text-align: right;">①アサインした<br/>メンバー数</th>
+            <th style="text-align: right;">②合計単価</th>
+            <th style="text-align: right;">①／②<br/>平均単価</th>
         </tr>
     </thead>
     <tbody>
     {% for row in object_list %}
         <tr class="{% cycle 'row1' 'row2' %}">
-            <td>{{ row.name }}</td>
+            <td>{{ row.client_name }}</td>
             <td style="text-align: right;">{{ row.member_count|intcomma }}</td>
             <td style="text-align: right;">{{ row.total_price|intcomma }}</td>
             <td style="text-align: right;">{{ row.average_price|intcomma }}</td>
@@ -26,10 +26,10 @@
     </tbody>
     <tfoot>
         <tr>
-            <th>事業部名称（{{ year }}年{{ month }}月）</th>
-            <th style="text-align: right;">アサインした<br/>メンバー数</th>
-            <th style="text-align: right;">合計単価</th>
-            <th style="text-align: right;">平均単価</th>
+            <th>関連会社名称（{{ year }}年{{ month }}月）</th>
+            <th style="text-align: right;">①アサインした<br/>メンバー数</th>
+            <th style="text-align: right;">②合計単価</th>
+            <th style="text-align: right;">①／②<br/>平均単価</th>
         </tr>
     </tfoot>
     </table>
