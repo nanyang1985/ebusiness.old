@@ -439,7 +439,7 @@ class BpLumpContract(BaseModel):
     company = models.ForeignKey(Subcontractor, on_delete=models.PROTECT, verbose_name=u"雇用会社")
     start_date = models.DateField(verbose_name=u"契約開始日")
     end_date = models.DateField(verbose_name=u"契約終了日")
-    delivery_date = models.DateField(blank=True, null=True, verbose_name=u"納品日")
+    delivery_date = models.DateField(blank=False, null=True, verbose_name=u"納品日")
     project = models.ForeignKey(Project, blank=False, null=True, verbose_name=u"関連案件")
     # project_name = models.CharField(max_length=50, verbose_name=u"件名")
     is_hourly_pay = models.BooleanField(default=False, editable=False, verbose_name=u"時給")
