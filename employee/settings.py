@@ -42,7 +42,6 @@ INSTALLED_APPS = (
     'django_filters',
     'rest_framework',
     'eb',
-    'del_data',
     'flow',
     'contract',
 )

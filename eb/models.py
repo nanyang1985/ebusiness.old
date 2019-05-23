@@ -12,6 +12,7 @@ import logging
 import traceback
 import mimetypes
 import math
+import uuid
 
 from email import encoders
 from email.header import Header
@@ -20,6 +21,7 @@ from xml.etree import ElementTree
 from django.db import models, connection
 from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
+from django.core.validators import RegexValidator
 from django.db.models import Max, Min, Q, Sum, Prefetch, Subquery, OuterRef
 from django.db.models.functions import Concat
 from django.utils import timezone
@@ -30,6 +32,7 @@ from django.core.mail.message import MIMEBase
 from django.conf import settings
 from django.core.validators import validate_comma_separated_integer_list
 from django.contrib.admin.models import LogEntry, CHANGE
+from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.utils.functional import cached_property
 
@@ -371,6 +374,10 @@ class Company(AbstractCompany):
     order_file = models.FileField(blank=True, null=True, upload_to="./eb_order", verbose_name=u"註文書テンプレート",
                                   help_text=u"協力会社への註文書。")
     dispatch_file = models.FileField(blank=True, null=True, upload_to="./attachment", verbose_name=u"派遣社員一覧")
+    created_dt = models.DateTimeField(auto_now_add=True, blank=True, null=True, verbose_name=u"作成日時")
+    updated_dt = models.DateTimeField(auto_now=True, blank=True, null=True, verbose_name=u"更新日時")
+    is_deleted = models.BooleanField(default=False, editable=False, verbose_name=u"削除フラグ")
+    deleted_dt = models.DateTimeField(blank=True, null=True, editable=False, verbose_name=u"削除日時")
 
     class Meta:
         verbose_name = verbose_name_plural = u"会社"
@@ -480,11 +487,32 @@ class Company(AbstractCompany):
             return datetime.date(pay_month.year, pay_month.month, pay_day)
 
 
+class Bank(BaseModel):
+    code = models.CharField(
+        max_length=4, primary_key=True, validators=(RegexValidator(regex=r'[0-9]{4}'),), verbose_name=u"金融機関コード"
+    )
+    name = models.CharField(max_length=30, verbose_name=u"金融機関名称")
+    kana = models.CharField(
+        max_length=30, blank=True, null=True, verbose_name=u"金融機関カナ",
+        help_text=u"半角カナ文字及び英数字等、左詰め残りスペースとする。"
+    )
+
+    class Meta:
+        ordering = ['code']
+        verbose_name = u"金融機関"
+        verbose_name_plural = u"金融機関一覧"
+
+    def __unicode__(self):
+        return self.name
+
+
 class BankInfo(BaseModel):
     company = models.ForeignKey(Company, on_delete=models.PROTECT, verbose_name=u"会社")
+    bank = models.ForeignKey(Bank, blank=False, null=True, on_delete=models.PROTECT, verbose_name=u"銀行")
     bank_name = models.CharField(blank=False, null=False, max_length=20, verbose_name=u"銀行名称")
     branch_no = models.CharField(blank=False, null=False, max_length=3, verbose_name=u"支店番号")
     branch_name = models.CharField(blank=False, null=False, max_length=20, verbose_name=u"支店名称")
+    branch_kana = models.CharField(max_length=40, blank=True, null=True, verbose_name=u"支店カナ",)
     account_type = models.CharField(blank=False, null=False, max_length=1, choices=constants.CHOICE_ACCOUNT_TYPE,
                                     verbose_name=u"預金種類")
     account_number = models.CharField(blank=False, null=False, max_length=7, verbose_name=u"口座番号")
@@ -2227,6 +2255,8 @@ class ProjectRequest(models.Model):
     updated_user = models.ForeignKey(User, related_name='updated_requests', null=True, on_delete=models.PROTECT,
                                      editable=False, verbose_name=u"更新者")
     updated_date = models.DateTimeField(null=True, auto_now=True, editable=False, verbose_name=u"更新日時")
+    is_deleted = models.BooleanField(default=False, editable=False, verbose_name=u"削除フラグ")
+    deleted_dt = models.DateTimeField(blank=True, null=True, editable=False, verbose_name=u"削除日時")
 
     class Meta:
         ordering = ['-request_no']
@@ -2369,6 +2399,10 @@ class ProjectRequestHeading(models.Model):
                                     verbose_name=u"預金種類")
     account_number = models.CharField(blank=True, null=True, max_length=7, verbose_name=u"口座番号")
     account_holder = models.CharField(blank=True, null=True, max_length=20, verbose_name=u"口座名義")
+    created_dt = models.DateTimeField(auto_now_add=True, blank=True, null=True, verbose_name=u"作成日時")
+    updated_dt = models.DateTimeField(auto_now=True, blank=True, null=True, verbose_name=u"更新日時")
+    is_deleted = models.BooleanField(default=False, editable=False, verbose_name=u"削除フラグ")
+    deleted_dt = models.DateTimeField(blank=True, null=True, editable=False, verbose_name=u"削除日時")
 
     class Meta:
         ordering = ['-project_request__request_no']
@@ -2404,6 +2438,10 @@ class ProjectRequestDetail(models.Model):
     expenses_price = models.IntegerField(default=0, verbose_name=u"精算金額")
     expect_price = models.IntegerField(blank=True, null=True, verbose_name=u"請求金額")
     comment = models.CharField(blank=True, null=True, max_length=50, verbose_name=u"備考")
+    created_dt = models.DateTimeField(auto_now_add=True, blank=True, null=True, verbose_name=u"作成日時")
+    updated_dt = models.DateTimeField(auto_now=True, blank=True, null=True, verbose_name=u"更新日時")
+    is_deleted = models.BooleanField(default=False, editable=False, verbose_name=u"削除フラグ")
+    deleted_dt = models.DateTimeField(blank=True, null=True, editable=False, verbose_name=u"削除日時")
 
     class Meta:
         ordering = ['-project_request__request_no', 'no']
@@ -4544,3 +4582,38 @@ def get_release_next_2_month():
     """
     next_2_month = common.add_months(datetime.date.today(), 2)
     return get_release_members_by_month(next_2_month)
+
+
+def get_attachment_id():
+    return '{time}_{uuid}'.format(
+        time=timezone.now().strftime('%Y%m%d%H%M%S'),
+        uuid=uuid.uuid4(),
+    )
+
+
+def get_attachment_path(self, filename):
+    name, ext = os.path.splitext(filename)
+    now = datetime.datetime.now()
+    path = os.path.join(now.strftime('%Y'), now.strftime('%m'))
+    if not os.path.exists(path):
+        os.makedirs(path)
+    return os.path.join(path, self.uuid, ext)
+
+
+class Attachment(models.Model):
+    content_type = models.ForeignKey(ContentType, on_delete=models.PROTECT)
+    object_id = models.PositiveIntegerField()
+    content_object = GenericForeignKey('content_type', 'object_id')
+    uuid = models.CharField(max_length=55, default=get_attachment_id, unique=True, verbose_name=u"ファイルの唯一ＩＤ")
+    name = models.CharField(max_length=100, verbose_name=u"帳票名称")
+    path = models.FileField(upload_to=get_attachment_path)
+    created_dt = models.DateTimeField(auto_now_add=True, verbose_name=u"作成日時")
+    updated_dt = models.DateTimeField(auto_now=True, verbose_name=u"更新日時")
+    is_deleted = models.BooleanField(default=False, editable=False, verbose_name=u"削除フラグ")
+    deleted_dt = models.DateTimeField(blank=True, null=True, editable=False, verbose_name=u"削除日時")
+
+    class Meta:
+        db_table = 'mst_attachment'
+        default_permissions = ()
+        verbose_name = u"ファイル"
+        verbose_name_plural = u"ファイル一覧"

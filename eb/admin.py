@@ -393,6 +393,10 @@ class CompanyAdmin(BaseAdmin):
             return True
 
 
+class BankAdmin(BaseAdmin):
+    list_display = ('code', 'name')
+
+
 class BankInfoAdmin(BaseAdmin):
 
     list_display = ['bank_name', 'is_deleted']
@@ -1042,6 +1046,7 @@ reset_username_length()
 
 # Register your models here.
 admin.site.register(models.Company, CompanyAdmin)
+admin.site.register(models.Bank, BankAdmin)
 admin.site.register(models.BankInfo, BankInfoAdmin)
 admin.site.register(models.Section, SectionAdmin)
 admin.site.register(models.Member, MemberAdmin)

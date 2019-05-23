@@ -112,7 +112,7 @@ def get_sales_members(year, month, param_dict=None, order_list=None):
         # df.set_value(related_row.index[0], 'employment_insurance', df.loc[index]['employment_insurance'] + related_row.iloc[0].employment_insurance)
         # df.set_value(related_row.index[0], 'health_insurance', df.loc[index]['health_insurance'] + related_row.iloc[0].health_insurance)
         # ＥＢの出向契約は非表示
-        df = df.iloc[df.index!=index]
+        df = df.iloc[df.index != index]
     # 重複レコードを洗い出す。
     # 営業支援料金として一括に振り替えで、注文書作成する必要なので、ＢＰ契約を追加することになる。
     duplicated_df = df[df.member_id.duplicated(keep=False)]

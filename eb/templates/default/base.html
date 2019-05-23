@@ -111,9 +111,6 @@
                     {% endif %}
                     {% if user.is_staff %}
                     <li><a href="{% url 'admin:index' %}">管理サイト</a>
-                        <ul>
-                            <li><a href="{% url 'del_data_admin:index' %}">削除したデータ</a></li>
-                        </ul>
                     </li>
                     {% endif %}
                 </ul>

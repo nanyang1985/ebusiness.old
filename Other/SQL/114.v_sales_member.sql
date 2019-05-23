@@ -49,5 +49,6 @@ select m.id as member_id
   left join mst_salesofreason sr on sr.id = msp3.sales_off_reason_id
  where m.is_deleted = 0
    and exists (select 1 from eb_membersectionperiod s1 where s1.member_id = m.id and s1.is_deleted = 0)
+--    and m.id = 885
  order by m.employee_id
 ;
