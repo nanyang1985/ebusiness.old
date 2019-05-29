@@ -752,8 +752,8 @@ class Subcontractor(AbstractCompany):
 class SubcontractorBankInfo(BaseModel):
     subcontractor = models.ForeignKey(Subcontractor, on_delete=models.PROTECT, verbose_name=u"協力会社")
     bank = models.ForeignKey(Bank, blank=False, null=True, on_delete=models.PROTECT, verbose_name=u"銀行")
-    bank_code = models.CharField(blank=False, null=True, max_length=4, verbose_name=u"銀行コード")
-    bank_name = models.CharField(blank=False, null=False, max_length=20, verbose_name=u"銀行名称")
+    bank_code = models.CharField(blank=False, null=True, editable=False, max_length=4, verbose_name=u"銀行コード")
+    bank_name = models.CharField(blank=False, null=False, editable=False, max_length=20, verbose_name=u"銀行名称")
     branch_kana = models.CharField(max_length=40, blank=True, null=True, verbose_name=u"支店カナ",)
     branch_no = models.CharField(blank=False, null=False, max_length=7, verbose_name=u"支店番号")
     branch_name = models.CharField(blank=False, null=False, max_length=20, verbose_name=u"支店名称")
@@ -767,6 +767,12 @@ class SubcontractorBankInfo(BaseModel):
 
     def __unicode__(self):
         return self.bank_name
+
+    def save(self, force_insert=False, force_update=False, using=None,
+             update_fields=None):
+        self.bank_ecode = self.bank.code
+        self.bank_name = self.bank.name
+        super(SubcontractorBankInfo, self).save(force_insert, force_update, using, update_fields)
 
 
 class SubcontractorMember(BaseModel):

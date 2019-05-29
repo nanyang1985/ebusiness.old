@@ -867,8 +867,6 @@ class SubcontractorBankInfoForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super(SubcontractorBankInfoForm, self).__init__(*args, **kwargs)
-        self.fields['bank_code'].widget.attrs.update({'style': 'width: 80px;'})
-        self.fields['bank_name'].widget.attrs.update({'style': 'width: 200px;'})
         self.fields['branch_no'].widget.attrs.update({'style': 'width: 80px;'})
         self.fields['branch_name'].widget.attrs.update({'style': 'width: 80px;'})
         self.fields['account_number'].widget.attrs.update({'style': 'width: 100px;'})
