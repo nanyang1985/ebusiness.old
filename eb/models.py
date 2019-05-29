@@ -770,7 +770,7 @@ class SubcontractorBankInfo(BaseModel):
 
     def save(self, force_insert=False, force_update=False, using=None,
              update_fields=None):
-        self.bank_ecode = self.bank.code
+        self.bank_code = self.bank.code
         self.bank_name = self.bank.name
         super(SubcontractorBankInfo, self).save(force_insert, force_update, using, update_fields)
 
