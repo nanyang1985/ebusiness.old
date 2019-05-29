@@ -535,6 +535,8 @@ class Subcontractor(AbstractCompany):
                                    default='99', verbose_name=u"支払日")
     middleman = models.CharField(blank=True, null=True, max_length=30, verbose_name=u"連絡窓口担当者")
     comment = models.TextField(blank=True, null=True, verbose_name=u"備考")
+    created_dt = models.DateTimeField(auto_now_add=True, verbose_name=u"作成日時")
+    updated_dt = models.DateTimeField(auto_now=True, verbose_name=u"更新日時")
     is_deleted = models.BooleanField(default=False, editable=False, verbose_name=u"削除フラグ")
     deleted_date = models.DateTimeField(blank=True, null=True, editable=False, verbose_name=u"削除年月日")
 
@@ -749,8 +751,10 @@ class Subcontractor(AbstractCompany):
 
 class SubcontractorBankInfo(BaseModel):
     subcontractor = models.ForeignKey(Subcontractor, on_delete=models.PROTECT, verbose_name=u"協力会社")
+    bank = models.ForeignKey(Bank, blank=False, null=True, on_delete=models.PROTECT, verbose_name=u"銀行")
     bank_code = models.CharField(blank=False, null=True, max_length=4, verbose_name=u"銀行コード")
     bank_name = models.CharField(blank=False, null=False, max_length=20, verbose_name=u"銀行名称")
+    branch_kana = models.CharField(max_length=40, blank=True, null=True, verbose_name=u"支店カナ",)
     branch_no = models.CharField(blank=False, null=False, max_length=7, verbose_name=u"支店番号")
     branch_name = models.CharField(blank=False, null=False, max_length=20, verbose_name=u"支店名称")
     account_type = models.CharField(blank=False, null=False, max_length=1, choices=constants.CHOICE_ACCOUNT_TYPE,
@@ -759,7 +763,6 @@ class SubcontractorBankInfo(BaseModel):
     account_holder = models.CharField(blank=True, null=True, max_length=20, verbose_name=u"口座名義")
 
     class Meta:
-        unique_together = ('branch_no', 'account_number')
         verbose_name = verbose_name_plural = u"協力会社銀行口座"
 
     def __unicode__(self):
@@ -775,7 +778,6 @@ class SubcontractorMember(BaseModel):
 
     class Meta:
         ordering = ['name']
-        unique_together = ('name', 'subcontractor')
         verbose_name = verbose_name_plural = u"協力会社社員"
 
     def __unicode__(self):
@@ -792,7 +794,6 @@ class SubcontractorRequestRecipient(BaseModel):
 
     class Meta:
         ordering = ['subcontractor', 'subcontractor_member']
-        unique_together = ('subcontractor', 'subcontractor_member')
         verbose_name = u"支払通知書の宛先"
         verbose_name_plural = u"支払通知書の宛先一覧"
 
