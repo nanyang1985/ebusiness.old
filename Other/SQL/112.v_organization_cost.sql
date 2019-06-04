@@ -43,7 +43,7 @@ select distinct m.id as member_id
            when 7 then '正社員（試用期間）'
            else c.member_type
        end as member_type_name
-	 , c.contract_type
+     , c.contract_type
      , c.cost
      , c.is_hourly_pay
      , c.is_fixed_cost
@@ -69,26 +69,26 @@ select distinct m.id as member_id
      , IF(c.member_type = 4, 0, IFNULL(ma.traffic_cost, 0)) as traffic_cost
      , case 
            when p.is_lump = 1 and prd.id is null and pm.id = (select min(s1.id) from eb_projectmember s1 where s1.project_id = p.id and s1.is_deleted = 0 and s1.status = 2)
-               then ifnull((select t1.amount from eb_projectrequest t1 where t1.project_id = p.id and concat(t1.year, t1.month) = get_ym()), 0)			-- 要員アサインした一括案件の場合、売上は１つの要員に表示され、ほかに０にする。
-		   when p.is_lump = 1 and prd.id is null then 0
+               then ifnull((select t1.amount from eb_projectrequest t1 where t1.project_id = p.id and concat(t1.year, t1.month) = get_ym()), 0)         -- 要員アサインした一括案件の場合、売上は１つの要員に表示され、ほかに０にする。
+           when p.is_lump = 1 and prd.id is null then 0
            else IFNULL(prd.total_price + prd.expenses_price + prd.total_price * prh.tax_rate, 0) 
-       end as all_price				-- 売上（税込）
+       end as all_price             -- 売上（税込）
      , case
            when p.is_lump = 1 and prd.id is null and pm.id = (select min(s1.id) from eb_projectmember s1 where s1.project_id = p.id and s1.is_deleted = 0 and s1.status = 2)
-               then ifnull((select t1.turnover_amount from eb_projectrequest t1 where t1.project_id = p.id and concat(t1.year, t1.month) = get_ym()), 0)	-- 要員アサインした一括案件の場合
-		   when p.is_lump = 1 and prd.id is null then 0
+               then ifnull((select t1.turnover_amount from eb_projectrequest t1 where t1.project_id = p.id and concat(t1.year, t1.month) = get_ym()), 0)    -- 要員アサインした一括案件の場合
+           when p.is_lump = 1 and prd.id is null then 0
            else IFNULL(prd.total_price, 0) 
-       end as total_price			-- 売上（税抜）
+       end as total_price           -- 売上（税抜）
      , case
            when p.is_lump = 1 and prd.id is null and pm.id = (select min(s1.id) from eb_projectmember s1 where s1.project_id = p.id and s1.is_deleted = 0 and s1.status = 2)
-               then ifnull((select t1.expenses_amount from eb_projectrequest t1 where t1.project_id = p.id and concat(t1.year, t1.month) = get_ym()), 0)	-- 要員アサインした一括案件の場合
-		   when p.is_lump = 1 and prd.id is null then 0
+               then ifnull((select t1.expenses_amount from eb_projectrequest t1 where t1.project_id = p.id and concat(t1.year, t1.month) = get_ym()), 0)    -- 要員アサインした一括案件の場合
+           when p.is_lump = 1 and prd.id is null then 0
            else IFNULL(prd.expenses_price, 0) 
-       end as expenses_price		-- 売上（経費）
+       end as expenses_price        -- 売上（経費）
      , case
            when p.is_lump = 1 and prd.id is null and pm.id = (select min(s1.id) from eb_projectmember s1 where s1.project_id = p.id and s1.is_deleted = 0 and s1.status = 2)
-               then ifnull((select t1.tax_amount from eb_projectrequest t1 where t1.project_id = p.id and concat(t1.year, t1.month) = get_ym()), 0)		-- 要員アサインした一括案件の場合
-		   when p.is_lump = 1 and prd.id is null then 0
+               then ifnull((select t1.tax_amount from eb_projectrequest t1 where t1.project_id = p.id and concat(t1.year, t1.month) = get_ym()), 0)     -- 要員アサインした一括案件の場合
+           when p.is_lump = 1 and prd.id is null then 0
            else IFNULL(prd.total_price * prh.tax_rate, 0) 
        end as tax_price
      , IFNULL(IF(c.is_hourly_pay = 0, c.cost, c.cost * get_attendance_total_hours(IF(ma.total_hours_bp is null or ma.total_hours_bp = 0, IFNULL(ma.total_hours, 0), ma.total_hours_bp)) + c.allowance_other), 0) as salary
@@ -98,7 +98,7 @@ select distinct m.id as member_id
      , case c.member_type
            when 4 then get_bp_expenses(pm.id, ma.year, ma.month)
            else IFNULL(ma.expenses, 0) 
-	   end as expenses
+       end as expenses
      , get_employment_insurance(
            c.member_type,
            IFNULL(IF(c.is_hourly_pay = 0, c.cost, c.cost * get_attendance_total_hours(IF(ma.total_hours_bp is null or ma.total_hours_bp = 0, IFNULL(ma.total_hours, 0), ma.total_hours_bp))), 0),
@@ -108,7 +108,7 @@ select distinct m.id as member_id
            IFNULL(ma.traffic_cost, 0)
        ) as employment_insurance
      , case 
-		   when c.member_type <> 4 then get_health_insurance(
+           when c.member_type <> 4 then get_health_insurance(
                c.endowment_insurance,
                IFNULL(IF(c.is_hourly_pay = 0, c.cost, c.cost * get_attendance_total_hours(IF(ma.total_hours_bp is null or ma.total_hours_bp = 0, IFNULL(ma.total_hours, 0), ma.total_hours_bp))), 0),
                IFNULL(ma.allowance, 0),
@@ -119,18 +119,28 @@ select distinct m.id as member_id
                get_ym()
            )
            else 0
-	   end as health_insurance 
-	 , IFNULL(ma.expenses_conference, 0) as expenses_conference				-- 会議費
-     , IFNULL(ma.expenses_entertainment, 0) as expenses_entertainment		-- 交際費
-     , IFNULL(ma.expenses_travel, 0) as expenses_travel						-- 旅費交通費
-     , IFNULL(ma.expenses_communication, 0)	as expenses_communication		-- 通信費
-     , IFNULL(ma.expenses_tax_dues, 0) as expenses_tax_dues					-- 租税公課
-     , IFNULL(ma.expenses_expendables, 0) as expenses_expendables			-- 消耗品
+       end as health_insurance 
+     , IFNULL(ma.expenses_conference, 0) as expenses_conference             -- 会議費
+     , IFNULL(ma.expenses_entertainment, 0) as expenses_entertainment       -- 交際費
+     , IFNULL(ma.expenses_travel, 0) as expenses_travel                     -- 旅費交通費
+     , IFNULL(ma.expenses_communication, 0) as expenses_communication       -- 通信費
+     , IFNULL(ma.expenses_tax_dues, 0) as expenses_tax_dues                 -- 租税公課
+     , IFNULL(ma.expenses_expendables, 0) as expenses_expendables           -- 消耗品
   from eb_member m
   left join eb_membersectionperiod msp1 on msp1.member_id = m.id 
                                        and msp1.is_deleted = 0 
                                        and extract(year_month from(msp1.start_date)) <= get_ym()
                                        and (extract(year_month from(msp1.end_date)) >= get_ym() or msp1.end_date is null)
+                                       and msp1.id = (
+                                           select id
+                                             from eb_membersectionperiod s1
+                                            where s1.member_id = m.id
+                                              and s1.is_deleted = 0 
+                                              and extract(year_month from(s1.start_date)) <= get_ym()
+                                              and (extract(year_month from(s1.end_date)) >= get_ym() or s1.end_date is null)
+                                            order by s1.start_date desc
+                                            limit 1
+                                       )
   left join eb_membersalespersonperiod msp2 on msp2.member_id = m.id 
                                            and msp2.is_deleted = 0 
                                            and extract(year_month from(msp2.start_date)) <= get_ym()
@@ -226,12 +236,12 @@ select null as member_id
      , 0 as expenses
      , 0 as employment_insurance
      , 0 as health_insurance 
-	 , 0 as expenses_conference		-- 会議費
-     , 0 as expenses_entertainment	-- 交際費
-     , 0 as expenses_travel			-- 旅費交通費
-     , 0 as expenses_communication	-- 通信費
-     , 0 as expenses_tax_dues		-- 租税公課
-     , 0 as expenses_expendables	-- 消耗品
+     , 0 as expenses_conference     -- 会議費
+     , 0 as expenses_entertainment  -- 交際費
+     , 0 as expenses_travel         -- 旅費交通費
+     , 0 as expenses_communication  -- 通信費
+     , 0 as expenses_tax_dues       -- 租税公課
+     , 0 as expenses_expendables    -- 消耗品
   from eb_project p
   join eb_section s on p.department_id = s.id
   join eb_client c1 on c1.id = p.client_id
@@ -299,12 +309,12 @@ select null as member_id
      , 0 as expenses
      , 0 as employment_insurance
      , 0 as health_insurance 
-	 , 0 as expenses_conference		-- 会議費
-     , 0 as expenses_entertainment	-- 交際費
-     , 0 as expenses_travel			-- 旅費交通費
-     , 0 as expenses_communication	-- 通信費
-     , 0 as expenses_tax_dues		-- 租税公課
-     , 0 as expenses_expendables	-- 消耗品
+     , 0 as expenses_conference     -- 会議費
+     , 0 as expenses_entertainment  -- 交際費
+     , 0 as expenses_travel         -- 旅費交通費
+     , 0 as expenses_communication  -- 通信費
+     , 0 as expenses_tax_dues       -- 租税公課
+     , 0 as expenses_expendables    -- 消耗品
   from eb_bp_lump_contract lc
   left join eb_project p on p.id = lc.project_id
   left join eb_section s on s.id = p.department_id
