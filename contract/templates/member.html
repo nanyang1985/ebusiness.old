@@ -84,6 +84,18 @@
                     <td>{{ form.last_name_en.errors }}{{ form.last_name_en }}</td>
                 </tr>
                 <tr>
+                    <th>{{ form.common_first_name.label_tag }}</th>
+                    <td>{{ form.common_first_name.errors }}{{ form.common_first_name }}</td>
+                    <th>{{ form.common_last_name.label_tag }}</th>
+                    <td>{{ form.common_last_name.errors }}{{ form.common_last_name }}</td>
+                </tr>
+                <tr>
+                    <th>{{ form.common_first_name_ja.label_tag }}</th>
+                    <td>{{ form.common_first_name_ja.errors }}{{ form.common_first_name_ja }}</td>
+                    <th>{{ form.common_last_name_ja.label_tag }}</th>
+                    <td>{{ form.common_last_name_ja.errors }}{{ form.common_last_name_ja }}</td>
+                </tr>
+                <tr>
                     <th>{{ form.member_type.label_tag }}<span class="red">*</span></th>
                     <td colspan="3"><div class="inner">{{ form.member_type.errors }}{{ form.member_type }}</div></td>
                     <!--<th>{{ form.is_unofficial.label_tag }}</th>

@@ -331,12 +331,15 @@ class MemberChangeView(BaseTemplateView):
             if member.pk:
                 update_fields = ['first_name', 'last_name', 'first_name_ja', 'last_name_ja',
                                  'first_name_en', 'last_name_en', 'member_type', 'birthday',
+                                 'common_first_name', 'common_last_name',
+                                 'common_first_name_ja', 'common_last_name_ja',
                                  'sex', 'join_date', 'employee_id', 'post_code', 'address1', 'address2',
                                  'nearest_station', 'phone', 'section', 'email', 'private_email',
                                  'is_retired', 'retired_date', 'eboa_user_id', 'is_unofficial',
-                                 'passport_number','passport_expired_dt','id_number','id_card_expired_date',
-                                 'residence_type','pay_bank','pay_branch','pay_account','pay_bank_code','pay_branch_code',
-                                 'pay_owner','pay_owner_kana','visa_start_date','visa_expire_date']
+                                 'passport_number', 'passport_expired_dt', 'id_number', 'id_card_expired_date',
+                                 'residence_type', 'pay_bank', 'pay_branch', 'pay_account', 'pay_bank_code',
+                                 'pay_branch_code',
+                                 'pay_owner', 'pay_owner_kana', 'visa_start_date', 'visa_expire_date']
             else:
                 update_fields = None
             member.save(update_fields=update_fields)

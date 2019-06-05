@@ -30,6 +30,13 @@
                     $("#tr_member_type").css("display", "none");
                 }
             });
+            $("#chk_common_name").change(function(){
+                if ($(this).is(':checked')) {
+                    $("#tr_common_name").css("display", "table-row");
+                } else {
+                    $("#tr_common_name").css("display", "none");
+                }
+            });
             $("#chk_income_yearly").change(function(){
                 if ($(this).is(':checked')) {
                     $("#div_income_yearly").css("display", "block");
@@ -72,7 +79,7 @@
 {% now 'Y' as year %}
 <article class="certificate">
     <h1>在 職 証 明 書</h1>
-    <div style="height: 275px;">
+    <div style="height: 300px;">
         <table class="middle">
             <tr>
                 <td class="left_side">住　　　　　所 ： </td>
@@ -83,6 +90,18 @@
                 <td class="right_side">{{ member }}&nbsp;&nbsp;&nbsp;&nbsp;
                     {% if member.first_name_en and member.last_name_en %}
                         <span style="text-transform: uppercase;">({{ member.first_name_en }}&nbsp;{{ member.last_name_en }})
+                        </span>
+                    {% endif %}
+                </td>
+            </tr>
+            <tr id="tr_common_name" style="display: none;">
+                <td class="left_side">通　　称　　名 ： </td>
+                <td class="right_side">
+                    {{ member.common_first_name|default:'' }}
+                    {{ member.common_last_name|default:'' }}
+                    &nbsp;&nbsp;&nbsp;
+                    {% if member.common_first_name_ja and member.common_last_name_ja %}
+                        <span style="text-transform: uppercase;">({{ member.common_first_name_ja }}&nbsp;{{ member.common_last_name_ja }})
                         </span>
                     {% endif %}
                 </td>
@@ -146,6 +165,10 @@
         <div>
             <label for="chk_member_type">雇用形態</label>
             <input id="chk_member_type" type="checkbox" checked="checked"/>
+        </div>
+        <div>
+            <label for="chk_common_name">通&nbsp;称&nbsp;名&nbsp;</label>
+            <input id="chk_common_name" type="checkbox"/>
         </div>
         <div>
             <label for="chk_income_yearly">年　　収</label>

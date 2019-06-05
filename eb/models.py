@@ -1219,6 +1219,18 @@ class Salesperson(AbstractMember):
 
 class Member(AbstractMember):
     user = models.OneToOneField(User, blank=True, null=True)
+    common_first_name = models.CharField(
+        blank=True, null=True, max_length=30, verbose_name=u"通称名（姓）"
+    )
+    common_last_name = models.CharField(
+        blank=True, null=True, max_length=30, verbose_name=u"通称名（名）"
+    )
+    common_first_name_ja = models.CharField(
+        blank=True, null=True, max_length=30, verbose_name=u"通称名（姓）(カナ)"
+    )
+    common_last_name_ja = models.CharField(
+        blank=True, null=True, max_length=30, verbose_name=u"通称名（名）(カナ)"
+    )
     oa_user_id = models.IntegerField(blank=True, null=True, editable=False, verbose_name=u"ＯＡのユーザーＩＤ")
     member_type = models.IntegerField(default=0, choices=constants.CHOICE_MEMBER_TYPE, verbose_name=u"社員区分")
     section = models.ForeignKey('Section', blank=True, null=True, verbose_name=u"部署", on_delete=models.PROTECT,

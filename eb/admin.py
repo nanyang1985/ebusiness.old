@@ -445,6 +445,8 @@ class MemberAdmin(BaseAdmin):
                            ('first_name', 'last_name'),
                            ('first_name_en', 'last_name_en'),
                            ('first_name_ja', 'last_name_ja'),
+                           ('common_first_name', 'common_last_name'),
+                           ('common_first_name_ja', 'common_last_name_ja'),
                            'birthday')}),
         (u'詳細情報',
          {'classes': ('collapse',),
