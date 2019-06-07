@@ -35,6 +35,7 @@ from django.contrib.admin.models import LogEntry, CHANGE
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.utils.functional import cached_property
+from django.utils.translation import ugettext_lazy as _
 
 # from django.contrib.contenttypes.models import ContentType
 # from django.contrib.contenttypes.fields import GenericForeignKey
@@ -832,6 +833,10 @@ class MailTemplate(BaseModel):
     mail_title = models.CharField(max_length=50, unique=True, verbose_name=u"送信メールのタイトル")
     mail_body = models.TextField(blank=True, null=True, verbose_name=u"メール本文(Plain Text)")
     mail_html = models.TextField(blank=True, null=True, verbose_name=u"メール本文(HTML)")
+    pass_title = models.CharField(
+        max_length=50, blank=True, null=True, editable=False, verbose_name=u"パスワード通知メールの題名",
+        help_text=u'設定してない場合は「送信メールのタイトル」を使う。'
+    )
     pass_body = models.TextField(blank=True, null=True, verbose_name=u"パスワードお知らせ本文(Plain Text)")
     attachment1 = models.FileField(blank=True, null=True, upload_to="./attachment", verbose_name=u"添付ファイル１",
                                    help_text=u"メール送信時の添付ファイルその１。")
@@ -850,11 +855,19 @@ class MailTemplate(BaseModel):
 
 
 class MailGroup(BaseModel):
-    name = models.CharField(max_length=30, unique=True, verbose_name=u"名称")
+    code = models.CharField(
+        max_length=4, choices=constants.CHOICE_MAIL_GROUP, default='0000', editable=False, verbose_name=u"コード"
+    )
+    name = models.CharField(max_length=30, blank=False, null=True, verbose_name=u"名称")
     title = models.CharField(max_length=50, blank=False, null=True, verbose_name=u"タイトル")
     mail_sender = models.EmailField(blank=True, null=True, verbose_name=u"メール差出人")
+    sender_display_name = models.CharField(max_length=50, blank=True, null=True, editable=False, verbose_name=u"差出人表示名")
     mail_template = models.ForeignKey(MailTemplate, blank=True, null=True, on_delete=models.PROTECT,
                                       verbose_name=u"メールテンプレート")
+    footer = models.ForeignKey(
+        MailTemplate, blank=True, null=True, on_delete=models.PROTECT, related_name='tail_group_set',
+        verbose_name=u"フッター", editable=False
+    )
 
     class Meta:
         ordering = ['title']
@@ -3602,6 +3615,7 @@ class BpMemberOrder(BaseModel):
     end_year = models.CharField(max_length=4, blank=False, null=True,
                                 choices=constants.CHOICE_ATTENDANCE_YEAR, verbose_name=u"終了年")
     end_month = models.CharField(max_length=2, blank=False, null=True, verbose_name=u"終了月")
+    business_days = models.IntegerField(default=0, verbose_name=u"営業日数")
     filename = models.CharField(max_length=255, blank=True, null=True, verbose_name=u"注文書ファイル名")
     filename_request = models.CharField(max_length=255, blank=True, null=True, verbose_name=u"注文請書")
     is_sent = models.BooleanField(default=False, verbose_name=u"送信")
@@ -3785,6 +3799,10 @@ class BpMemberOrderHeading(models.Model):
     delivery_properties_comment = models.CharField(blank=True, null=True, max_length=255, verbose_name=u"納入物件")
     payment_condition_comments = models.TextField(blank=True, null=True, verbose_name=u"支払条件")
     contract_items_comments = models.TextField(blank=True, null=True, verbose_name=u"契約条項")
+    created_dt = models.DateTimeField(auto_now_add=True, verbose_name=u"作成日時")
+    updated_dt = models.DateTimeField(auto_now=True, verbose_name=u"更新日時")
+    is_deleted = models.BooleanField(default=False, editable=False, verbose_name=u"削除フラグ")
+    deleted_dt = models.DateTimeField(blank=True, null=True, editable=False, verbose_name=u"削除日時")
 
     class Meta:
         verbose_name = verbose_name_plural = u"ＢＰ註文書見出し"
@@ -4636,3 +4654,21 @@ class Attachment(models.Model):
         default_permissions = ()
         verbose_name = u"ファイル"
         verbose_name_plural = u"ファイル一覧"
+
+
+class EMailLogEntry(models.Model):
+    action_time = models.DateTimeField(_('action time'), default=timezone.now, editable=False)
+    user = models.ForeignKey(User, on_delete=models.PROTECT, verbose_name=_('user'))
+    sender = models.EmailField(verbose_name=u"差出人")
+    recipient = models.CharField(max_length=1000, verbose_name=u"宛先")
+    cc = models.CharField(max_length=1000, blank=True, null=True, verbose_name=u"ＣＣ")
+    bcc = models.CharField(max_length=1000, blank=True, null=True, verbose_name=u"ＢＣＣ")
+    title = models.CharField(max_length=50, verbose_name=u"件名")
+    body = models.TextField(verbose_name=u"メール本文")
+    attachment = models.CharField(max_length=255, blank=True, null=True, verbose_name=u"添付ファイル名")
+
+    class Meta:
+        db_table = 'eb_email_log'
+        default_permissions = ()
+        ordering = ['-action_time']
+        verbose_name = verbose_name_plural = u"メール送信履歴"

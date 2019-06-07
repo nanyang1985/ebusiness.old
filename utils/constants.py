@@ -412,6 +412,9 @@ CHOICE_ENDOWMENT_INSURANCE = (
     ('1', "加入する"),
     ('0', "加入しない")
 )
+CHOICE_MAIL_GROUP = (
+    ('0400', '注文書と注文請書の送付'),
+)
 
 xlPart = 2
 xlByRows = 1
