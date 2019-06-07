@@ -878,7 +878,7 @@ class MailGroup(BaseModel):
 
     def get_mail_title(self, **kwargs):
         if self.mail_template and self.mail_template.mail_title:
-            return self.mail_template.mail_title.format(**kwargs)
+            return self.mail_template.mail_title.replace('{{', '{').replace('}}', '}').format(**kwargs)
         else:
             return None
 
@@ -926,6 +926,7 @@ class MailCcList(BaseModel):
     group = models.ForeignKey(MailGroup, on_delete=models.PROTECT, verbose_name=u"メールグループ")
     member = models.ForeignKey('Member', blank=True, null=True, on_delete=models.PROTECT, verbose_name=u"ＣＣ先の社員")
     email = models.EmailField(blank=True, null=True, verbose_name=u"メールアドレス")
+    is_bcc = models.BooleanField(default=False, editable=False, verbose_name=u"ＢＣＣ")
 
     class Meta:
         ordering = ['group']
