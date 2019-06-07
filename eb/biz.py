@@ -865,9 +865,7 @@ def generate_bp_order_data(project_member, year, month, contract, user, bp_order
     data['DETAIL']['IS_HOURLY_PAY'] = contract.is_hourly_pay
     # 基本給
     allowance_base = contract.get_cost()
-    if contract.allowance_base_memo and interval == 0:
-        allowance_base_memo = contract.allowance_base_memo
-    elif contract.is_hourly_pay:
+    if contract.is_hourly_pay:
         allowance_base_memo = u"時間単価：¥%s/h  (消費税を含まない)" % humanize.intcomma(allowance_base)
     elif contract.is_fixed_cost:
         # 注文書は２か月以上の場合月額基本料金も２か月分以上
@@ -876,6 +874,8 @@ def generate_bp_order_data(project_member, year, month, contract, user, bp_order
             allowance_base_memo = u"基本料金：¥%s円  (固定、税金抜き)" % humanize.intcomma(allowance_base)
         else:
             allowance_base_memo = u"月額基本料金：¥%s円/月  (固定、税金抜き)" % humanize.intcomma(allowance_base)
+    elif contract.allowance_base_memo and interval == 0:
+        allowance_base_memo = contract.allowance_base_memo
     else:
         # 注文書は２か月以上の場合月額基本料金も２か月分以上
         if interval > 0:
