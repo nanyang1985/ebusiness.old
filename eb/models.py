@@ -3598,6 +3598,10 @@ class BpLumpOrderHeading(models.Model):
     allowance_base_tax = models.CharField(blank=True, null=True, max_length=20, verbose_name=u"消費税")
     allowance_base_total = models.CharField(blank=True, null=True, max_length=20, verbose_name=u"合計額")
     comment = models.TextField(blank=True, null=True, verbose_name=u"備考")
+    created_dt = models.DateTimeField(auto_now_add=True, verbose_name=u"作成日時")
+    updated_dt = models.DateTimeField(auto_now=True, verbose_name=u"更新日時")
+    is_deleted = models.BooleanField(default=False, editable=False, verbose_name=u"削除フラグ")
+    deleted_dt = models.DateTimeField(blank=True, null=True, editable=False, verbose_name=u"削除日時")
 
     class Meta:
         verbose_name = verbose_name_plural = u"ＢＰ一括註文書見出し"
@@ -3771,6 +3775,7 @@ class BpMemberOrderHeading(models.Model):
     company_address2 = models.CharField(blank=True, null=True, max_length=200, verbose_name=u"本社住所２")
     company_name = models.CharField(blank=True, null=True, max_length=30, verbose_name=u"会社名")
     company_tel = models.CharField(blank=True, null=True, max_length=15, verbose_name=u"お客様電話番号")
+    company_fax = models.CharField(blank=True, null=True, max_length=15, verbose_name="会社ファックス")
     project_name = models.CharField(blank=True, null=True, max_length=50, verbose_name=u"業務名称")
     start_date = models.CharField(blank=True, null=True, max_length=20, verbose_name=u"作業開始日")
     end_date = models.CharField(blank=True, null=True, max_length=20, verbose_name=u"作業終了日")
