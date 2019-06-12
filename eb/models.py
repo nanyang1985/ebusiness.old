@@ -1070,6 +1070,9 @@ class SalesOffReason(BaseModel):
 
 
 class Salesperson(AbstractMember):
+    employee_id = models.CharField(null=True, max_length=30, verbose_name=u"社員ID")
+    first_name = models.CharField(null=True, max_length=30, verbose_name=u"姓")
+    last_name = models.CharField(null=True, max_length=30, verbose_name=u"名")
     member = models.OneToOneField('Member', blank=True, null=True, on_delete=models.PROTECT, verbose_name=u'社員')
     name = models.CharField(max_length=30, null=True, verbose_name=u"名前")
     email = models.EmailField(blank=False, null=True, verbose_name=u"メールアドレス")
@@ -1226,6 +1229,11 @@ class Salesperson(AbstractMember):
                                                       project_member__member__salesperson=self)\
             .aggregate(amount=Sum('price'))
         return amount.get('amount', 0) if amount.get('amount', 0) else 0
+
+    def save(self, force_insert=False, force_update=False, using=None,
+             update_fields=None):
+        self.name = u"%s %s" % (self.first_name, self.last_name)
+        super(Salesperson, self).save(force_insert, force_update, using, update_fields)
 
     def delete(self, using=None, keep_parents=False):
         self.is_deleted = True

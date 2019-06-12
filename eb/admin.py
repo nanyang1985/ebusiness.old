@@ -439,7 +439,7 @@ class MemberAdmin(BaseAdmin):
     search_fields = ['first_name', 'last_name', 'employee_id']
     inlines = (MemberSalesOffPeriodInline, DegreeInline, MemberSectionPeriodInline, MemberSalespersonPeriodInline,
                EmployeeExpensesInline)
-    actions = ['create_users']
+    actions = ['create_users', 'create_salesperson']
     fieldsets = (
         (None, {'fields': ('employee_id',
                            ('first_name', 'last_name'),
@@ -539,7 +539,29 @@ class MemberAdmin(BaseAdmin):
         else:
             self.message_user(request, u"権限がありません！", messages.ERROR)
 
+    def create_salesperson(self, request, queryset):
+        if request.user.is_superuser:
+            cnt = 0
+            for member in queryset.filter(salesperson__isnull=True, email__isnull=False):
+                models.Salesperson.objects.create(
+                    member=member,
+                    name=str(member),
+                    email=member.email,
+                    employee_id='S{:05d}'.format(member.pk),
+                    first_name=member.first_name,
+                    last_name=member.last_name,
+                    user=member.user,
+                )
+                cnt += 1
+            if cnt:
+                self.message_user(request, u"選択された営業員にユーザが作成されました。")
+            else:
+                self.message_user(request, u"すでに作成済みなので、再作成する必要がありません。", messages.WARNING)
+        else:
+            self.message_user(request, u"権限がありません！", messages.ERROR)
+
     create_users.short_description = u"ユーザを作成する"
+    create_salesperson.short_description = u"営業員を作成する"
 
 
 class SalespersonAdmin(BaseAdmin):
