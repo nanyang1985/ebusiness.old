@@ -1070,12 +1070,14 @@ class SalesOffReason(BaseModel):
 
 
 class Salesperson(AbstractMember):
-    member = models.ForeignKey('Member', blank=True, null=True, on_delete=models.PROTECT, verbose_name=u'社員')
-    user = models.OneToOneField(User, blank=True, null=True)
+    member = models.OneToOneField('Member', blank=True, null=True, on_delete=models.PROTECT, verbose_name=u'社員')
+    name = models.CharField(max_length=30, null=True, verbose_name=u"名前")
+    email = models.EmailField(blank=False, null=True, verbose_name=u"メールアドレス")
     section = models.ForeignKey('Section', blank=False, null=True, on_delete=models.PROTECT, verbose_name=u"部署")
     member_type = models.IntegerField(default=5, choices=constants.CHOICE_SALESPERSON_TYPE, verbose_name=u"社員区分")
     is_deleted = models.BooleanField(default=False, editable=False, verbose_name=u"削除フラグ")
     deleted_date = models.DateTimeField(blank=True, null=True, editable=False, verbose_name=u"削除年月日")
+    user = models.OneToOneField(User, blank=True, null=True)
 
     objects = PublicManager(is_deleted=False, is_retired=False, section__is_deleted=False)
 
