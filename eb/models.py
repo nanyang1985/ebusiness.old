@@ -1070,7 +1070,7 @@ class SalesOffReason(BaseModel):
 
 
 class Salesperson(AbstractMember):
-
+    member = models.ForeignKey('Member', blank=True, null=True, on_delete=models.PROTECT, verbose_name=u'社員')
     user = models.OneToOneField(User, blank=True, null=True)
     section = models.ForeignKey('Section', blank=False, null=True, on_delete=models.PROTECT, verbose_name=u"部署")
     member_type = models.IntegerField(default=5, choices=constants.CHOICE_SALESPERSON_TYPE, verbose_name=u"社員区分")
@@ -1252,7 +1252,6 @@ class Member(AbstractMember):
                                           u"ここで設定できるのは管理部、総務部などの営業対象外のかたです。")
     ranking = models.CharField(blank=True, null=True, max_length=2, choices=constants.CHOICE_MEMBER_RANK,
                                verbose_name=u"ランク")
-    salesperson = models.ForeignKey(Salesperson, blank=True, null=True, on_delete=models.PROTECT, verbose_name=u"営業員")
     is_individual_pay = models.BooleanField(default=False, verbose_name=u"個別精算")
     subcontractor = models.ForeignKey(Subcontractor, blank=True, null=True, on_delete=models.PROTECT,
                                       verbose_name=u"協力会社")
