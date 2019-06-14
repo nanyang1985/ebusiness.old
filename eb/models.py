@@ -4687,3 +4687,25 @@ class EMailLogEntry(models.Model):
         default_permissions = ()
         ordering = ['-action_time']
         verbose_name = verbose_name_plural = u"メール送信履歴"
+
+
+class PartnerCostMonthly(models.Model):
+    subcontractor = models.ForeignKey(
+        Subcontractor, db_column='partner_id', on_delete=models.PROTECT, verbose_name=u"協力会社"
+    )
+    name = models.CharField(blank=False, null=False, db_column='partner_name', max_length=30, verbose_name=u"会社名")
+    year = models.CharField(max_length=4, verbose_name=u"対象年")
+    month = models.CharField(max_length=2, verbose_name=u"対象月")
+    turnover_amount = models.IntegerField(default=0, verbose_name=u"売上金額（基本単価＋残業料）（税抜き）")
+    tax_amount = models.IntegerField(default=0, verbose_name=u"税金")
+    expenses_amount = models.IntegerField(default=0, verbose_name=u"精算金額")
+    amount = models.IntegerField(default=0, verbose_name=u"請求金額（税込）")
+
+    class Meta:
+        managed = False
+        db_table = 'v_partner_cost_monthly'
+        default_permissions = ()
+        verbose_name = verbose_name_plural = u"協力会社の年間売上"
+
+    def __unicode__(self):
+        return self.name

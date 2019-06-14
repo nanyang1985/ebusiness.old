@@ -10,7 +10,7 @@ import StringIO
 import pandas as pd
 
 from django.db import connection
-from django.db.models import Q, Max, Prefetch, Count, Case, When, IntegerField
+from django.db.models import Q, Max, Min, Prefetch, Count, Case, When, IntegerField, Sum
 from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist, MultipleObjectsReturned
 from django.contrib.humanize.templatetags import humanize
@@ -1664,3 +1664,29 @@ def get_division_turnover_by_month(division_id, year, month):
         ))
         data = common.dictfetchall(cursor)
     return data
+
+
+def get_partner_cost_yearly():
+    qs = models.PartnerCostMonthly.objects.values(
+        'year',
+    ).annotate(
+        min_month=Min('month'),
+        max_month=Max('month'),
+    ).order_by('year')
+    return qs
+
+
+def get_partner_cost_in_year(year):
+    qs = models.PartnerCostMonthly.objects.filter(year=year).values(
+        'subcontractor',
+        'name',
+        'year',
+    ).annotate(
+        min_month=Min('month'),
+        max_month=Max('month'),
+        turnover_amount=Sum('turnover_amount'),
+        tax_amount=Sum('tax_amount'),
+        expenses_amount=Sum('expenses_amount'),
+        amount=Sum('amount'),
+    ).order_by('name')
+    return qs

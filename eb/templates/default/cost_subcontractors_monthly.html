@@ -46,4 +46,29 @@
             </tr>
         </tfoot>
     </table>
+    <div class="dashboard">
+        <div class="dashboard-title">年間売上一覧</div>
+    </div>
+    <table class="list" cellpadding="0" cellspacing="0">
+        <thead>
+            <tr>
+                <th>対象年</th>
+                <th>集計期間</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for obj in cost_yearly %}
+            <tr class="{% cycle 'row1' 'row2' %}">
+            <td><a href="{% url 'cost_subcontractors_in_year' obj.year %}">{{ obj.year }}</a></td>
+            <td>{{ obj.year }}年{{ obj.min_month }}月 ～ {{ obj.year }}年{{ obj.max_month }}月</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+        <tfoot>
+            <tr>
+                <th>対象年</th>
+                <th>集計期間</th>
+            </tr>
+        </tfoot>
+    </table>
 {% endblock %}

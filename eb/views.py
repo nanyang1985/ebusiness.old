@@ -1493,12 +1493,31 @@ class CostSubcontractorsMonthlyView(BaseTemplateView):
     def get_context_data(self, **kwargs):
         context = super(CostSubcontractorsMonthlyView, self).get_context_data(**kwargs)
         object_list = biz_turnover.cost_subcontractors_monthly()
+        cost_yearly = biz.get_partner_cost_yearly()
 
         context.update({
             'title': "協力会社月別コスト一覧",
             'object_list': object_list,
+            'cost_yearly': cost_yearly,
         })
         return context
+
+
+@method_decorator(permission_required('eb.view_subcontractor', raise_exception=True), name='get')
+class ConstSubcontractorInYearView(BaseTemplateView):
+    template_name = 'default/cost_subcontractors_by_year.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(ConstSubcontractorInYearView, self).get_context_data(**kwargs)
+        year = kwargs.get(b'year')
+        object_list = biz.get_partner_cost_in_year(year)
+        context.update({
+            'year': year,
+            'object_list': object_list,
+        })
+        return context
+
+
 """
 個人事業主コスト
 """
