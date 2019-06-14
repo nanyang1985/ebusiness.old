@@ -1690,3 +1690,23 @@ def get_partner_cost_in_year(year):
         amount=Sum('amount'),
     ).order_by('name')
     return qs
+
+
+def get_partner_cost_in_year2(year):
+    start_ym = '{}{}'.format(year, '04')
+    end_ym = '{}{}'.format(int(year) + 1, '03')
+    qs = models.PartnerCostMonthly.objects.filter(
+        ym__gte=start_ym,
+        ym__lte=end_ym,
+    ).values(
+        'subcontractor',
+        'name',
+    ).annotate(
+        min_month=Min('ym'),
+        max_month=Max('ym'),
+        turnover_amount=Sum('turnover_amount'),
+        tax_amount=Sum('tax_amount'),
+        expenses_amount=Sum('expenses_amount'),
+        amount=Sum('amount'),
+    ).order_by('name')
+    return qs

@@ -1512,6 +1512,25 @@ class ConstSubcontractorInYearView(BaseTemplateView):
         year = kwargs.get(b'year')
         object_list = biz.get_partner_cost_in_year(year)
         context.update({
+            'title': '{}年協力会社のコスト一覧'.format(year),
+            'year': year,
+            'object_list': object_list,
+        })
+        return context
+
+
+@method_decorator(permission_required('eb.view_subcontractor', raise_exception=True), name='get')
+class ConstSubcontractorInYear2View(BaseTemplateView):
+    template_name = 'default/cost_subcontractors_by_year2.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(ConstSubcontractorInYear2View, self).get_context_data(**kwargs)
+        year = kwargs.get(b'year')
+        object_list = biz.get_partner_cost_in_year2(year)
+        context.update({
+            'title': '{year}年度協力会社のコスト一覧（{start}～{end}）'.format(
+                year=year, start=year + '04', end='{}03'.format(int(year) + 1)
+            ),
             'year': year,
             'object_list': object_list,
         })

@@ -54,19 +54,22 @@
             <tr>
                 <th>対象年</th>
                 <th>集計期間</th>
+                <th>集計期間</th>
             </tr>
         </thead>
         <tbody>
         {% for obj in cost_yearly %}
             <tr class="{% cycle 'row1' 'row2' %}">
-            <td><a href="{% url 'cost_subcontractors_in_year' obj.year %}">{{ obj.year }}</a></td>
-            <td>{{ obj.year }}年{{ obj.min_month }}月 ～ {{ obj.year }}年{{ obj.max_month }}月</td>
+            <td>{{ obj.year }}</td>
+            <td><a href="{% url 'cost_subcontractors_in_year' obj.year %}">{{ obj.year }}年{{ obj.min_month }}月 ～ {{ obj.year }}年{{ obj.max_month }}月</a></td>
+            <td><a href="{% url 'cost_subcontractors_in_year2' obj.year %}">{{ obj.year }}年04月 ～ {{ obj.year|add:'1' }}年03月</a></td>
             </tr>
         {% endfor %}
         </tbody>
         <tfoot>
             <tr>
                 <th>対象年</th>
+                <th>集計期間</th>
                 <th>集計期間</th>
             </tr>
         </tfoot>

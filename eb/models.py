@@ -4694,6 +4694,7 @@ class PartnerCostMonthly(models.Model):
         Subcontractor, db_column='partner_id', on_delete=models.PROTECT, verbose_name=u"協力会社"
     )
     name = models.CharField(blank=False, null=False, db_column='partner_name', max_length=30, verbose_name=u"会社名")
+    ym = models.CharField(max_length=6, verbose_name=u"対象年月")
     year = models.CharField(max_length=4, verbose_name=u"対象年")
     month = models.CharField(max_length=2, verbose_name=u"対象月")
     turnover_amount = models.IntegerField(default=0, verbose_name=u"売上金額（基本単価＋残業料）（税抜き）")

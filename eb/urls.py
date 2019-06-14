@@ -152,6 +152,8 @@ subcontractor_patterns = [
         name='cost_subcontractors_by_month'),
     url(r'^cost/(?P<year>[0-9]{4})\.html$', views.ConstSubcontractorInYearView.as_view(),
         name='cost_subcontractors_in_year'),
+    url(r'^cost_2/(?P<year>[0-9]{4})\.html$', views.ConstSubcontractorInYear2View.as_view(),
+        name='cost_subcontractors_in_year2'),
     url(r'^cost/download/(?P<year>[0-9]{4})/(?P<month>[0-9]{2})\.html$',
         views.DownloadCostSubcontractorsByMonthView.as_view(),
         name='download_cost_subcontractors_by_month'),
