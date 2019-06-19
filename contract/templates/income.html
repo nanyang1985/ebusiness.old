@@ -44,9 +44,15 @@
         }
 
         function change_income_year(obj, target_id) {
-            income = parseInt($(obj).val());
-            if (income > 0) {
-                $("#" + target_id).text(income);
+            let year = parseInt($(obj).val());
+            const currentYear = new Date().getFullYear();
+            if (year > 0) {
+                $("#" + target_id).text(year);
+                if (year >= currentYear) {
+                    $("#span_is_confirmed").text('予定');
+                } else {
+                    $("#span_is_confirmed").text('');
+                }
             }
         }
 
@@ -88,7 +94,7 @@
     </div>
     <div style="height: 112px; padding-left: 35px;">
         <div class="income" id="div_income_yearly">
-            <span id="span_income_year">{{ year }}</span>年分年収予定額：￥<span id="span_income_yearly">{{ contract.get_cost_yearly|intcomma }}</span>円（課税前）とする。<br/>
+            <span id="span_income_year">{{ year }}</span>年分年収<span id="span_is_confirmed">予定</span>額：￥<span id="span_income_yearly">{{ contract.get_cost_yearly|intcomma }}</span>円（課税前）とする。<br/>
             交通費また時間外手当などについて、別途となります。
         </div>
         <div class="income" id="div_income_monthly" style="display: none;">

@@ -203,7 +203,7 @@ def get_release_info():
     next_2_ym = common.add_months(today, 2).strftime('%Y%m')
     for ym in [current_ym, next_ym, next_2_ym]:
         if ym not in [item.get('release_ym') for item in release_list]:
-            release_list.append({'release_ym': ym, 'count':0, 'bp_count': 0})
+            release_list.append({'release_ym': ym, 'count': 0, 'bp_count': 0})
     return sorted(release_list, key=lambda x: x.get('release_ym'))
 
 
