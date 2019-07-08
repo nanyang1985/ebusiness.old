@@ -162,8 +162,8 @@ class Config(models.Model):
     def __unicode__(self):
         return self.name
 
-    @staticmethod
-    def get(config_name, default_value=None, group_name=None):
+    @classmethod
+    def get(cls, config_name, default_value=None, group_name=None):
         """システム設定を取得する。
 
         DBから値を取得する。
@@ -182,8 +182,8 @@ class Config(models.Model):
                 c.save()
             return default_value
 
-    @staticmethod
-    def get_employment_period_comment():
+    @classmethod
+    def get_employment_period_comment(cls):
         """社員の雇用期間コメントを取得する。
 
         :return:
@@ -193,8 +193,8 @@ class Config(models.Model):
         return Config.get(constants.CONFIG_EMPLOYMENT_PERIOD_COMMENT, default,
                           group_name=constants.CONFIG_GROUP_CONTRACT)
 
-    @staticmethod
-    def get_business_address():
+    @classmethod
+    def get_business_address(cls):
         """就業の場所
 
         :return:
@@ -202,8 +202,8 @@ class Config(models.Model):
         default = u"就業の場所（当社社内および雇用者が指定した場所）"
         return Config.get(constants.CONFIG_BUSINESS_ADDRESS, default, group_name=constants.CONFIG_GROUP_CONTRACT)
 
-    @staticmethod
-    def get_business_time():
+    @classmethod
+    def get_business_time(cls):
         default = u"始業および終業時刻　午前　9時30分　～　午後　6時30分\n" \
                   u"休憩時間　　　　　　　正午～午後1時\n" \
                   u"就業時間の変更　　前記にかかわらず業務の都合または就業場所変更により\n" \
@@ -211,14 +211,14 @@ class Config(models.Model):
                   u"所定労働時間を越える労働の有無　有"
         return Config.get(constants.CONFIG_BUSINESS_TIME, default, group_name=constants.CONFIG_GROUP_CONTRACT)
 
-    @staticmethod
-    def get_business_other():
+    @classmethod
+    def get_business_other(cls):
         default = u"就業の場所および業務の種類は、業務の都合により変更することがある。\n" \
                   u"出向、転勤、配置転換等の業務命令が発令されることがある。"
         return Config.get(constants.CONFIG_BUSINESS_OTHER, default, group_name=constants.CONFIG_GROUP_CONTRACT)
 
-    @staticmethod
-    def get_allowance_date_comment():
+    @classmethod
+    def get_allowance_date_comment(cls):
         """給与締め切り日及び支払日のコメントを取得する。
 
         :return:
@@ -227,8 +227,8 @@ class Config(models.Model):
                   u"2、支払時の控除：所得税、雇用保険"
         return Config.get(constants.CONFIG_ALLOWANCE_DATE_COMMENT, default, group_name=constants.CONFIG_GROUP_CONTRACT)
 
-    @staticmethod
-    def get_allowance_change_comment():
+    @classmethod
+    def get_allowance_change_comment(cls):
         """昇給及び降給のコメントを取得する。
 
         :return:
@@ -237,67 +237,67 @@ class Config(models.Model):
         return Config.get(constants.CONFIG_ALLOWANCE_CHANGE_COMMENT, default,
                           group_name=constants.CONFIG_GROUP_CONTRACT)
 
-    @staticmethod
-    def get_bonus_comment():
+    @classmethod
+    def get_bonus_comment(cls):
         default = u"賞与支給要件を満たした者に対し、賞与が年2回、計2ヵ月分。\n" \
                   u"ただし会社業績、本人業績、勤怠状況および将来への期待度により、変更の可能性がある。"
         return Config.get(constants.CONFIG_BONUS_COMMENT, default, group_name=constants.CONFIG_GROUP_CONTRACT)
 
-    @staticmethod
-    def get_holiday_comment():
+    @classmethod
+    def get_holiday_comment(cls):
         default = u"週休2日制（土・日・祝祭日休み）"
         return Config.get(constants.CONFIG_HOLIDAY_COMMENT, default, group_name=constants.CONFIG_GROUP_CONTRACT)
 
-    @staticmethod
-    def get_paid_vacation_comment():
+    @classmethod
+    def get_paid_vacation_comment(cls):
         default = u"年次有給休暇：労働基準法の定めによる。"
         return Config.get(constants.CONFIG_PAID_VACATION_COMMENT, default, group_name=constants.CONFIG_GROUP_CONTRACT)
 
-    @staticmethod
-    def get_no_paid_vacation_comment():
+    @classmethod
+    def get_no_paid_vacation_comment(cls):
         default = u"産前産後、育児・介護休業、生理休暇、その他就業規則に定めがあるときは当該休暇。"
         return Config.get(constants.CONFIG_NO_PAID_VACATION_COMMENT, default,
                           group_name=constants.CONFIG_GROUP_CONTRACT)
 
-    @staticmethod
-    def get_retire_comment():
+    @classmethod
+    def get_retire_comment(cls):
         default = u"1、就業期間中、業務能力が著しく劣り、又は業務実績が著しく不良のとき、" \
                   u"会社の業務命令が従わないとき、減給、降職又は諭旨解雇とする。\n" \
                   u"2、自己都合退職の際は退職する30日前までに届け出ること。\n" \
                   u"3、解雇の事由および手続きは、就業規則の定めるところによる。"
         return Config.get(constants.CONFIG_RETIRE_COMMENT, default, group_name=constants.CONFIG_GROUP_CONTRACT)
 
-    @staticmethod
-    def get_contract_comment():
+    @classmethod
+    def get_contract_comment(cls):
         default = u"上記以外の雇用条件については、就業規則の定めることによる。"
         return Config.get(constants.CONFIG_CONTRACT_COMMENT, default, group_name=constants.CONFIG_GROUP_CONTRACT)
 
-    @staticmethod
-    def get_bp_order_delivery_properties():
+    @classmethod
+    def get_bp_order_delivery_properties(cls):
         """ＢＰ注文書の納入物件
 
         :return:
         """
         return Config.get(constants.CONFIG_BP_ORDER_DELIVERY_PROPERTIES, '', group_name=constants.CONFIG_GROUP_BP_ORDER)
 
-    @staticmethod
-    def get_bp_order_payment_condition():
+    @classmethod
+    def get_bp_order_payment_condition(cls):
         """ＢＰ注文書の支払条件
 
         :return:
         """
         return Config.get(constants.CONFIG_BP_ORDER_PAYMENT_CONDITION, '', group_name=constants.CONFIG_GROUP_BP_ORDER)
 
-    @staticmethod
-    def get_bp_order_contract_items():
+    @classmethod
+    def get_bp_order_contract_items(cls):
         """ＢＰ注文書の契約条項
 
         :return:
         """
         return Config.get(constants.CONFIG_BP_ORDER_CONTRACT_ITEMS, '', group_name=constants.CONFIG_GROUP_BP_ORDER)
 
-    @staticmethod
-    def get_default_expenses_category():
+    @classmethod
+    def get_default_expenses_category(cls):
         """出勤情報アップロード時、客先立替金を精算リストに追加するために、既定の分類を取得する
 
         :return:
@@ -312,17 +312,17 @@ class Config(models.Model):
         else:
             return None
 
-    @staticmethod
-    def get_firebase_serverkey():
+    @classmethod
+    def get_firebase_serverkey(cls):
         return Config.get(constants.CONFIG_FIREBASE_SERVERKEY, '', group_name=constants.CONFIG_GROUP_SYSTEM)
 
-    @staticmethod
-    def get_gcm_url():
+    @classmethod
+    def get_gcm_url(cls):
         return Config.get(constants.CONFIG_GCM_URL, 'https://fcm.googleapis.com/fcm/send',
                           group_name=constants.CONFIG_GROUP_SYSTEM)
 
-    @staticmethod
-    def get_bp_attendance_type():
+    @classmethod
+    def get_bp_attendance_type(cls):
         return Config.get(constants.CONFIG_BP_ATTENDANCE_TYPE, '2', group_name=constants.CONFIG_GROUP_SYSTEM)
 
     @classmethod
