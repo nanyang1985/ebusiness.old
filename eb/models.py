@@ -1668,7 +1668,7 @@ class Member(AbstractMember):
         with connection.cursor() as cursor:
             cursor.execute('select max(id_from_api) from eb_member')
             records = cursor.fetchall()
-        if len(records) > 0:
+        if len(records) > 0 and records[0][0]:
             return "%04d" % (int(records[0][0]) + 1)
         else:
             return "0001"
