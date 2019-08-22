@@ -51,7 +51,7 @@ def members_status_bar():
            ) as waiting_count
       from (
     select first_day, LAST_DAY(first_day) as last_day
-      from (select DATE_ADD('2016-01-01', INTERVAL t1.i*10 + t0.i MONTH) first_day
+      from (select DATE_ADD('2019-07-01', INTERVAL t1.i*10 + t0.i MONTH) first_day
               from (select 0 i union select 1 union select 2 union select 3 union select 4 union
                     select 5 union select 6 union select 7 union select 8 union select 9) t0,
                    (select 0 i union select 1 union select 2 union select 3 union select 4 union
