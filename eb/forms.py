@@ -160,7 +160,7 @@ class ProjectForm(forms.ModelForm):
 class MemberForm(forms.ModelForm):
     class Meta:
         model = models.Member
-        fields = '__all__'
+        exclude = ('notify_type',)
 
     post_code = forms.CharField(max_length=7,
                                 widget=forms.TextInput(
