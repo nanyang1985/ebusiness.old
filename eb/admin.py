@@ -458,7 +458,7 @@ class MemberAdmin(BaseAdmin):
                      'certificate', 'skill_description', 'comment')}),
         (u"勤務情報", {'fields': [
             ('member_type', 'ranking'),
-            'join_date', 'email', 'notify_type', 'section', 'company',
+            'join_date', 'email', 'section', 'company',
             'subcontractor',
             # 'is_retired', 'retired_date',
         ]})
@@ -535,7 +535,7 @@ class MemberAdmin(BaseAdmin):
             if cnt:
                 self.message_user(request, u"選択された営業員にユーザが作成されました。")
             else:
-                self.message_user(request, u"すでに作成済みなので、再作成する必要がありません。", messages.WARNING)
+                self.message_user(request, u"メールアドレスは設定されていません、またはユーザーは既に作成済みです。", messages.WARNING)
         else:
             self.message_user(request, u"権限がありません！", messages.ERROR)
 
@@ -585,7 +585,7 @@ class SalespersonAdmin(BaseAdmin):
                      'post_code',
                      ('address1', 'address2'),
                      'country', 'graduate_date', 'phone', 'japanese_description', 'certificate', 'comment')}),
-        (u"勤務情報", {'fields': ('member_type', 'email', 'notify_type', 'section', 'company', 'is_retired', 'retired_date')})
+        (u"勤務情報", {'fields': ('member_type', 'email', 'section', 'company', 'is_retired', 'retired_date')})
     )
     actions = ['create_users']
 
