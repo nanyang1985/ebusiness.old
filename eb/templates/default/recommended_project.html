@@ -48,7 +48,7 @@
                     <td>{{ project.salesperson }}</td>
                     <td class="center"><a href="{% url 'project_members' project.pk %}">{{ project.get_project_members.count }}</a></td>
                     <td class="center">
-                        <a href="/admin/eb/projectmember/add/?project_id={{ project.pk }}&employee_id={{ member.employee_id }}"
+                        <a href="/admin/wt/projectmember/add/?project_id={{ project.pk }}&employee_id={{ member.employee_id }}"
                            target="_blank">アサイン</a>
                     </td>
                 </tr>

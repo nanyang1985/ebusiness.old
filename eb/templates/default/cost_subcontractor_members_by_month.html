@@ -43,19 +43,19 @@
             if ($(obj).text() == "新規作成") {
                 $(obj).text("再作成");
                 // 支払通知書ダウンロード
-                download_pay_notify_link = "/eb/download/subcontractor_pay_notify/" + data.pk + ".html";
+                download_pay_notify_link = "/wt/download/subcontractor_pay_notify/" + data.pk + ".html";
                 $(obj).parent().next().append('<a href="' + download_pay_notify_link + '?ext=xlsx" target="_blank">Excel</a>');
                 $(obj).parent().next().append('&nbsp;|&nbsp;<a href="' + download_pay_notify_link + '?ext=pdf" target="_blank">PDF</a>');
                 // 支払通知書参照
-                view_pay_notify_link = "/eb/subcontractor/subcontractor_pay_notify_view/" + data.pk + ".html";
+                view_pay_notify_link = "/wt/subcontractor/subcontractor_pay_notify_view/" + data.pk + ".html";
                 $(obj).parent().next().append('&nbsp;|&nbsp;<a href="' + view_pay_notify_link + '" target="_blank">' + data.pay_notify_no + '</a>');
 
                 // 請求書ダウンロード
-                download_request_link = "/eb/download/subcontractor_request/" + data.pk + ".html";
+                download_request_link = "/wt/download/subcontractor_request/" + data.pk + ".html";
                 $(obj).parent().next().next().append('<a href="' + download_request_link + '?ext=xlsx" target="_blank">Excel</a>');
                 $(obj).parent().next().next().append('&nbsp;|&nbsp;<a href="' + download_request_link + '?ext=pdf" target="_blank">PDF</a>');
                 // 請求書参照
-                view_request_link = "/eb/subcontractor/subcontractor_request_view/" + data.pk + ".html";
+                view_request_link = "/wt/subcontractor/subcontractor_request_view/" + data.pk + ".html";
                 $(obj).parent().next().next().append('&nbsp;|&nbsp;<a href="' + view_request_link + '" target="_blank">' + data.request_no + '</a>');
                 $(obj).parent().next().next().next().html('<img width="12px" src="/static/{{ theme }}/img/icon-warn.png"/>');
             }

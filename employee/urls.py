@@ -12,7 +12,7 @@ from eb.urls import router as eb_router
 
 urlpatterns = [
     url(r'^$', views.HomeView.as_view(), name='home'),
-    url(r'^eb/', include('eb.urls')),
+    url(r'^wt/', include('eb.urls')),
     url(r'^flow/', include('flow.urls')),
     url(r'^contract/', include('contract.urls')),
 

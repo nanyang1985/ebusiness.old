@@ -12,7 +12,7 @@ EXCEL_FORMAT_EXCEL2003 = 56
 
 LOG_EB_SALES = 'eb_sales'
 
-LOGIN_IN_URL = '/eb/login/'
+LOGIN_IN_URL = '/wt/login/'
 
 REG_DATE_STR = ur"\d{4}([-/.年])\d{1,2}([-/.月])\d{1,2}([日]?)"
 REG_DATE_STR2 = ur"\d{4}([-/.年])\d{1,2}([-/.月]?)"

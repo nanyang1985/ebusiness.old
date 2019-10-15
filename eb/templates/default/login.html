@@ -20,7 +20,7 @@
                             <img class="logo" src="/static/logo.gif" />
                         </td>
                         <td>
-                            <form class="form-horizontal" name="LoginForm" action="/eb/login/" method="post">
+                            <form class="form-horizontal" name="LoginForm" action="/wt/login/" method="post">
                             {% csrf_token %}
                             {% if next %}
                                 <input type="hidden" name="next" value="{{ next }}" />
