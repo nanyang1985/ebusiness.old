@@ -1117,7 +1117,7 @@ def get_sales_logger():
 
     :return:
     """
-    return logging.getLogger('eb_sales')
+    return logging.getLogger('wt_sales')
 
 
 def get_organization_children(organization):

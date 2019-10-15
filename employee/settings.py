@@ -70,7 +70,7 @@ if sys.platform in ('linux2', 'linux'):
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.mysql',
-            'NAME': 'eb_sales',
+            'NAME': 'wt_sales',
             'USER': 'root',
             'PASSWORD': os.environ['MYSQL_ENV_MYSQL_ROOT_PASSWORD'],
             'HOST': os.environ['MYSQL_PORT_3306_TCP_ADDR'],
@@ -81,7 +81,7 @@ elif sys.platform == 'win32' and getpass.getuser() == 'EB097':
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.mysql',
-            'NAME': 'eb_sales',
+            'NAME': 'wt_sales',
             'USER': 'root',
             'PASSWORD': 'root',
             'HOST': '',
@@ -101,7 +101,7 @@ else:
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.mysql',
-            'NAME': 'eb_sales',
+            'NAME': 'wt_sales',
             'USER': 'root',
             'PASSWORD': 'root',
             'HOST': '',
@@ -238,11 +238,11 @@ LOGGING = {
             'formatter': 'standard',
             'filename': os.path.join(BASE_DIR, "log/batch/sync_bp_contract.log"),
         },
-        'eb_sales': {
+        'wt_sales': {
             'level': 'INFO',
             'class': 'logging.FileHandler',
             'formatter': 'standard',
-            'filename': os.path.join(BASE_DIR, "log/eb_sales.log"),
+            'filename': os.path.join(BASE_DIR, "log/wt_sales.log"),
         },
         # 'console': {
         #     'level': 'DEBUG',
@@ -296,8 +296,8 @@ LOGGING = {
             'level': 'INFO',
             'propagate': True,
         },
-        'eb_sales': {
-            'handlers': ['eb_sales'],
+        'wt_sales': {
+            'handlers': ['wt_sales'],
             'level': 'INFO',
             'propagate': True,
         },

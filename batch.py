@@ -80,7 +80,7 @@ def get_batches():
         user = 'root'
         password = 'root'
         host = 'localhost'
-    con = MySQLdb.connect(user=user, passwd=password, db='eb_sales', host=host)
+    con = MySQLdb.connect(user=user, passwd=password, db='wt_sales', host=host)
     cursor = con.cursor()
     cursor.execute("select name, cron_tab from eb_batchmanage "
                    " where is_deleted=0 "

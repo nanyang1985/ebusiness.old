@@ -30,6 +30,6 @@ if __name__ == '__main__':
     ddl_path = os.path.join(os.path.dirname(__file__), 'SQL')
     in_user = input('ユーザー名を入力してください(default: root)：') or 'root'
     in_pwd = input('パスワードを入力してください(default: root)：') or 'root'
-    in_db = input('データベースを入力してください(default: eb_sales)：') or 'eb_sales'
+    in_db = input('データベースを入力してください(default: wt_sales)：') or 'wt_sales'
     in_host = input('ホストを入力してください(default: 192.168.99.100)：') or '192.168.99.100'
     main(ddl_path, in_user, in_pwd, in_db, in_host)

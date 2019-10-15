@@ -10,7 +10,7 @@ from decimal import Decimal
 EXCEL_APPLICATION = "Excel.Application"
 EXCEL_FORMAT_EXCEL2003 = 56
 
-LOG_EB_SALES = 'eb_sales'
+LOG_EB_SALES = 'wt_sales'
 
 LOGIN_IN_URL = '/wt/login/'
 

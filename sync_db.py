@@ -39,7 +39,7 @@ def migrate():
 
 
 def del_migration_records():
-    con = MySQLdb.connect(user=user, passwd=password, db='eb_sales', host=host)
+    con = MySQLdb.connect(user=user, passwd=password, db='wt_sales', host=host)
     cursor = con.cursor()
     try:
         cnt = cursor.execute("delete from django_migrations")
