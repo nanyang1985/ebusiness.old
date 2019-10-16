@@ -717,7 +717,7 @@ class Subcontractor(AbstractCompany):
             else:
                 no = "001"
             next_request = "%s%s%s" % (year[2:], month, no)
-            next_pay_notify_no = "EB%s%s%s" % (year[2:], month, no)
+            next_pay_notify_no = "WT%s%s%s" % (year[2:], month, no)
             subcontractor_request = SubcontractorRequest(
                 subcontractor=self, section=organization, year=year, month=month, request_no=next_request,
                 pay_notify_no=next_pay_notify_no,
@@ -3696,7 +3696,7 @@ class BpMemberOrder(BaseModel):
         if member and member.first_name_en:
             prefix = member.first_name_en[0].upper()
 
-        order_no = "EB{0:04d}{1:02d}{2:02d}{3}".format(date.year, date.month, date.day, prefix)
+        order_no = "WT{0:04d}{1:02d}{2:02d}{3}".format(date.year, date.month, date.day, prefix)
         max_order_no = BpMemberOrder.objects.public_filter(order_no__startswith=order_no)\
             .aggregate(Max('order_no'))
         max_order_no = max_order_no.get('order_no__max')
