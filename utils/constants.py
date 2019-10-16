@@ -28,7 +28,7 @@ MAIL_GROUP_SUBCONTRACTOR_PAY_NOTIFY = 'mail_subcontractor_pay_notify'
 NAME_SYSTEM = "営業支援システム"
 NAME_BUSINESS_PLAN = "%02d月営業企画"
 NAME_MEMBER_LIST = "最新要員一覧"
-NAME_RESUME = "EB履歴書_%s_%s"
+NAME_RESUME = "WT履歴書_%s_%s"
 NAME_SECTION_ATTENDANCE = "勤怠情報_%s_%04d年%02d月"
 NAME_MEMBERS_COST = "要員コスト一覧_%s"
 

@@ -65,58 +65,17 @@ SESSION_COOKIE_AGE = 60 * 60 * 24
 # Database
 # https://docs.djangoproject.com/en/1.7/ref/settings/#databases
 
-if sys.platform in ('linux2', 'linux'):
-    # AWS docker
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.mysql',
-            'NAME': 'wt_sales',
-            'USER': 'root',
-            'PASSWORD': os.environ['MYSQL_ENV_MYSQL_ROOT_PASSWORD'],
-            'HOST': os.environ['MYSQL_PORT_3306_TCP_ADDR'],
-            'PORT': os.environ['MYSQL_PORT_3306_TCP_PORT'],
-        },
-    }
-elif sys.platform == 'win32' and getpass.getuser() == 'EB097':
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.mysql',
-            'NAME': 'wt_sales',
-            'USER': 'root',
-            'PASSWORD': 'root',
-            'HOST': '',
-            'PORT': '',
-        },
-
-        # 'bpm_eboa': {
-        #     'ENGINE': 'django.db.backends.mysql',
-        #     'NAME': 'bpm_eboa',
-        #     'USER': 'root',
-        #     'PASSWORD': 'root',
-        #     'HOST': '',
-        #     'PORT': '',
-        # },
-    }
-else:
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.mysql',
-            'NAME': 'wt_sales',
-            'USER': 'root',
-            'PASSWORD': 'root',
-            'HOST': '',
-            'PORT': '',
-        },
-
-        # 'bpm_eboa': {
-        #     'ENGINE': 'django.db.backends.mysql',
-        #     'NAME': 'bpm_eboa',
-        #     'USER': 'root',
-        #     'PASSWORD': 'root',
-        #     'HOST': '',
-        #     'PORT': '',
-        # },
-    }
+# AWS docker
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'wt_sales',
+        'USER': 'root',
+        'PASSWORD': os.environ['MYSQL_ENV_MYSQL_ROOT_PASSWORD'],
+        'HOST': os.environ['MYSQL_PORT_3306_TCP_ADDR'],
+        'PORT': os.environ['MYSQL_PORT_3306_TCP_PORT'],
+    },
+}
 
 # DATABASE_ROUTERS = ['employee.db_router.DbRouter']
 

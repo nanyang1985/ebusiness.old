@@ -176,7 +176,7 @@ def sync_members(batch):
 
 
 def sync_members_for_change(batch):
-    """EBOAのＤＢから社員の情報を更新する。
+    """WTOAのＤＢから社員の情報を更新する。
 
     :param batch:
     :return:

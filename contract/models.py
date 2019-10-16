@@ -160,7 +160,7 @@ class Contract(BaseModel):
 
     def get_next_contract_no(self):
         today = datetime.date.today()
-        return "EB%04d%s" % (int(self.member.id_from_api), today.strftime('%Y%m%d'))
+        return "WT%04d%s" % (int(self.member.id_from_api), today.strftime('%Y%m%d'))
 
     @property
     def is_fixed_cost(self):

@@ -725,7 +725,7 @@ def get_request_file_path(request_no, client_name, ym):
     from django.conf import settings
 
     now = datetime.datetime.now()
-    filename = "EB請求書_%s_%s_%s" % (str(request_no), client_name.encode('UTF-8'), now.strftime("%Y%m%d_%H%M%S%f"))
+    filename = "WT請求書_%s_%s_%s" % (str(request_no), client_name.encode('UTF-8'), now.strftime("%Y%m%d_%H%M%S%f"))
     path = os.path.join(settings.GENERATED_FILES_ROOT, "project_request", str(ym))
     if not os.path.exists(path):
         os.makedirs(path)
@@ -765,7 +765,7 @@ def get_subcontractor_request_file_path(request_no, subcontractor_name, ym):
 
 def get_pay_notify_file_path(no, client_name, ym):
     now = datetime.datetime.now()
-    name_format = "EB支払通知書_%s_%s_%s"
+    name_format = "WT支払通知書_%s_%s_%s"
     filename = name_format % (str(no), client_name.encode('UTF-8'), now.strftime("%Y%m%d_%H%M%S%f"))
     path = os.path.join(get_subcontractor_pay_notify_root_path(), str(ym))
     if not os.path.exists(path):
@@ -789,9 +789,9 @@ def get_order_file_path(order_no, client_name, project_name, member_name, ym, is
 
     now = datetime.datetime.now()
     if is_request:
-        name_format = "EB注文請書_%s_%s%s%s_%s.xlsx"
+        name_format = "WT注文請書_%s_%s%s%s_%s.xlsx"
     else:
-        name_format = "EB注文書_%s_%s%s%s_%s.xlsx"
+        name_format = "WT注文書_%s_%s%s%s_%s.xlsx"
     filename = name_format % (
         str(order_no),
         (project_name.replace('/', u"／").encode('UTF-8') + "_") if project_name else '',
@@ -904,7 +904,7 @@ def get_quotation_no(user):
     except:
         pass
     today = datetime.date.today()
-    return "EB{0:04d}{1:02d}{2:02d}{3}{4}".format(today.year, today.month, today.day, prefix, "001")
+    return "WT{0:04d}{1:02d}{2:02d}{3}{4}".format(today.year, today.month, today.day, prefix, "001")
 
 
 def get_excel_replacements(text):
@@ -1206,6 +1206,8 @@ def get_signature_image():
     from django.conf import settings
     img_path = os.path.join(settings.STATICFILES_DIRS[0], 'admin/img/signature.png')
     img = Image(img_path)
+    img.width = 90
+    img.height = 90
     return img
 
 

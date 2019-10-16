@@ -15,8 +15,8 @@ select m.id as member_id
      , c.id as contract_id
      , bp_c.id as bp_contract_id
      , case 
-           when c.id is not null and c.member_type = 1 then 'EB（正社員）'
-           when c.id is not null and c.member_type = 2 and c.is_loan = 0 then 'EB（契約社員）'
+           when c.id is not null and c.member_type = 1 then 'WT（正社員）'
+           when c.id is not null and c.member_type = 2 and c.is_loan = 0 then 'WT（契約社員）'
            when c.id is not null and c.member_type = 2 and c.is_loan = 1 then '出向'
            when bp_c.id is not null then 'BP'
            else 'Unknown'

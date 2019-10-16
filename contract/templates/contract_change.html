@@ -57,7 +57,7 @@ var timeline;
         var groups = new vis.DataSet();
         groups.add({id: "lbl_in", content: "入社"});
         groups.add({id: "lbl_out", content: "退社"});
-        groups.add({id: "eb", content: "EB契約"});
+        groups.add({id: "eb", content: "WT契約"});
         var items = new vis.DataSet();
         {% for c in all_contract %}
             {% if c.join_date %}

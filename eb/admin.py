@@ -778,7 +778,7 @@ class ProjectMemberAdmin(BaseAdmin):
         return obj.member.eboa_user_id
     display_project_client.short_description = u"関連会社"
     display_project_client.admin_order_field = 'project__client'
-    display_eboa_user_id.short_description = u"EBOA連携ID"
+    display_eboa_user_id.short_description = u"WTOA連携ID"
     display_eboa_user_id.admin_order_field = 'member__eboa_user_id'
 
     def get_form(self, request, obj=None, **kwargs):

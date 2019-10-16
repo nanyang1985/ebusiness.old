@@ -1848,7 +1848,7 @@ class Client(AbstractCompany):
     quotation_file = models.FileField(blank=True, null=True, upload_to="./quotation",
                                       verbose_name=u"見積書テンプレート")
     request_file = models.FileField(blank=True, null=True, upload_to="./request", verbose_name=u"請求書テンプレート",
-                                    help_text=u"如果该项目为空，则使用EB自己的模板。")
+                                    help_text=u"如果该项目为空，则使用WT自己的模板。")
     created_dt = models.DateTimeField(auto_now_add=True, verbose_name=u"作成日時")
     updated_dt = models.DateTimeField(auto_now=True, verbose_name=u"更新日時")
     is_deleted = models.BooleanField(default=False, editable=False, verbose_name=u"削除フラグ")
@@ -3536,7 +3536,7 @@ class BpLumpOrder(BaseModel):
         if member and member.first_name_en:
             prefix = member.first_name_en[0].upper()
 
-        order_no = "EB{0:04d}{1:02d}{2:02d}{3}".format(date.year, date.month, date.day, prefix)
+        order_no = "WT{0:04d}{1:02d}{2:02d}{3}".format(date.year, date.month, date.day, prefix)
         max_order_no = BpLumpOrder.objects.public_filter(order_no__startswith=order_no) \
             .aggregate(Max('order_no'))
         max_order_no = max_order_no.get('order_no__max')
