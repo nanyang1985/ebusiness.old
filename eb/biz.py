@@ -932,6 +932,8 @@ def generate_bp_order_data(project_member, year, month, contract, user, bp_order
     data['DETAIL']['DELIVERY_PROPERTIES'] = models.Config.get_bp_order_delivery_properties()
     # 支払条件
     data['DETAIL']['PAYMENT_CONDITION'] = models.Config.get_bp_order_payment_condition()
+    # 支払日付
+    data['DETAIL']['PAYMENT_DAY'] = contract.company.payment_day
     # 契約条項
     data['DETAIL']['CONTRACT_ITEMS'] = models.Config.get_bp_order_contract_items()
 

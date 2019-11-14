@@ -3631,7 +3631,9 @@ class BpMemberOrder(BaseModel):
     end_month = models.CharField(max_length=2, blank=False, null=True, verbose_name=u"終了月")
     business_days = models.IntegerField(default=0, verbose_name=u"営業日数")
     filename = models.CharField(max_length=255, blank=True, null=True, verbose_name=u"注文書ファイル名")
+    filename_pdf = models.CharField(max_length=255, blank=True, null=True, verbose_name=u"注文書ＰＤＦ名")
     filename_request = models.CharField(max_length=255, blank=True, null=True, verbose_name=u"注文請書")
+    filename_request_pdf = models.CharField(max_length=255, blank=True, null=True, verbose_name=u"注文請書ＰＤＦ")
     is_sent = models.BooleanField(default=False, verbose_name=u"送信")
     created_user = models.ForeignKey(User, related_name='created_orders', null=True, on_delete=models.PROTECT,
                                      editable=False, verbose_name=u"作成者")

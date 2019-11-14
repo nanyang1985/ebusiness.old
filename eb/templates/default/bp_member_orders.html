@@ -138,22 +138,27 @@
                         <td class="num">{{ days }}</td>
                         <td class="center">
                             {% if order %}
-                                <a href="{% url 'bp_member_order' order.pk %}">{{ order.order_no }}</a>
+                                <a href="{% url 'bp_member_order' order.pk %}" target="_blank">{{ order.order_no }}</a>
                             {% else %}
                                 <a href="{% url 'bp_member_order_preview' project_member.pk year month|stringformat:'02d' %}" target="_blank">プレビュー</a>
                             {% endif %}
                         </td>
                         {% if order %}
                             <td class="center">
-                                <a href="{% url 'download_bp_order' project_member.pk year month|stringformat:'02d' %}?overwrite=1" target="_blank">
-                                    ダウンロード</a>
                                 {% if order.month != month|stringformat:"02d" %}
                                     <!--複数月の注文書は開始年月だけで作成できる。-->
                                 {% else %}
-                                &nbsp;|&nbsp;
                                 <a href="{% url 'download_bp_order' project_member.pk year month|stringformat:'02d' %}?end_year={{ order.end_year }}&end_month={{ order.end_month }}" target="_blank"
                                    onclick="return confirm('既に作成済みなので、上書きしてもよろしいですか？')">
                                     再作成</a>
+                                |&nbsp;
+                                <a href="{% url 'download_bp_order' project_member.pk year month|stringformat:'02d' %}?overwrite=xlsx"
+                                   target="_blank">
+                                        Excel</a>
+                                |&nbsp;
+                                <a href="{% url 'download_bp_order' project_member.pk year month|stringformat:'02d' %}?overwrite=pdf"
+                                   target="_blank">
+                                        PDF</a>
                                 {% endif %}
                             </td>
                             <td class="center">

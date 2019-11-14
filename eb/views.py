@@ -1976,7 +1976,7 @@ class BpLumpContractOrdersView(BaseTemplateView):
         return context
 
 
-class BpLumpOrderDetailView(BaseTemplateView):
+class BpLumpOrderDetailView(BaseTemplateViewWithoutLogin):
     template_name = 'default/bp_lump_order.html'
 
     def get_context_data(self, **kwargs):
@@ -2012,11 +2012,11 @@ class BpLumpOrderDetailView(BaseTemplateView):
         return context
 
 
-class BpMemberOrderDetailView(BaseTemplateView):
+class BpMemberOrderDetailView(BaseTemplateViewWithoutLogin):
     template_name = 'default/bp_member_order.html'
 
-    def get_context_data(self, **kwargs):
-        context = super(BpMemberOrderDetailView, self).get_context_data(**kwargs)
+    def get(self, request, *args, **kwargs):
+        context = self.get_context_data()
         request = kwargs.get('request')
         preview = kwargs.get('preview', False)
         if preview:
@@ -2050,7 +2050,7 @@ class BpMemberOrderDetailView(BaseTemplateView):
                 bp_order.month,
             ),
         })
-        return context
+        return self.render_to_response(context)
 
 
 @login_required(login_url='/eb/login/')
@@ -2224,9 +2224,15 @@ class DownloadBpMemberOrder(BaseView):
             overwrite = request.GET.get("overwrite", None)
             if overwrite:
                 if is_request:
-                    filename = bp_order.filename_request if bp_order.filename_request else 'None'
+                    if overwrite == "xlsx":
+                        filename = bp_order.filename_request if bp_order.filename_request else 'None'
+                    if overwrite == "pdf":
+                        filename = bp_order.filename_request_pdf if bp_order.filename_request_pdf else 'None'
                 else:
-                    filename = bp_order.filename if bp_order.filename else 'None'
+                    if overwrite == "xlsx":
+                        filename = bp_order.filename if bp_order.filename else 'None'
+                    if overwrite == "pdf":
+                        filename = bp_order.filename_pdf if bp_order.filename_pdf else 'None'
                 path = os.path.join(settings.GENERATED_FILES_ROOT, "partner_order",
                                     '%04d%02d' % (int(bp_order.year), int(bp_order.month)), filename)
                 if not os.path.exists(path):
@@ -2242,8 +2248,10 @@ class DownloadBpMemberOrder(BaseView):
                 data = biz.generate_bp_order_data(project_member, year, month, contract, request.user, bp_order,
                                                   publish_date=publish_date, end_year=end_year, end_month=end_month)
                 template_path = common.get_template_order_path(contract, is_request)
-                path = file_gen.generate_order(data=data, template_path=template_path, is_request=is_request)
-                filename = os.path.basename(path)
+                path_xls, path_pdf = file_gen.generate_order(data=data, template_path=template_path,
+                                                             is_request=is_request)
+                filename = os.path.basename(path_xls)
+                path = path_xls
                 if not bp_order.pk:
                     bp_order.created_user = request.user
                     action_flag = ADDITION
@@ -2254,10 +2262,12 @@ class DownloadBpMemberOrder(BaseView):
                     bp_order.subcontractor = contract.company
                 if is_request:
                     # 注文請書の場合
-                    bp_order.filename_request = filename
+                    bp_order.filename_request = os.path.basename(path_xls)
+                    bp_order.filename_request_pdf = os.path.basename(path_pdf)
                     bp_order.save()
                 else:
-                    bp_order.filename = filename
+                    bp_order.filename = os.path.basename(path_xls)
+                    bp_order.filename_pdf = os.path.basename(path_pdf)
                     bp_order.save(data=data)
                 if action_flag == ADDITION:
                     change_message = u'追加しました。'
@@ -2265,12 +2275,19 @@ class DownloadBpMemberOrder(BaseView):
                     change_message = u'再作成しました。'
                 else:
                     change_message = u"注文請書を作成しました。"
+
+                # PDF作成
+                url = common.get_absolute_url(
+                    reverse('bp_member_order', args=(bp_order.pk,)))
+                common.generate_pdf_from_url(url, path_pdf)
+
                 LogEntry.objects.log_action(request.user.id,
                                             ContentType.objects.get_for_model(bp_order).pk,
                                             bp_order.pk,
                                             unicode(bp_order),
                                             action_flag,
                                             change_message)
+
             response = HttpResponse(open(path, 'rb'), content_type="application/excel")
             response['Content-Disposition'] = "filename=" + urllib.quote(filename.encode('UTF-8'))
             return response
