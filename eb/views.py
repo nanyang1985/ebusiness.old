@@ -2288,7 +2288,7 @@ class DownloadBpMemberOrder(BaseView):
 
                 # PDF作成
                 url = common.get_absolute_url(
-                    reverse('bp_member_order', args=(bp_order.pk,)))
+                    reverse('bp_member_order', args=(bp_order.pk, ))) + "?is_request=" + str(is_request)
                 common.generate_pdf_from_url(url, path_pdf)
 
                 LogEntry.objects.log_action(request.user.id,
