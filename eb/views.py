@@ -26,7 +26,7 @@ from django.core.urlresolvers import reverse
 from django.forms.models import modelformset_factory
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import redirect, get_object_or_404
-from django.template import loader
+from django.template import loader, Context, Template
 from django.template.context_processors import csrf
 from django.views.decorators.csrf import csrf_protect
 from django.contrib.admin.models import LogEntry, ADDITION, CHANGE
@@ -2017,8 +2017,8 @@ class BpMemberOrderDetailView(BaseTemplateViewWithoutLogin):
 
     def get(self, request, *args, **kwargs):
         context = self.get_context_data()
-        request = kwargs.get('request')
         preview = kwargs.get('preview', False)
+        is_request = request.GET.get("is_request", None)
         if preview:
             project_member_id = kwargs.get('project_member_id')
             project_member = get_object_or_404(models.ProjectMember, pk=project_member_id)
@@ -2040,8 +2040,18 @@ class BpMemberOrderDetailView(BaseTemplateViewWithoutLogin):
         else:
             order_id = kwargs.get('order_id')
             bp_order = get_object_or_404(models.BpMemberOrder, pk=order_id)
+
+            bp_order_payment_condition = models.Config.get_bp_order_payment_condition()
+
+            if bp_order_payment_condition:
+                t = Template(bp_order_payment_condition)
+                context = {'bp_order': bp_order,
+                           }
+                bp_order.bpmemberorderheading.payment_condition_comments = t.render(Context(context))
+
             context.update({
                 'bp_order': bp_order,
+                'is_request': is_request,
             })
         context.update({
             'title': u"%s | %s(%s年%s月)" % (

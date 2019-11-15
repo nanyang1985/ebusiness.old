@@ -56,7 +56,9 @@ table.request td.align_right {
 </head>
 <body>
     <div class="container">
-        <img src="/static/admin/img/signature.png" style="position: absolute; width: 80px; left: 650px; top: 123px;"/>
+        {% if is_request == 'False' %}
+            <img src="/static/admin/img/signature.png" style="position: absolute; width: 80px; left: 650px; top: 123px;"/>
+        {% endif %}
         <table class="request" cellpadding="0" cellspacing="0" style="width: 850px;">
             <tr>
                 <td colspan="9" style="text-align: right;">
@@ -65,6 +67,17 @@ table.request td.align_right {
                     </u>
                 </td>
             </tr>
+            {% if is_request == 'True' %}
+            <tr >
+                <td></td>
+                <td rowspan="4" class="center" style="border: 1px solid black;"> 印紙<br>（捺印） </td>
+                <td colspan="7" style="text-align: right;">
+                    <u>
+                            {{ bp_order.bpmemberorderheading.publish_date }}
+                    </u>
+                </td>
+            </tr>
+            {% else %}
             <tr>
                 <td colspan="9" style="text-align: right;">
                     <u>
@@ -72,21 +85,35 @@ table.request td.align_right {
                     </u>
                 </td>
             </tr>
+            {% endif %}
             <tr>
                 <td colspan="9" class="center" style="font-size: 24px;">
-                    <b>注&nbsp;&nbsp;文&nbsp;&nbsp;書</b>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="9" class="center" style="font-size: 24px;">
+            </tr>
+            <tr>
+                <td colspan="9" class="center" style="font-size: 24px;">
+            </tr>
+            <tr>
+                <td colspan="9" class="center" style="font-size: 24px;">
+                    <b>{% if is_request == 'True' %} 注　文　請　書 {% else %} 注&nbsp;&nbsp;文&nbsp;&nbsp;書 {% endif %}</b>
                 </td>
             </tr>
             <tr>
                 <td colspan="9">
-                    （乙）
+                    {% if is_request == 'True' %} （甲） {% else %} （乙） {% endif %}
                 </td>
             </tr>
             <tr>
                 <td colspan="9">
                     <u>
+                        {% if is_request == 'True' %}
+                            {{ bp_order.bpmemberorderheading.company_name }}
+                        {% else %}
                             {{ bp_order.bpmemberorderheading.subcontractor_name }}
-                        &nbsp;&nbsp;
+                        {% endif %}
                     </u>
                     御中
                 </td>
@@ -94,15 +121,27 @@ table.request td.align_right {
             <tr>
                 <td colspan="5"></td>
                 <td colspan="4">
-                    （甲）
+                    {% if is_request == 'True' %} （乙） {% else %} （甲） {% endif %}
                 </td>
             </tr>
             <tr>
                 <td colspan="5"></td>
                 <td colspan="4">
-                        {{ bp_order.bpmemberorderheading.company_name }}
+                        {% if is_request == 'True' %}
+                            {{ bp_order.bpmemberorderheading.subcontractor_name }}  ㊞
+                        {% else %}
+                            {{ bp_order.bpmemberorderheading.company_name }}
+                        {% endif %}
                 </td>
             </tr>
+            {% if is_request == 'True' %}
+            <tr>
+                <td colspan="5"></td>
+                <td colspan="4">
+                      〒 {{ bp_order.bpmemberorderheading.subcontractor_post_code }}
+                </td>
+            </tr>
+            {% endif %}
             <tr>
                 <td colspan="5"></td>
                 <td colspan="4">
@@ -127,18 +166,20 @@ table.request td.align_right {
             <tr><td colspan="9">&nbsp;</td></tr>
             <tr>
                 <td colspan="6">&nbsp;</td>
-                <td>作成者</td>
+                <td>{% if is_request == 'True' %} 承認者 {% else %} 作成者 {% endif %}</td>
                 <td colspan="2"></td>
             </tr>
             <tr style="height: 80px;">
                 <td colspan="6">&nbsp;</td>
-                <td style="border: 2px solid black;"></td>
+                <td class="center" style="border: 2px solid black;">{% if is_request == 'False' %} {{ user.first_name }} {% endif %}</td>
                 <td colspan="2"></td>
             </tr>
             <tr><td colspan="9">&nbsp;</td></tr>
+            {% if is_request == 'Flase' %}
             <tr>
                 <td colspan="9">下記の通り注文致しますので、ご了承の上、折り返し注文請書をご送付下さい。</td>
             </tr>
+            {% endif %}
             <tr style="height: 30px;">
                 <td colspan="2" class="top left bottom center">業務名称</td>
                 <td colspan="7" class="top left bottom align_left border_right">
