@@ -52,12 +52,12 @@ table.request td.align_right {
 .center {
     text-align: center;
 }
-    </style>
+</style>
 </head>
 <body>
     <div class="container">
         {% if is_request == 'False' %}
-            <img src="/static/admin/img/signature.png" style="position: absolute; width: 80px; left: 650px; top: 123px;"/>
+            <img src="/static/admin/img/signature.png" style="position: absolute; width: 80px; left: 650px; top: 180px;"/>
         {% endif %}
         <table class="request" cellpadding="0" cellspacing="0" style="width: 850px;">
             <tr>
@@ -145,22 +145,37 @@ table.request td.align_right {
             <tr>
                 <td colspan="5"></td>
                 <td colspan="4">
-                        {{ bp_order.bpmemberorderheading.company_address1 }}
+                {% if is_request == 'True' %}
+                    {{ bp_order.bpmemberorderheading.subcontractor_address1 }}
+                {% else %}
+                    {{ bp_order.bpmemberorderheading.company_address1 }}
+                {% endif %}
                 </td>
             </tr>
             <tr>
                 <td colspan="5"></td>
                 <td colspan="4">
+                {% if is_request == 'True' %}
+                    {{ bp_order.bpmemberorderheading.subcontractor_address2 }}
+                {% else %}
                         {{ bp_order.bpmemberorderheading.company_address2 }}
+                {% endif %}
                 </td>
             </tr>
             <tr>
                 <td colspan="5"></td>
                 <td colspan="4">
-                    TEL:
-                        {{ bp_order.bpmemberorderheading.tel }}
+                    {% if is_request == 'True' %}
+                        TEL:   {{ bp_order.bpmemberorderheading.subcontractor_tel }}
                     &nbsp;&nbsp;
-                    FAX:03-6809-3238
+                        {% if bp_order.bpmemberorderheading.subcontractor_fax %}
+                            FAX:{{ bp_order.bpmemberorderheading.subcontractor_fax }}
+                        {% endif %}
+                    {% else %}
+                        TEL:   {{ bp_order.bpmemberorderheading.company_tel }}
+                    &nbsp;&nbsp;
+                        FAX:{{ bp_order.bpmemberorderheading.company_fax }}
+                    {% endif %}
                 </td>
             </tr>
             <tr><td colspan="9">&nbsp;</td></tr>
@@ -171,11 +186,19 @@ table.request td.align_right {
             </tr>
             <tr style="height: 80px;">
                 <td colspan="6">&nbsp;</td>
-                <td class="center" style="border: 2px solid black;">{% if is_request == 'False' %} {{ user.first_name }} {% endif %}</td>
+                <td class="center" style="border: 2px solid black;">
+                    {% if is_request == 'False' %}
+                        {% if user.first_name %}
+                            {{ user.first_name }}
+                        {% else %}
+                            {{ user_first_name }}
+                        {% endif %}
+                    {% endif %}
+                </td>
                 <td colspan="2"></td>
             </tr>
             <tr><td colspan="9">&nbsp;</td></tr>
-            {% if is_request == 'Flase' %}
+            {% if is_request == 'False' %}
             <tr>
                 <td colspan="9">下記の通り注文致しますので、ご了承の上、折り返し注文請書をご送付下さい。</td>
             </tr>

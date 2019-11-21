@@ -849,6 +849,8 @@ def generate_bp_order_data(project_member, year, month, contract, user, bp_order
     data['DETAIL']['POST_CODE'] = common.get_full_postcode(company.post_code)
     # 本社電話番号
     data['DETAIL']['TEL'] = company.tel or ''
+    # 本社FAX番号
+    data['DETAIL']['FAX'] = company.fax or ''
     # 代表取締役
     data['DETAIL']['MASTER'] = company.president if company.president else ""
     # 本社住所

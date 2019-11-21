@@ -3740,6 +3740,7 @@ class BpMemberOrder(BaseModel):
                                            company_address2=data['DETAIL'].get('ADDRESS2', None),
                                            company_name=data['DETAIL'].get('COMPANY_NAME', None),
                                            company_tel=data['DETAIL'].get('TEL', None),
+                                           company_fax=data['DETAIL'].get('FAX', None),
                                            project_name=data['DETAIL'].get('PROJECT_NAME', None),
                                            start_date=data['DETAIL'].get('START_DATE', None),
                                            end_date=data['DETAIL'].get('END_DATE', None),
