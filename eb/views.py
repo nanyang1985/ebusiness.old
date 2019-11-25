@@ -1946,6 +1946,9 @@ class BpMemberOrdersView(BaseTemplateView):
         member_id = kwargs.get('member_id')
         member = get_object_or_404(models.Member, pk=member_id)
         project_members = member.projectmember_set.public_filter(is_deleted=False).order_by('-start_date')
+        mail_group = models.MailGroup.get_member_order()
+        mail_title = mail_group.get_mail_title()
+        mail_body = mail_group.get_mail_body()
         md5 = hashlib.md5()
         md5.update(datetime.date.today().strftime('%Y%m%debsales'))
         context.update({
@@ -1955,6 +1958,9 @@ class BpMemberOrdersView(BaseTemplateView):
             'year_list': common.get_year_list(),
             'month_list': common.get_month_list3(),
             'md5_token': md5.hexdigest().decode('raw_unicode_escape'),
+            'mail_sender': mail_group.mail_sender,
+            'mail_title': mail_title,
+            'mail_body': mail_body,
         })
         return context
 
@@ -2052,6 +2058,7 @@ class BpMemberOrderDetailView(BaseTemplateViewWithoutLogin):
             context.update({
                 'bp_order': bp_order,
                 'is_request': is_request,
+                'user_first_name': request.GET.get("user_first_name", None),
             })
         context.update({
             'title': u"%s | %s(%s年%s月)" % (
@@ -2288,7 +2295,7 @@ class DownloadBpMemberOrder(BaseView):
 
                 # PDF作成
                 url = common.get_absolute_url(
-                    reverse('bp_member_order', args=(bp_order.pk, ))) + "?is_request=" + str(is_request)
+                    reverse('bp_member_order', args=(bp_order.pk, ))) + "?is_request=" + str(is_request) + "&user_first_name=" + request.user.first_name
                 common.generate_pdf_from_url(url, path_pdf)
 
                 LogEntry.objects.log_action(request.user.id,
@@ -2685,6 +2692,45 @@ class BusinessDaysView(BaseView):
         business_days = common.get_business_days(year, month)
         return JsonResponse({'business_days': business_days})
 
+class SendMailBpMemberView(BaseView):
+
+    def post(self, request, *args, **kwargs):
+        year = kwargs.get('year')
+        month = kwargs.get('month')
+        project_member_id = kwargs.get(str('member_id'))
+        project_member = get_object_or_404(models.ProjectMember, pk=project_member_id)
+        contract = biz.get_bp_contract(project_member.member, year, month)
+        bp_order = models.BpMemberOrder.get_next_bp_order(contract.company, project_member, year, month)
+        ret = {}
+        if bp_order:
+            sender = request.POST.get('sender', None)
+            recipient_list = request.POST.get('recipient_list', None)
+            cc_list = request.POST.get('cc_list', None)
+            mail_title = request.POST.get('mail_title', None)
+            mail_body = request.POST.get('mail_body', None)
+            pass_body = request.POST.get('pass_body', None)
+            try:
+                attachment_list = []
+                attachment_list.append(bp_order.get_order_path())
+                attachment_list.append(bp_order.get_order_request_path())
+                mail_data = {
+                    'sender': sender, 'recipient_list': recipient_list, 'cc_list': cc_list,
+                    'attachment_list': attachment_list, 'is_encrypt': True,
+                    'mail_title': mail_title, 'mail_body': mail_body, 'addressee': unicode(bp_order),
+                    'pass_body': pass_body,
+                }
+                mail = EbMail(**mail_data)
+                mail.send_email()
+                mail_data['user'] = request.user
+                bp_order.is_sent = True
+                bp_order.save(update_fields=['is_sent'])
+                ret.update({'result': True, 'message': ""})
+            except Exception as ex:
+                common.get_sales_logger().error(traceback.format_exc())
+                ret.update({'result': False, 'message': ex.message})
+        else:
+            ret.update({'result': False, 'message': "注文書と注文書請求書はまだ作成されていません。"})
+        return JsonResponse(ret)
 
 class SendMailBpRequestView(BaseView):
 

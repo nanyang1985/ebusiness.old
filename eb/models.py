@@ -744,6 +744,23 @@ class Subcontractor(AbstractCompany):
         cc_list.extend(mail_group.get_cc_list())
         return recipient_list, cc_list
 
+    def get_member_order_mail_list(self):
+        """支払通知書と請求書をメール送信時、の宛先リストとＣＣリストを取得する。
+
+        :return:
+        """
+        queryset = SubcontractorOrderRecipient.objects.public_filter(subcontractor=self)
+        recipient_list = []
+        cc_list = []
+        for request_recipient in queryset.filter(is_cc=False):
+            recipient_list.append(request_recipient.subcontractor_member.email)
+        for request_cc in queryset.filter(is_cc=True):
+            cc_list.append(request_cc.subcontractor_member.email)
+        # EBのＣＣリストを取得する
+        mail_group = MailGroup.get_member_order()
+        cc_list.extend(mail_group.get_cc_list())
+        return recipient_list, cc_list
+
     def delete(self, using=None, keep_parents=False):
         self.is_deleted = True
         self.deleted_date = datetime.datetime.now()
@@ -918,6 +935,15 @@ class MailGroup(BaseModel):
             return MailGroup.objects.get(name=constants.MAIL_GROUP_SUBCONTRACTOR_PAY_NOTIFY)
         except ObjectDoesNotExist:
             mail_group = MailGroup(name=constants.MAIL_GROUP_SUBCONTRACTOR_PAY_NOTIFY)
+            mail_group.save()
+            return mail_group
+
+    @classmethod
+    def get_member_order(cls):
+        try:
+            return MailGroup.objects.get(name=constants.MAIL_GROUP_MEMBER_ORDER)
+        except ObjectDoesNotExist:
+            mail_group = MailGroup(name=constants.MAIL_GROUP_MEMBER_ORDER)
             mail_group.save()
             return mail_group
 
@@ -3710,13 +3736,13 @@ class BpMemberOrder(BaseModel):
 
     def get_order_path(self):
         if self.filename:
-            return os.path.join(settings.GENERATED_FILES_ROOT, "partner_order", '%s%s' % (self.year, self.month), self.filename)
+            return os.path.join(settings.GENERATED_FILES_ROOT, "partner_order", '%s%s' % (self.year, self.month), self.filename_pdf)
         else:
             return None
 
     def get_order_request_path(self):
         if self.filename_request:
-            return os.path.join(settings.GENERATED_FILES_ROOT, "partner_order", '%s%s' % (self.year, self.month), self.filename_request)
+            return os.path.join(settings.GENERATED_FILES_ROOT, "partner_order", '%s%s' % (self.year, self.month), self.filename_request_pdf)
         else:
             return None
 
