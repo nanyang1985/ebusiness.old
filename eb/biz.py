@@ -1200,8 +1200,10 @@ def generate_subcontractor_request_data(subcontractor, year, month, subcontracto
     # 部署名称
     data['DETAIL']['ORG_NAME'] = unicode(subcontractor_request.section)
     # お支払い期限
-    data['DETAIL']['REMIT_DATE'] = company.get_pay_date(date=first_day).strftime('%Y/%m/%d')
-    data['EXTRA']['REMIT_DATE'] = company.get_pay_date(date=first_day)
+    # data['DETAIL']['REMIT_DATE'] = company.get_pay_date(date=first_day).strftime('%Y/%m/%d')
+    # data['EXTRA']['REMIT_DATE'] = company.get_pay_date(date=first_day)
+    data['DETAIL']['REMIT_DATE'] = subcontractor.get_pay_date(date=first_day).strftime('%Y/%m/%d')
+    data['EXTRA']['REMIT_DATE'] = subcontractor.get_pay_date(date=first_day)
     # 請求番号
     data['DETAIL']['REQUEST_NO'] = subcontractor_request.request_no
     # お支払通知書番号

@@ -766,6 +766,22 @@ class Subcontractor(AbstractCompany):
         self.deleted_date = datetime.datetime.now()
         self.save()
 
+    def get_pay_date(self, date=datetime.date.today()):
+        """支払い期限日を取得する。
+
+        :param date:
+        :return:
+        """
+        months = int(self.payment_month) if self.payment_month else 1
+        pay_month = common.add_months(date, months)
+        if self.payment_day == '99' or not self.payment_day:
+            return common.get_last_day_by_month(pay_month)
+        else:
+            pay_day = int(self.payment_day)
+            last_day = common.get_last_day_by_month(pay_month)
+            if last_day.day < pay_day:
+                return last_day
+            return datetime.date(pay_month.year, pay_month.month, pay_day)
 
 class SubcontractorBankInfo(BaseModel):
     subcontractor = models.ForeignKey(Subcontractor, on_delete=models.PROTECT, verbose_name=u"協力会社")
