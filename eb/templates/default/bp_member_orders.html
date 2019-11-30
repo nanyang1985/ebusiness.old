@@ -4,27 +4,22 @@
 {% load year_month_filter %}
 
 {% block header %}
-<script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1/jquery-ui.min.js"></script>
-<script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1/i18n/jquery.ui.datepicker-ja.min.js"></script>
-<link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1/themes/redmond/jquery-ui.css" >
 <script type="text/javascript">
-    window.onload = function () {
-        $("#send_mail_form").submit(function () {
-            ajax_post(
-                $(this).attr('action'),
-                $(this).serialize(),
-                function mail_callback_fn(data) {
-                    if (data.result === false) {
-                        alert(data.message);
-                    } else {
-                        alert("メール送信しました。");
-                        hide_dialog();
-                    }
+    function from_submit(fromId) {
+        ajax_post(
+            $("#"+fromId).attr('action'),
+            $("#"+fromId).serialize(),
+            function mail_callback_fn(data) {
+                if (data.result === false) {
+                    alert(data.message);
+                } else {
+                    alert("メール送信しました。");
+                    hide_dialog();
                 }
-            );
-            return false;
-        });
-    };
+            }
+        );
+        return false;
+    }
 </script>
 {% endblock %}
 
@@ -201,27 +196,31 @@
                             </td>
                             <td class="center">
                                 <a href="#" onclick="javascript:show_dialog('preview_mail_send_{{ project_member.pk }}_{{ year }}_{{ month|stringformat:'02d' }}')" >送信</a>
-                                <div class="dialog" id="preview_mail_send_{{ project_member.pk }}_{{ year }}_{{ month|stringformat:'02d' }}" style="width: 580px;">
-                                    <form id="send_mail_form" action="{% url 'send_mail_bp_member' project_member.pk year month|stringformat:'02d' %}" method="post">
+                                <div class="dialog" id="preview_mail_send_{{ project_member.pk }}_{{ year }}_{{ month|stringformat:'02d' }}" style="width: 680px;">
+                                    <form id="send_mail_form_{{ project_member.pk }}_{{ year }}_{{ month|stringformat:'02d' }}" action="{% url 'send_mail_bp_member' project_member.pk year month|stringformat:'02d' %}" method="post">
                                         {% csrf_token %}
                                         <div style="padding: 5px 0px;">
                                             <label style="float: left;text-align:right;width: 50px;">差出人：</label>
-                                            <input name="sender" style="float: left;width: 500px;" readonly="readonly" value="{{ mail_sender }}"/>
+                                            <input name="sender" style="float: left;width: 600px;" readonly="readonly" value="{{ mail_sender }}"/>
                                             <div style="clear: both;"></div>
                                         </div>
                                         <div style="padding: 5px 0px;">
                                             <label style="float: left;text-align:right;width: 50px;">宛先：</label>
-                                            <input name="recipient_list" style="float: left;width: 500px;" value="{% for email in order.subcontractor.get_member_order_mail_list.0 %}{{email}},{% endfor %}"/>
+                                            <input name="recipient_list" style="float: left;width: 600px;" value="{% for email in order.subcontractor.get_member_order_mail_list.0 %}{{email}},{% endfor %}"/>
                                             <div style="clear: both;"></div>
                                         </div>
                                         <div style="padding: 5px 0px;">
                                             <label style="float: left;text-align:right;width: 50px;">ＣＣ：</label>
-                                            <input name="cc_list" style="float: left;width: 500px;" value="{% for email in order.subcontractor.get_member_order_mail_list.1 %}{{email}},{% endfor %}"/>
+                                            <input name="cc_list" style="float: left;width: 600px;" value="{% for email in order.subcontractor.get_member_order_mail_list.1 %}{{email}},{% endfor %}"/>
                                             <div style="clear: both;"></div>
                                         </div>
                                         <div style="padding: 5px 0px;">
                                             <label style="float: left;text-align:right;width: 50px;">件名：</label>
-                                            <input name="mail_title" style="float: left;width: 500px;" value="{{ mail_title }}"/>
+                                            {% for index, title in mailtitles %}
+                                                {% if index == month %}
+                                                    <input name="mail_title" style="float: left;width: 600px;" value="{{ title }}"/>
+                                                {% endif %}
+                                            {% endfor %}
                                             <div style="clear: both;"></div>
                                         </div>
                                         <div style="padding: 5px 0px;">
@@ -234,12 +233,19 @@
                                         </div>
                                         <div style="padding: 5px 0px;">
                                             <label style="float: left;text-align:right;width: 50px;">内容：</label>
-                                            <textarea name="mail_body" style="float: left;width: 500px; height: 300px;">{{ mail_body }}</textarea>
+                                            {% for index, body in mailbodys %}
+                                                {% if index == month %}
+                                                    <textarea name="mail_body" style="float: left;width: 600px; height: 300px;">{{ body }}</textarea>
+                                                {% endif %}
+                                            {% endfor %}
+                                            {% if pass_body %}
+                                                <input type="hidden" name="pass_body" value="{{ pass_body }}"/>
+                                            {% endif %}
                                             <div style="clear: both;"></div>
                                         </div>
                                         <div>
                                             <div style="padding: 2px 10px; clear: both;">
-                                                <input type="submit" value="送信" style="margin:0 auto;"/>
+                                                <input type="button" onclick="from_submit('send_mail_form_{{ project_member.pk }}_{{ year }}_{{ month|stringformat:'02d' }}')" value="送信" style="margin:0 auto;"/>
                                             </div>
                                             <div style="clear: both;"></div>
                                         </div>

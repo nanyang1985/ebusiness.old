@@ -465,7 +465,8 @@ class ProjectListView(BaseTemplateView):
         o = request.GET.get('o', None)
         q = request.GET.get('q', None)
         dict_order = common.get_ordering_dict(o, ['name', 'client__name', 'salesperson__first_name', 'boss__name',
-                                                  'middleman__name', 'updated_date', 'business_type', 'start_date', 'end_date'])
+                                                  'middleman__name', 'updated_date', 'business_type', 'start_date',
+                                                  'end_date'])
         order_list = common.get_ordering_list(o)
         all_projects = biz.get_projects(q=param_dict, o=order_list)
 
@@ -1025,7 +1026,7 @@ class SubcontractorPayNotifyView(BaseTemplateViewWithoutLogin):
     template_name = 'default/subcontractor_pay_notify.html'
 
     def get(self, request, *args, **kwargs):
-        request_id = kwargs.get('request_id', 0) 
+        request_id = kwargs.get('request_id', 0)
         subcontractor_request = get_object_or_404(models.SubcontractorRequest, pk=request_id)
         if hasattr(subcontractor_request, 'subcontractorrequestheading'):
             request_heading = subcontractor_request.subcontractorrequestheading
@@ -1352,7 +1353,8 @@ class ReleaseListView(BaseTemplateView):
         if section_id:
             organization = get_object_or_404(models.Section, pk=section_id)
             org_pk_list = common.get_organization_children(organization)
-            members = members.filter(Q(division__in=org_pk_list) | Q(section__in=org_pk_list) | Q(subsection__in=org_pk_list))
+            members = members.filter(
+                Q(division__in=org_pk_list) | Q(section__in=org_pk_list) | Q(subsection__in=org_pk_list))
 
         o = request.GET.get('o', None)
         dict_order = common.get_ordering_dict(o, ['member__first_name', 'member__subcontractor__name',
@@ -1396,10 +1398,10 @@ class MemberProjectsView(BaseTemplateView):
         status = request.GET.get('status', None)
         member = get_object_or_404(models.Member, employee_id=employee_id)
         if status and status != '0':
-            project_members = models.ProjectMember.objects.public_filter(member=member, status=status)\
+            project_members = models.ProjectMember.objects.public_filter(member=member, status=status) \
                 .order_by('-status', 'end_date')
         else:
-            project_members = models.ProjectMember.objects.public_filter(member=member)\
+            project_members = models.ProjectMember.objects.public_filter(member=member) \
                 .order_by('-status', 'end_date')
 
         context = self.get_context_data()
@@ -1540,6 +1542,8 @@ class ConstSubcontractorInYear2View(BaseTemplateView):
 """
 個人事業主コスト
 """
+
+
 @method_decorator(permission_required('eb.view_subcontractor', raise_exception=True), name='get')
 class CostBusinessOwnerView(BaseTemplateView):
     template_name = 'default/cost_business_owner.html'
@@ -1625,7 +1629,6 @@ class CostSubcontractorMembersByMonthView(BaseTemplateView):
         except EmptyPage:
             object_list = paginator.page(paginator.num_pages)
 
-
         bundle_project_list = biz_turnover.get_bundle_project(subcontractor_id, year, month)
 
         context.update({
@@ -1671,6 +1674,8 @@ class CostSubcontractorsByMonthView(BaseTemplateView):
             'month': month,
         })
         return context
+
+
 # WEB総振 振込データ
 # format
 # ジャパンネット銀行 Business Account WEB総振 振込データの項目説明
@@ -1684,7 +1689,8 @@ class DownloadCostSubcontractorsByMonthView(BaseTemplateView):
         # find bank information for 'data_frame' 
         subcontractor_list = list(data_frame.iterrows())
         subcontractor_ids = [subcontractor.company_id for idx, subcontractor in subcontractor_list]
-        subcontractor_bankinfo_list = models.SubcontractorBankInfo.objects.filter(subcontractor_id__in=subcontractor_ids)
+        subcontractor_bankinfo_list = models.SubcontractorBankInfo.objects.filter(
+            subcontractor_id__in=subcontractor_ids)
 
         response = HttpResponse(content_type='text/csv')
         # force download.
@@ -1701,8 +1707,9 @@ class DownloadCostSubcontractorsByMonthView(BaseTemplateView):
         writer.writerow(['8', '件数'.encode('utf-8'), '合計金額'.encode('utf-8'), ''])
         # last row
         writer.writerow(['9', ''])
-        
+
         return response
+
     # first row, eb's bank information
     def writeBankInfomationOfEB(self, writer):
         today = datetime.date.today()
@@ -1712,48 +1719,49 @@ class DownloadCostSubcontractorsByMonthView(BaseTemplateView):
         bankInfo = models.BankInfo.objects.first()
         # format -> ジャパンネット銀行 Business Account WEB総振 振込データの項目説明
         # first row
-        writer.writerow(['1',                               #データ区分 (1) 「1」固定
-            '21',                                           #種別コード (2) 「21] 固定
-            '0',                                            #コード区分 (1) 「0」固定
-            '',                                             #振込依頼人コード ( 10) (設定不要)
-            bankInfo.account_holder.encode('utf-8'),        #振込依頼人名 ( 40) 「入力必須」
-            datetime.date(today.year, today.month, lastday).strftime("%m%d"),#振込日 (4) 「MMDD」
-            '33',                                           #振込元銀行コード (4) 「33」固定
-            '',                                             #振込元銀行名 ( 15) (省略可)
-            bankInfo.branch_no.encode('utf-8'),             #振込元支店コード (3) 「入力必須」
-            '',                                             #振込元支店名 ( 15) (省略可
-            '1',                                            #振込元預金種目 (1) 「1」固定
-            bankInfo.account_number.encode('utf-8'),        #振込元口座番号 (7) 「入力必須」
-            ''])                                            #予備(7)( 設定不要)
+        writer.writerow(['1',  # データ区分 (1) 「1」固定
+                         '21',  # 種別コード (2) 「21] 固定
+                         '0',  # コード区分 (1) 「0」固定
+                         '',  # 振込依頼人コード ( 10) (設定不要)
+                         bankInfo.account_holder.encode('utf-8'),  # 振込依頼人名 ( 40) 「入力必須」
+                         datetime.date(today.year, today.month, lastday).strftime("%m%d"),  # 振込日 (4) 「MMDD」
+                         '33',  # 振込元銀行コード (4) 「33」固定
+                         '',  # 振込元銀行名 ( 15) (省略可)
+                         bankInfo.branch_no.encode('utf-8'),  # 振込元支店コード (3) 「入力必須」
+                         '',  # 振込元支店名 ( 15) (省略可
+                         '1',  # 振込元預金種目 (1) 「1」固定
+                         bankInfo.account_number.encode('utf-8'),  # 振込元口座番号 (7) 「入力必須」
+                         ''])  # 予備(7)( 設定不要)
 
     # write the bank information for subcatontractor
     def writeRowForSubcontractor(self, writer, s_bank, subcontractor_list):
         # 振込先口座の預金科目(1:普通、2:当座、4:貯蓄)を入力してください。
-        bank_account_type='1'
-        if s_bank.account_type == '4' :
-            bank_account_type='2'
-        elif s_bank.account_type == '5' :
-            bank_account_type='4'
+        bank_account_type = '1'
+        if s_bank.account_type == '4':
+            bank_account_type = '2'
+        elif s_bank.account_type == '5':
+            bank_account_type = '4'
 
         # The Cost of current month
-        money = [subcontractor.total_cost for idx, subcontractor in subcontractor_list if subcontractor.company_id == s_bank.subcontractor.pk][0]
+        money = [subcontractor.total_cost for idx, subcontractor in subcontractor_list if
+                 subcontractor.company_id == s_bank.subcontractor.pk][0]
         writer.writerow([
-            '2',                                #データ区分「2」固定
-            '' if s_bank.bank_code is None else s_bank.bank_code.encode('utf-8'),       #銀行コード
-            '' if s_bank.bank_name is None else s_bank.bank_name.encode('utf-8'),       #銀行名(省略可)
-            '' if s_bank.branch_no is None else s_bank.branch_no.encode('utf-8'),       #支店コード
-            '' if s_bank.branch_name is None else s_bank.branch_name.encode('utf-8'),   #支店名(省略可)
-            '',                                 #手形交換所番号(設定不要)
-            bank_account_type.encode('utf-8'),  #預金種目
-            '' if s_bank.account_number is None else s_bank.account_number.encode('utf-8'),#口座番号
-            '' if s_bank.account_holder is None else s_bank.account_holder.encode('utf-8'),#受取人名
-            '' if money is None else int(round(money)),     #金額
-            '0',                                #新規コード「0」固定
-            '',                                 #顧客コード1 ( 10) (設定不要)
-            '',                                 #顧客コード2 ( 10) (設定不要)
-            '',                                 #振込指定区分 (1) (設定不要)
-            '',                                 #識別表示 (1) (設定不要)
-            ''])                                #予備(7)( 設定不要']
+            '2',  # データ区分「2」固定
+            '' if s_bank.bank_code is None else s_bank.bank_code.encode('utf-8'),  # 銀行コード
+            '' if s_bank.bank_name is None else s_bank.bank_name.encode('utf-8'),  # 銀行名(省略可)
+            '' if s_bank.branch_no is None else s_bank.branch_no.encode('utf-8'),  # 支店コード
+            '' if s_bank.branch_name is None else s_bank.branch_name.encode('utf-8'),  # 支店名(省略可)
+            '',  # 手形交換所番号(設定不要)
+            bank_account_type.encode('utf-8'),  # 預金種目
+            '' if s_bank.account_number is None else s_bank.account_number.encode('utf-8'),  # 口座番号
+            '' if s_bank.account_holder is None else s_bank.account_holder.encode('utf-8'),  # 受取人名
+            '' if money is None else int(round(money)),  # 金額
+            '0',  # 新規コード「0」固定
+            '',  # 顧客コード1 ( 10) (設定不要)
+            '',  # 顧客コード2 ( 10) (設定不要)
+            '',  # 振込指定区分 (1) (設定不要)
+            '',  # 識別表示 (1) (設定不要)
+            ''])  # 予備(7)( 設定不要']
 
 
 @method_decorator(permission_required('eb.view_subcontractor', raise_exception=True), name='get')
@@ -1947,10 +1955,19 @@ class BpMemberOrdersView(BaseTemplateView):
         member = get_object_or_404(models.Member, pk=member_id)
         project_members = member.projectmember_set.public_filter(is_deleted=False).order_by('-start_date')
         mail_group = models.MailGroup.get_member_order()
-        mail_title = mail_group.get_mail_title()
-        mail_body = mail_group.get_mail_body()
         md5 = hashlib.md5()
         md5.update(datetime.date.today().strftime('%Y%m%debsales'))
+
+        mailtitles = []
+        mailbodys = []
+        for month in common.get_month_list3():
+            mail_title = mail_group.get_mail_title(month=int(month[0]))
+            mailtitles.append((int(month[0]),mail_title))
+
+            mail_body = mail_group.get_mail_body(subcontractorname=member.subcontractor.name,month=int(month[0]))
+            mailbodys.append((int(month[0]),mail_body))
+
+        pass_body = mail_group.get_pass_body(subcontractorname=member.subcontractor.name)
         context.update({
             'title': u"%s | ＢＰ注文書" % unicode(member),
             'member': member,
@@ -1959,8 +1976,9 @@ class BpMemberOrdersView(BaseTemplateView):
             'month_list': common.get_month_list3(),
             'md5_token': md5.hexdigest().decode('raw_unicode_escape'),
             'mail_sender': mail_group.mail_sender,
-            'mail_title': mail_title,
-            'mail_body': mail_body,
+            'mailtitles': mailtitles,
+            'mailbodys': mailbodys,
+            'pass_body': pass_body,
         })
         return context
 
@@ -2164,7 +2182,8 @@ class DownloadBpLumpOrder(BaseView):
             if hasattr(lump_contract, 'bplumporder'):
                 lump_order = lump_contract.bplumporder
             else:
-                lump_order = models.BpLumpOrder.get_next_bp_order(lump_contract, request.user, publish_date=publish_date)
+                lump_order = models.BpLumpOrder.get_next_bp_order(lump_contract, request.user,
+                                                                  publish_date=publish_date)
             if overwrite:
                 if is_request:
                     filename = lump_order.filename_request if lump_order.filename_request else 'None'
@@ -2295,7 +2314,8 @@ class DownloadBpMemberOrder(BaseView):
 
                 # PDF作成
                 url = common.get_absolute_url(
-                    reverse('bp_member_order', args=(bp_order.pk, ))) + "?is_request=" + str(is_request) + "&user_first_name=" + request.user.first_name
+                    reverse('bp_member_order', args=(bp_order.pk,))) + "?is_request=" + str(
+                    is_request) + "&user_first_name=" + request.user.first_name
                 common.generate_pdf_from_url(url, path_pdf)
 
                 LogEntry.objects.log_action(request.user.id,
@@ -2692,6 +2712,7 @@ class BusinessDaysView(BaseView):
         business_days = common.get_business_days(year, month)
         return JsonResponse({'business_days': business_days})
 
+
 class SendMailBpMemberView(BaseView):
 
     def post(self, request, *args, **kwargs):
@@ -2717,7 +2738,7 @@ class SendMailBpMemberView(BaseView):
                     'sender': sender, 'recipient_list': recipient_list, 'cc_list': cc_list,
                     'attachment_list': attachment_list, 'is_encrypt': True,
                     'mail_title': mail_title, 'mail_body': mail_body, 'addressee': unicode(bp_order),
-                    'pass_body': pass_body,
+                    'pass_body': pass_body, 'zip_file_name': bp_order.filename[:-5],
                 }
                 mail = EbMail(**mail_data)
                 mail.send_email()
@@ -2731,6 +2752,7 @@ class SendMailBpMemberView(BaseView):
         else:
             ret.update({'result': False, 'message': "注文書と注文書請求書はまだ作成されていません。"})
         return JsonResponse(ret)
+
 
 class SendMailBpRequestView(BaseView):
 

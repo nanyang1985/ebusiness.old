@@ -863,7 +863,7 @@ class SubcontractorOrderRecipient(BaseModel):
 
 
 class MailTemplate(BaseModel):
-    mail_title = models.CharField(max_length=50, unique=True, verbose_name=u"送信メールのタイトル")
+    mail_title = models.CharField(max_length=100, unique=True, verbose_name=u"送信メールのタイトル")
     mail_body = models.TextField(blank=True, null=True, verbose_name=u"メール本文(Plain Text)")
     mail_html = models.TextField(blank=True, null=True, verbose_name=u"メール本文(HTML)")
     pass_title = models.CharField(
